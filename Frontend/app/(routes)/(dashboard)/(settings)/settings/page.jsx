@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Users, FileSpreadsheet, HardDrive, AlertCircle, RotateCcw, Clock, Server, Info, Database, Home } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Tree } from "@/components/ui/tree" // Asumiendo que existe un componente Tree
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("General")
@@ -39,6 +41,10 @@ export default function Settings() {
   const { data: systemInfo, error: systemInfoError } = useSWR('/api/systeminfo', fetcher, {
     refreshInterval: 1000, // Actualizar cada 1 segundo
   });
+
+  // 1. Agregar useSWR para grupos y OUs
+  const { data: groups, error: groupsError } = useSWR('/api/groups', fetcher);
+  const { data: ous, error: ousError } = useSWR('/api/ous', fetcher);
 
   useEffect(() => {
     const fetchSyslog = async () => {
@@ -255,14 +261,54 @@ export default function Settings() {
           </div>
         )}
         {activeTab === "Grupos" && (
-          <>
-            {/* contenido para Grupos */}
-          </>
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">Manejo de Grupos</h2>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Lista de Grupos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {groupsError ? (
+                  <p className="text-red-500">Error al cargar grupos</p>
+                ) : (
+                  groups && groups.map(group => (
+                    <div key={group.id} className="flex items-center space-x-4 mb-2">
+                      <RadioGroup defaultValue={group.type} onValueChange={(value) => handleGroupTypeChange(group.id, value)}>
+                        <RadioGroupItem value="security" id={`security-${group.id}`} />
+                        <Label htmlFor={`security-${group.id}`}>Security Group</Label>
+                        <RadioGroupItem value="distribution" id={`distribution-${group.id}`} />
+                        <Label htmlFor={`distribution-${group.id}`}>Distribution Group</Label>
+                      </RadioGroup>
+                      <span>{group.name}</span>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
         {activeTab === "Unidades" && (
-          <>
-            {/* contenido para Unidades Organizacionales */}
-          </>
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">Unidades Organizacionales</h2>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <HardDrive className="w-5 h-5" />
+                  Árbol de Unidades Organizacionales
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ousError ? (
+                  <p className="text-red-500">Error al cargar Unidades Organizacionales</p>
+                ) : (
+                  <Tree data={ous} />
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
         {activeTab === "Logs" && (
           <div>
@@ -327,4 +373,10 @@ export default function Settings() {
       </div>
     </div>
   )
+  
+  // Función para manejar cambios en el tipo de grupo
+  const handleGroupTypeChange = (groupId, type) => {
+    // Implementar lógica para manejar el cambio de tipo de grupo
+    console.log(`Grupo ID: ${groupId}, Tipo: ${type}`);
+  }
 }
