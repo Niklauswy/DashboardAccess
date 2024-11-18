@@ -1,0 +1,107 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use JSON;
+use DateTime;
+use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
+use File::Glob ':glob';
+use File::Spec;
+
+# Configuraciones
+my $log_pattern = '/var/log/syslog*';
+my $search_string = 'smbd_audit: ZENTYAL-DOMAIN\\\\\\';
+my $event_filter = 'connect';
+my $computers_file = 'computers_data.txt';
+
+# Obtener el año actual
+my $current_year = DateTime->now()->year();
+
+# Leer datos de computadoras
+my %ip_to_info = read_computers_data($computers_file);
+
+# Procesar logs
+my @user_data = process_logs($log_pattern, $search_string, $event_filter, \%ip_to_info, $current_year);
+
+# Invertir el orden de los datos
+@user_data = reverse @user_data;
+
+# Convertir a JSON y imprimir
+my $json = JSON->new->utf8->pretty->encode(\@user_data);
+print $json;
+
+# Funciones
+
+sub read_computers_data {
+    my ($file) = @_;
+    my %data;
+
+    open(my $fh, '<', $file) or die "No se pudo abrir el archivo '$file': $!";
+    while (my $line = <$fh>) {
+        chomp($line);
+        my ($salon, $id_computadora, $ip) = split(' ', $line);
+        $data{$ip} = {
+            salon           => $salon // 'N/A',
+            id_computadora  => $id_computadora // 'N/A',
+        };
+    }
+    close($fh);
+    return %data;
+}
+
+sub process_logs {
+    my ($pattern, $search, $event, $ip_ref, $year) = @_;
+    my @data;
+
+    foreach my $file (bsd_glob($pattern)) {
+        my $is_gz = $file =~ /\.gz$/;
+        my $fh;
+
+        if ($is_gz) {
+            $fh = IO::Uncompress::Gunzip->new($file)
+              or warn "No se pudo descomprimir '$file': $GunzipError" and next;
+        } else {
+            open($fh, '<', $file) or warn "No se pudo abrir '$file': $!" and next;
+        }
+
+        while (my $line = <$fh>) {
+            print "Processing line: $line";  # Debug print
+            if ($line =~ /\Q$search\E/ && $line =~ /\Q$event\E/) {
+                my ($fecha, $usuario, $evento, $ip) = parse_log_line($line);
+                if ($fecha && $usuario && $evento && $ip) {
+                    my $salon = $ip_ref->{$ip}->{salon} // 'N/A';
+                    my $id_computadora = $ip_ref->{$ip}->{id_computadora} // 'N/A';
+
+                    push @data, {
+                        date          => $fecha,
+                        user          => $usuario,
+                        event         => $evento,
+                        ip            => $ip,
+                        lab           => $salon,
+                        id_computer   => $id_computadora,
+                    };
+                } else {
+                    print "Failed to parse line: $line";  # Debug print
+                }
+            }
+        }
+        close($fh);
+    }
+
+    return @data;
+}
+
+sub parse_log_line {
+    my ($line) = @_;
+    my $smbd_audit = 'smbd_audit';  # Declare the variable here
+
+    # Ejemplo de línea: "Jul 22 08:54:51 zenti smbd_audit: ZENTYAL-DOMAIN\batman|192.168.68.117|disconnect|ok|batman"
+    if ($line =~ /^(\w+\s+\d+\s+\d+:\d+:\d+)\s+\S+\s+$smbd_audit:\s+ZENTYAL-DOMAIN\\(.+?)\|(\d+\.\d+\.\d+\.\d+)\|(\w+)\|.+$/) {
+        my ($month_day_time, $usuario, $ip, $evento) = ($1, $2, $3, $4);
+        my $fecha = "$current_year $month_day_time";
+        print "Parsed line: $fecha, $usuario, $ip, $evento\n";  # Debug print
+        return ($fecha, $usuario, $evento, $ip);
+    }
+    print "Line did not match: $line";  # Debug print
+    return;
+}
