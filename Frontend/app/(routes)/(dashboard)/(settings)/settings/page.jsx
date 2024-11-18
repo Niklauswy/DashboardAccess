@@ -21,7 +21,6 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Users, FileSpreadsheet, HardDrive, AlertCircle, RotateCcw, Clock, Server, Info, Database, Home } from "lucide-react"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Tree } from "@/components/ui/tree" // Asumiendo que existe un componente Tree
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("General")
@@ -98,6 +97,20 @@ export default function Settings() {
       setCsvFile(null)
     }
   }
+
+  // Función recursiva para renderizar OUs
+  const renderOUs = (nodes) => {
+    return (
+      <ul className="ml-4 list-disc">
+        {nodes.map(ou => (
+          <li key={ou.id} className="mt-2">
+            <span className="font-semibold">{ou.name}</span>
+            {ou.children && ou.children.length > 0 && renderOUs(ou.children)}
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -304,7 +317,9 @@ export default function Settings() {
                 {ousError ? (
                   <p className="text-red-500">Error al cargar Unidades Organizacionales</p>
                 ) : (
-                  <Tree data={ous} />
+                  <div className="mt-4">
+                    {ous && renderOUs(ous)}
+                  </div>
                 )}
               </CardContent>
             </Card>
