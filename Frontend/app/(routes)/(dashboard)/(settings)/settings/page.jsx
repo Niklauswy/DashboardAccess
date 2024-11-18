@@ -98,20 +98,6 @@ export default function Settings() {
     }
   }
 
-  // Función recursiva para renderizar OUs
-  const renderOUs = (nodes) => {
-    return (
-      <ul className="ml-4 list-disc">
-        {nodes.map(ou => (
-          <li key={ou.id} className="mt-2">
-            <span className="font-semibold">{ou.name}</span>
-            {ou.children && ou.children.length > 0 && renderOUs(ou.children)}
-          </li>
-        ))}
-      </ul>
-    );
-  };
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold mb-6">Configuración</h1>
@@ -287,17 +273,11 @@ export default function Settings() {
                 {groupsError ? (
                   <p className="text-red-500">Error al cargar grupos</p>
                 ) : (
-                  groups && groups.map(group => (
-                    <div key={group.id} className="flex items-center space-x-4 mb-2">
-                      <RadioGroup defaultValue={group.type} onValueChange={(value) => handleGroupTypeChange(group.id, value)}>
-                        <RadioGroupItem value="security" id={`security-${group.id}`} />
-                        <Label htmlFor={`security-${group.id}`}>Security Group</Label>
-                        <RadioGroupItem value="distribution" id={`distribution-${group.id}`} />
-                        <Label htmlFor={`distribution-${group.id}`}>Distribution Group</Label>
-                      </RadioGroup>
-                      <span>{group.name}</span>
-                    </div>
-                  ))
+                  <ul className="list-disc pl-5">
+                    {groups && groups.map((group, index) => (
+                      <li key={index} className="mt-2">{group}</li>
+                    ))}
+                  </ul>
                 )}
               </CardContent>
             </Card>
@@ -310,16 +290,18 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
                   <HardDrive className="w-5 h-5" />
-                  Árbol de Unidades Organizacionales
+                  Lista de Unidades Organizacionales
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {ousError ? (
                   <p className="text-red-500">Error al cargar Unidades Organizacionales</p>
                 ) : (
-                  <div className="mt-4">
-                    {ous && renderOUs(ous)}
-                  </div>
+                  <ul className="list-disc pl-5">
+                    {ous && ous.map((ou, index) => (
+                      <li key={index} className="mt-2">{ou}</li>
+                    ))}
+                  </ul>
                 )}
               </CardContent>
             </Card>
@@ -388,10 +370,4 @@ export default function Settings() {
       </div>
     </div>
   )
-  
-  // Función para manejar cambios en el tipo de grupo
-  const handleGroupTypeChange = (groupId, type) => {
-    // Implementar lógica para manejar el cambio de tipo de grupo
-    console.log(`Grupo ID: ${groupId}, Tipo: ${type}`);
-  }
 }
