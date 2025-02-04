@@ -66,7 +66,8 @@ export default function UserTable({ users, refreshUsers }) {
     const [sortColumn, setSortColumn] = useState(null);
     const [sortDirection, setSortDirection] = useState("asc");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-
+    const [open, setOpen] = useState(false)
+    
     useEffect(() => {
         async function fetchOus() {
             const res = await fetch('/api/ous');
