@@ -51,15 +51,13 @@ export default function ComputerManagement() {
   if (error) {
     return (
       <ErrorServer message="No se pudieron obtener los datos de las computadoras." onRetry={handleRetry} />
-    );
+    ); // Move this middleware to parse JSON request bodies before routes
   }
 
   if (!classroomsData) {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-4xl font-bold mb-12 text-slate-800 text-center">
-          Areas con Computadoras
-        </h1>
+   
 
         <div className="max-w-6xl mx-auto space-y-10">
           {[1, 2, 3].map((_, index) => (

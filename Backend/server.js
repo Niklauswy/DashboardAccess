@@ -9,33 +9,28 @@ const app = express();
 const port = 5000;
 
 app.use(cors());
-app.use(express.json()); // Move this middleware to parse JSON request bodies before routes
+app.use(express.json());
 
-// Function to execute Perl scripts without input data
+
 const executeScript = (script, res) => {
-  const cacheKey = script;
+  // Agrega el prefijo "scripts/" después de "perl "
+  const command = script.replace('perl ', 'perl scripts/');
+  const cacheKey = command;
   const cachedData = cache.get(cacheKey);
 
   if (cachedData) {
-    // Return cached response
-    return res.json(cachedData);
+    return res.status(200).json(cachedData);
   }
 
-  exec(script, { shell: '/bin/bash' }, (error, stdout, stderr) => { // Ensure correct shell
+  exec(command, { shell: '/bin/bash' }, (error, stdout, stderr) => {
     if (error) {
       console.error(`exec error: ${error}`);
       return res.status(500).json({ error: 'Server Error', details: error.message });
     }
     try {
       const jsonData = JSON.parse(stdout);
-      if (Array.isArray(jsonData)) {
-        res.json(jsonData); // If the script returns an array
-      } else if (jsonData.users && Array.isArray(jsonData.users)) {
-        res.json(jsonData.users); // If the script returns an object with users array
-      } else {
-        res.status(500).json({ error: 'Invalid data format from script' });
-      }
       cache.set(cacheKey, jsonData); // Cache the response
+      res.status(200).json(jsonData);
     } catch (parseError) {
       console.error(`parse error: ${parseError}`);
       res.status(500).json({ error: 'Server Error', details: parseError.message });
@@ -45,7 +40,9 @@ const executeScript = (script, res) => {
 
 // Function to execute Perl scripts with input data
 const executeScriptWithInput = (script, inputData, res) => {
-  const child = exec(script, { shell: '/bin/bash' }, (error, stdout, stderr) => {
+  // Agrega el prefijo "scripts/" después de "perl "
+  const command = script.replace('perl ', 'perl scripts/');
+  const child = exec(command, { shell: '/bin/bash' }, (error, stdout, stderr) => {
     if (error) {
       console.error(`exec error: ${error}`);
       return res.status(500).json({ error: 'Server Error', details: error.message });
