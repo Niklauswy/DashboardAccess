@@ -334,20 +334,8 @@ export default function UserTable({ users, refreshUsers }) {
                     columns={columns.filter(col => col.key !== 'accion')}
                     filename="usuarios"
                 />
-                <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <SheetTrigger asChild>
-                        <Button variant="default">Agregar Usuario</Button>
-                    </SheetTrigger>
-                    <SheetContent className="p-6">
-                        <SheetHeader className="mb-4">
-                            <SheetTitle className="text-lg font-semibold">Agregar Usuario</SheetTitle>
-                        </SheetHeader>
-                        <AddUserForm refreshUsers={refreshUsers} onClose={() => setIsDialogOpen(false)} />
-                        <SheetFooter className="mt-4">
-                            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                        </SheetFooter>
-                    </SheetContent>
-                </Sheet>
+                  <Button onClick={() => setOpen(true)}>Agregar Usuario</Button>
+                  <AddUserForm open={open} onOpenChange={setOpen} refreshUsers={refreshUsers} />
             </div>
             <div className="rounded-lg shadow overflow-hidden">
                 <Table>
