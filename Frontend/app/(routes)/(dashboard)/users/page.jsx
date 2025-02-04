@@ -1,8 +1,10 @@
 'use client';
 
-import useSWR from 'swr'; // Import useSWR
+import useSWR from 'swr';
 import UserTable from '@/components/UserTable';
 import UserTableSkeleton from '@/components/UserTableSkeleton';
+import ErrorServer from '@/components/ErrorServer';
+import NoData from '@/components/NoData';
 
 export default function UsersPage() {
     const fetcher = url => fetch(url, { cache: 'no-store' }).then(res => res.json());
@@ -12,15 +14,19 @@ export default function UsersPage() {
     });
 
     async function fetchUsersData() {
-        await mutate(); // Manually trigger revalidation
+        await mutate();
     }
 
     if (error) {
-        return <div>Error loading users</div>;
+        return <ErrorServer message="Error al cargar los usuarios, parece ser un error del servidor" onRetry={fetchUsersData} />;
     }
 
     if (!users) {
         return <UserTableSkeleton />;
+    }
+
+    if (users.length === 0) {
+        return <NoData />;
     }
 
     return (

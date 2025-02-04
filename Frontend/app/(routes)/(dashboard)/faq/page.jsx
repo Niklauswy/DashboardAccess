@@ -70,10 +70,10 @@ export default function FAQPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <Button variant="outline" className="w-full justify-start transition-colors hover:bg-primary/10">
-              <FileDown className="mr-2 h-4 w-4" /> Términos y Condiciones
+              <FileDown className="mr-2 h-4 w-4" /> Maquinas Windows 🪟
             </Button>
             <Button variant="outline" className="w-full justify-start transition-colors hover:bg-primary/10">
-              <FileDown className="mr-2 h-4 w-4" /> Política de Privacidad
+              <FileDown className="mr-2 h-4 w-4" /> Maquinas Linux 🐧
             </Button>
             <Button variant="outline" className="w-full justify-start transition-colors hover:bg-primary/10">
               <FileDown className="mr-2 h-4 w-4" /> Manual de Usuario
@@ -81,6 +81,7 @@ export default function FAQPage() {
             <Button variant="outline" className="w-full justify-start transition-colors hover:bg-primary/10">
               <FileDown className="mr-2 h-4 w-4" /> Guía de Inicio Rápido
             </Button>
+
           </CardContent>
         </Card>
       </div>

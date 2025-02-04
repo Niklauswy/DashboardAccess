@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Monitor, Laptop, Info, School, ChevronDown, CheckCircle, XCircle, MinusCircle, Clock, Calendar, Check, X, Minus, Command } from "lucide-react"
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
 import { Terminal, Apple, HelpCircle } from "lucide-react"
-
+import ErrorServer from '@/components/ErrorServer';
+import NoData from '@/components/NoData';
 
 const osIcons = {
   windows: <Monitor className="h-6 w-6 text-blue-500" />,
@@ -34,38 +35,28 @@ const statusNames = {
 const fetcher = (url) => fetch(url).then((res) => res.json())
 
 export default function ComputerManagement() {
-  const { data: classroomsData, error } = useSWR('/api/computers', fetcher)
+  const { data: classroomsData, error, mutate } = useSWR('/api/computers', fetcher)
   const [selectedComputer, setSelectedComputer] = useState(null)
+
+  const handleRetry = () => {
+    mutate();
+  };
 
   if (classroomsData && classroomsData.error) {
     return (
-      <div className="p-6 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="text-center py-10">
-            <h2 className="text-2xl font-semibold text-red-700 mb-2">Error al obtener datos</h2>
-            <p className="text-gray-500">{classroomsData.error}</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
+      <ErrorServer message={classroomsData.error} onRetry={handleRetry} />
+    );
   }
 
   if (error) {
     return (
-      <div className="p-6 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="text-center py-10">
-            <h2 className="text-2xl font-semibold text-red-700 mb-2">Error al cargar datos</h2>
-            <p className="text-gray-500">No se pudieron obtener los datos de las computadoras.</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
+      <ErrorServer message="No se pudieron obtener los datos de las computadoras." onRetry={handleRetry} />
+    );
   }
 
   if (!classroomsData) {
     return (
-      <div className="p-8 min-h-screen ">
+      <div className="p-8 flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-4xl font-bold mb-12 text-slate-800 text-center">
           Areas con Computadoras
         </h1>
@@ -120,9 +111,13 @@ export default function ComputerManagement() {
     })
   }
 
+  if (classrooms && classrooms.length === 0) {
+    return <NoData onReload={handleRetry} />;
+  }
+
   return (
     <TooltipProvider>
-      <div className="p-8 min-h-screen">
+      <div className="p-8 flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-4xl font-bold mb-12 text-slate-800 text-center">
           Areas con Computadoras
         </h1>
