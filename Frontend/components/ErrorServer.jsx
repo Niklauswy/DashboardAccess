@@ -3,7 +3,7 @@ import { motion } from "framer-motion"
 
             const ErrorServer = ({ message = "Lo sentimos, algo salió mal." }) => {
               return (
-                <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] h-[calc(100vh-4rem)]">
+                <div className="flex items-center justify-center w-full h-full mt-48">
                   <Card className="overflow-hidden max-w-md w-full">
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
                       <div className="relative h-48 bg-green-800">
@@ -27,7 +27,7 @@ import { motion } from "framer-motion"
                           transition={{ delay: 0.2, type: "spring", stiffness: 260, damping: 20 }}
                         >
                           <span className="text-9xl" role="img" aria-label="Error">
-                          😕
+                            😕
                           </span>
                         </motion.div>
                       </div>
@@ -60,7 +60,6 @@ import { motion } from "framer-motion"
                     </motion.div>
                   </Card>
                 </div>
-              )
+              );
             }
-
             export default ErrorServer
