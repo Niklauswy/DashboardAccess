@@ -32,6 +32,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast"
+import AddUserForm from "@/components/AddUserForm";
 
 const careerIcons = {
     CC: <Cpu className="h-4 w-4" />,
@@ -65,15 +66,6 @@ export default function UserTable({ users, refreshUsers }) {
     const [sortColumn, setSortColumn] = useState(null);
     const [sortDirection, setSortDirection] = useState("asc");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [newUser, setNewUser] = useState({
-        samAccountName: '',
-        givenName: '',
-        sn: '',
-        password: '',
-  
-    });
-    const [ous, setOus] = useState([]);
-    const [groups, setGroups] = useState([]);
 
     useEffect(() => {
         async function fetchOus() {
@@ -211,51 +203,6 @@ export default function UserTable({ users, refreshUsers }) {
         }
     }, []);
 
-    async function handleAddUser(e) {
-        e.preventDefault();
-        try {
-            const res = await fetch('/api/users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newUser),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                // Refresh users list or handle success
-                setIsDialogOpen(false);
-                setNewUser({
-                    samAccountName: '',
-                    givenName: '',
-                    sn: '',
-                    password: '',
-                    ou: '',
-                    groups: [],
-                    // ...reset other fields...
-                });
-                await refreshUsers(); // Refresh data using mutate()
-                toast({
-                    title: "Usuario creado",
-                    description: `El usuario ${newUser.samAccountName} ha sido creado exitosamente.`,
-                });
-            } else {
-                // Handle error
-                console.error(`Error adding user: ${data.error}`);
-                toast({
-                    title: "Error",
-                    description: `Error: ${data.error}`,
-                    variant: "destructive",
-                });
-            }
-        } catch (error) {
-            console.error('Error adding user:', error);
-            toast({
-                title: "Error inesperado",
-                description: 'Error inesperado al agregar el usuario.',
-                variant: "destructive",
-            });
-        }
-    }
-
     return (
         <div className="p-4 space-y-4 min-h-screen">
             <div className="flex items-center justify-between space-x-4">
@@ -391,69 +338,14 @@ export default function UserTable({ users, refreshUsers }) {
                     <SheetTrigger asChild>
                         <Button variant="default">Agregar Usuario</Button>
                     </SheetTrigger>
-                    <SheetContent>
-                        <SheetHeader>
-                            <SheetTitle>Agregar Usuario</SheetTitle>
+                    <SheetContent className="p-6">
+                        <SheetHeader className="mb-4">
+                            <SheetTitle className="text-lg font-semibold">Agregar Usuario</SheetTitle>
                         </SheetHeader>
-                        <form onSubmit={handleAddUser} className="space-y-6 mt-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> {/* Cambiado a 2 columnas en pantallas medianas */}
-                                <div className="flex flex-col">
-                                    <Label htmlFor="samAccountName">Usuario</Label>
-                                    <Input id="samAccountName" value={newUser.samAccountName} onChange={(e) => setNewUser({ ...newUser, samAccountName: e.target.value })} required />
-                                </div>
-                                <div className="flex flex-col">
-                                    <Label htmlFor="givenName">Nombre</Label>
-                                    <Input id="givenName" value={newUser.givenName} onChange={(e) => setNewUser({ ...newUser, givenName: e.target.value })} required />
-                                </div>
-                                <div className="flex flex-col">
-                                    <Label htmlFor="sn">Apellido</Label>
-                                    <Input id="sn" value={newUser.sn} onChange={(e) => setNewUser({ ...newUser, sn: e.target.value })} required />
-                                </div>
-                                <div className="flex flex-col">
-                                    <Label htmlFor="password">Contraseña</Label>
-                                    <Input id="password" type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required />
-                                </div>
-                                <div className="flex flex-col">
-                                    <Label htmlFor="ou">Unidad Organizativa</Label>
-                                    <select
-                                        id="ou"
-                                        value={newUser.ou}
-                                        onChange={(e) => setNewUser({ ...newUser, ou: e.target.value })}
-                                        required
-                                        className="border rounded p-2 w-full"
-                                    >
-                                        <option value="">Seleccione una unidad</option>
-                                        {ous.map((ou) => (
-                                            <option key={ou} value={ou}>{ou}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="flex flex-col">
-                                    <Label htmlFor="groups">Grupos</Label>
-                                    <select
-                                        id="groups"
-                                        multiple
-                                        value={newUser.groups}
-                                        onChange={(e) =>
-                                            setNewUser({ 
-                                                ...newUser, 
-                                                groups: Array.from(e.target.selectedOptions, option => option.value) 
-                                            })
-                                        }
-                                        required
-                                        className="border rounded p-2 w-full h-32" // Añadido altura para múltiples selecciones
-                                    >
-                                        {groups.map((group) => (
-                                            <option key={group} value={group}>{group}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                {/* ...other fields... */}
-                            </div>
-                            <SheetFooter className="flex justify-end">
-                                <Button type="submit" className="w-full md:w-auto">Agregar</Button> {/* Ajuste responsive */}
-                            </SheetFooter>
-                        </form>
+                        <AddUserForm refreshUsers={refreshUsers} onClose={() => setIsDialogOpen(false)} />
+                        <SheetFooter className="mt-4">
+                            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                        </SheetFooter>
                     </SheetContent>
                 </Sheet>
             </div>

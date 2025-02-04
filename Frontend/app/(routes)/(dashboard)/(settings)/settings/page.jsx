@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Users, FileSpreadsheet, HardDrive, AlertCircle, RotateCcw, Clock, Server, Info, Database, Home } from "lucide-react"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("General")
