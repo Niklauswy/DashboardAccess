@@ -1,0 +1,115 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc} % Soporte para caracteres especiales
+\usepackage{titlesec}       % Mejor control de títulos
+\usepackage{geometry}       % Control de márgenes de página
+\usepackage{tikz}           % Gráficos y decoración
+\usepackage{hyperref}       % Hipervínculos en PDF
+\usepackage{fancyhdr}       % Control del encabezado y pie de página
+\usepackage{color}          % Colores para texto
+
+% Configuración de márgenes
+\geometry{a4paper, top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+
+% Títulos estéticos
+\titleformat{\section}{\Large\bfseries\color{blue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries\color{cyan}}{\thesubsection}{1em}{}
+
+% Encabezados y Pie de página
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\reportTitle}
+\rhead{Manual de instalación}
+\cfoot{\thepage}
+
+% Personalización de colores
+\definecolor{myTitleColor}{RGB}{40, 116, 166}
+
+% Título principal (Portada)
+\newcommand{\manualTitle}{
+    \begin{center}
+    \vspace*{3cm}
+    {\Huge\bfseries\color{myTitleColor} Manual de Instalación}\\[1.5em]
+    {\Large \textbf{\reportTitle}} \\[1em]
+    {\large \today}\\[4em]
+    \includegraphics[width=0.3\textwidth]{placeholder_logo.jpg}\\[4em]
+    \vfill
+    \textit{Preparado por: Tu Nombre}\\
+    \end{center}
+}
+
+\begin{document}
+
+% Portada
+    \thispagestyle{empty} % Sin encabezado en la portada
+    \manualTitle
+    \newpage
+
+% Índice (opcional)
+    \tableofcontents
+    \newpage
+
+% Sección 1: Introducción
+    \section{Introducción}
+    Este manual describe los pasos necesarios para instalar y configurar el software. Asegúrese de contar con los requisitos previos mencionados.
+
+% Sección 2: Requisitos previos
+    \section{Requisitos previos}
+    \begin{itemize}
+        \item Sistema operativo: Linux, macOS, o Windows.
+        \item Tener los siguientes paquetes instalados:
+        \begin{itemize}
+            \item \texttt{Node.js} (versión 16 o superior).
+            \item \texttt{npm} (versión 8 o superior).
+        \end{itemize}
+        \item Conexión a internet.
+    \end{itemize}
+
+% Sección 3: Pasos para la instalación
+    \section{Pasos para la instalación}
+    \subsection{Descargar los archivos}
+    Navegue al repositorio del proyecto en GitHub y descargue el código fuente o clonelo usando el comando:
+
+    \begin{verbatim}
+git clone https://github.com/usuario/proyecto.git
+    \end{verbatim}
+
+    \subsection{Instalar las dependencias}
+    Ejecute el siguiente comando en la carpeta del proyecto para instalar las dependencias necesarias:
+
+    \begin{verbatim}
+npm install
+    \end{verbatim}
+
+    \subsection{Configurar el proyecto}
+    Edite el archivo \texttt{config.js} con la información requerida:
+    \begin{verbatim}
+module.exports = {
+    apiKey: "YOUR_API_KEY",
+    port: 3000
+};
+    \end{verbatim}
+
+% Sección 4: Verificación
+    \section{Verificación}
+    Para verificar la instalación, ejecute el siguiente comando y asegúrese de que el proyecto esté funcionando correctamente:
+
+    \begin{verbatim}
+npm start
+    \end{verbatim}
+
+    Abra un navegador y navegue a \url{http://localhost:3000}.
+
+% Sección 5: Solución de problemas
+    \section{Solución de problemas}
+    Si encuentra problemas durante el proceso:
+    \begin{itemize}
+        \item Verifique los permisos en el sistema operativo.
+        \item Asegúrese de que las versiones de Node.js y npm sean las correctas.
+        \item Revise el archivo \texttt{README.md} para obtener soporte adicional.
+    \end{itemize}
+
+% Bibliografía (Opcional)
+    \bibliographystyle{plain}
+    \bibliography{referencias}
+
+\end{document}

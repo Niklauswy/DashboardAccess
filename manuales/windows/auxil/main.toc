@@ -1,0 +1,8 @@
+\contentsline {section}{\numberline {1}Introducción}{3}{section.1}%
+\contentsline {section}{\numberline {2}Requisitos previos}{3}{section.2}%
+\contentsline {section}{\numberline {3}Pasos para la instalación}{3}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Descargar los archivos}{3}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Instalar las dependencias}{3}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Configurar el proyecto}{3}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Verificación}{3}{section.4}%
+\contentsline {section}{\numberline {5}Solución de problemas}{4}{section.5}%
