@@ -32,8 +32,6 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast"
-import AddUserForm from "@/components/AddUserForm";
-import { classNames } from "@/lib/utils"; // si ya tienes una función para combinar clases
 
 const careerIcons = {
     CC: <Cpu className="h-4 w-4" />,
@@ -67,7 +65,15 @@ export default function UserTable({ users, refreshUsers }) {
     const [sortColumn, setSortColumn] = useState(null);
     const [sortDirection, setSortDirection] = useState("asc");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [open, setOpen] = useState(false)
+    const [newUser, setNewUser] = useState({
+        samAccountName: '',
+        givenName: '',
+        sn: '',
+        password: '',
+  
+    });
+    const [ous, setOus] = useState([]);
+    const [groups, setGroups] = useState([]);
 
     useEffect(() => {
         async function fetchOus() {
@@ -192,17 +198,16 @@ export default function UserTable({ users, refreshUsers }) {
         }
     }, [sortColumn]);
 
-    // Función para eliminar usuarios individualmente mediante confirmación
     const handleAction = useCallback((action, userId) => {
         switch (action) {
             case "edit":
                 console.log(`Editar usuario ${userId}`);
-                // Aquí se puede abrir un modal de edición si se requiere
+                // Aquí se puede abrir un modal de edición para el usuario seleccionado
                 break;
             case "delete":
                 if (window.confirm(`¿Está seguro de eliminar el usuario ${userId}?`)) {
                     console.log(`Eliminar usuario ${userId}`);
-                    // Lógica para eliminar usuario y actualizar la tabla
+                    // Lógica para eliminar individual y refrescar datos
                     refreshUsers();
                     toast({ title: "Usuario eliminado" });
                 }
@@ -212,17 +217,61 @@ export default function UserTable({ users, refreshUsers }) {
         }
     }, [refreshUsers, toast]);
 
-    // Función para eliminar múltiples usuarios seleccionados
     const handleDeleteSelected = useCallback(() => {
-        if (selectedRows.length === 0) return;
+        if (selectedRows.length < 2) return;
         if (window.confirm(`¿Está seguro de eliminar los ${selectedRows.length} usuarios seleccionados?`)) {
-            console.log("Eliminar usuarios:", selectedRows);
-            // Aquí se puede implementar la eliminación masiva mediante una API
+            console.log("Eliminar usuarios en conjunto:", selectedRows);
+            // Implementa la eliminación masiva vía API aquí
             setSelectedRows([]);
             refreshUsers();
             toast({ title: "Usuarios eliminados" });
         }
     }, [selectedRows, refreshUsers, toast]);
+
+    async function handleAddUser(e) {
+        e.preventDefault();
+        try {
+            const res = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newUser),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                // Refresh users list or handle success
+                setIsDialogOpen(false);
+                setNewUser({
+                    samAccountName: '',
+                    givenName: '',
+                    sn: '',
+                    password: '',
+                    ou: '',
+                    groups: [],
+                    // ...reset other fields...
+                });
+                await refreshUsers(); // Refresh data using mutate()
+                toast({
+                    title: "Usuario creado",
+                    description: `El usuario ${newUser.samAccountName} ha sido creado exitosamente.`,
+                });
+            } else {
+                // Handle error
+                console.error(`Error adding user: ${data.error}`);
+                toast({
+                    title: "Error",
+                    description: `Error: ${data.error}`,
+                    variant: "destructive",
+                });
+            }
+        } catch (error) {
+            console.error('Error adding user:', error);
+            toast({
+                title: "Error inesperado",
+                description: 'Error inesperado al agregar el usuario.',
+                variant: "destructive",
+            });
+        }
+    }
 
     return (
         <div className="p-4 space-y-4 min-h-screen relative">
@@ -355,8 +404,75 @@ export default function UserTable({ users, refreshUsers }) {
                     columns={columns.filter(col => col.key !== 'accion')}
                     filename="usuarios"
                 />
-                  <Button onClick={() => setOpen(true)}>Agregar Usuario</Button>
-                  <AddUserForm open={open} onOpenChange={setOpen} refreshUsers={refreshUsers} />
+                <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <SheetTrigger asChild>
+                        <Button variant="default">Agregar Usuario</Button>
+                    </SheetTrigger>
+                    <SheetContent>
+                        <SheetHeader>
+                            <SheetTitle>Agregar Usuario</SheetTitle>
+                        </SheetHeader>
+                        <form onSubmit={handleAddUser} className="space-y-6 mt-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> {/* Cambiado a 2 columnas en pantallas medianas */}
+                                <div className="flex flex-col">
+                                    <Label htmlFor="samAccountName">Usuario</Label>
+                                    <Input id="samAccountName" value={newUser.samAccountName} onChange={(e) => setNewUser({ ...newUser, samAccountName: e.target.value })} required />
+                                </div>
+                                <div className="flex flex-col">
+                                    <Label htmlFor="givenName">Nombre</Label>
+                                    <Input id="givenName" value={newUser.givenName} onChange={(e) => setNewUser({ ...newUser, givenName: e.target.value })} required />
+                                </div>
+                                <div className="flex flex-col">
+                                    <Label htmlFor="sn">Apellido</Label>
+                                    <Input id="sn" value={newUser.sn} onChange={(e) => setNewUser({ ...newUser, sn: e.target.value })} required />
+                                </div>
+                                <div className="flex flex-col">
+                                    <Label htmlFor="password">Contraseña</Label>
+                                    <Input id="password" type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required />
+                                </div>
+                                <div className="flex flex-col">
+                                    <Label htmlFor="ou">Unidad Organizativa</Label>
+                                    <select
+                                        id="ou"
+                                        value={newUser.ou}
+                                        onChange={(e) => setNewUser({ ...newUser, ou: e.target.value })}
+                                        required
+                                        className="border rounded p-2 w-full"
+                                    >
+                                        <option value="">Seleccione una unidad</option>
+                                        {ous.map((ou) => (
+                                            <option key={ou} value={ou}>{ou}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="flex flex-col">
+                                    <Label htmlFor="groups">Grupos</Label>
+                                    <select
+                                        id="groups"
+                                        multiple
+                                        value={newUser.groups}
+                                        onChange={(e) =>
+                                            setNewUser({ 
+                                                ...newUser, 
+                                                groups: Array.from(e.target.selectedOptions, option => option.value) 
+                                            })
+                                        }
+                                        required
+                                        className="border rounded p-2 w-full h-32" // Añadido altura para múltiples selecciones
+                                    >
+                                        {groups.map((group) => (
+                                            <option key={group} value={group}>{group}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                   
+                            </div>
+                            <SheetFooter className="flex justify-end">
+                                <Button type="submit" className="w-full md:w-auto">Agregar</Button> {/* Ajuste responsive */}
+                            </SheetFooter>
+                        </form>
+                    </SheetContent>
+                </Sheet>
             </div>
             <div className="rounded-lg shadow overflow-hidden">
                 <Table>
@@ -405,12 +521,9 @@ export default function UserTable({ users, refreshUsers }) {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onSelect={() => handleAction("edit", user.username)}>
-                                                        Editar
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onSelect={() => handleAction("delete", user.username)}>
-                                                        Eliminar
-                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onSelect={() => handleAction("edit", user.username)}>Editar</DropdownMenuItem>
+                                                    <DropdownMenuItem onSelect={() => handleAction("delete", user.username)}>Eliminar</DropdownMenuItem>
+                                                    <DropdownMenuItem onSelect={() => handleAction("addLabel", user.username)}>Añadir Label</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         ) : column.key === "groups" ? (
@@ -486,46 +599,47 @@ export default function UserTable({ users, refreshUsers }) {
                     </div>
                 </div>
             </div>
-            {/* Barra de acciones para múltiples usuarios seleccionados */}
-            <div
-                className={classNames(
-                    'absolute inset-x-0 -bottom-14 mx-auto flex w-fit items-center space-x-3 rounded-full border bg-gray-800 px-4 py-2 text-white font-medium shadow',
-                    selectedRows.length > 0 ? '' : 'hidden'
-                )}
-            ></div>
-                <p className="select-none tabular-nums">
-                    {selectedRows.length} usuario(s) seleccionados
-                </p>
-                <span className="h-4 w-px bg-gray-500" aria-hidden="true" />
-                <button
-                    type="button"
-                    className="inline-flex items-center gap-2 hover:text-gray-300"
-                    onClick={() => console.log("Editar selección:", selectedRows)}
+            {selectedRows.length > 1 && (
+                <div
+                    className={
+                        'absolute inset-x-0 -bottom-14 mx-auto flex w-fit items-center space-x-3 rounded-full border bg-gray-800 px-4 py-2 text-white font-medium shadow'
+                    }
                 >
-                    Editar
-                    <span className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-sm ring-1 ring-gray-500"></span>
-                        E
-                    </span>
-                </button>
-                <span className="h-4 w-px bg-gray-500" aria-hidden="true" />
-                <button
-                    type="button"
-                    className="inline-flex items-center gap-2 hover:text-gray-300"
-                    onClick={handleDeleteSelected}
-                >
-                    Eliminar
-                    <span className="flex items-center space-x-1"></span>
+                    <p className="select-none">
+                        {selectedRows.length} usuarios seleccionados
+                    </p>
+                    <span className="h-4 w-px bg-gray-500" aria-hidden="true" />
+                    <button
+                        type="button"
+                        className="inline-flex items-center gap-2 hover:text-gray-300"
+                        onClick={() => console.log("Editar selección:", selectedRows)}
+                    >
+                        Editar
                         <span className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-sm ring-1 ring-gray-500">
-                            ⌘
+                            E
                         </span>
-                        <span className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-sm ring-1 ring-gray-500">
-                            D
+                    </button>
+                    <span className="h-4 w-px bg-gray-500" aria-hidden="true" />
+                    <button
+                        type="button"
+                        className="inline-flex items-center gap-2 hover:text-gray-300"
+                        onClick={handleDeleteSelected}
+                    >
+                        Eliminar
+                        <span className="flex items-center space-x-1">
+                            <span className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-sm ring-1 ring-gray-500">
+                                ⌘
+                            </span>
+                            <span className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-sm ring-1 ring-gray-500">
+                                D
+                            </span>
                         </span>
-                    </span>
-                </button>
-            </div>
+                    </button>
+                </div>
+            )}
         </div>
     );
+    
 }
 
 
