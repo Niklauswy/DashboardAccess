@@ -494,7 +494,7 @@ export default function UserTable({ users, refreshUsers }) {
                             value={rowsPerPage}
                             onChange={(e) => setRowsPerPage(Number(e.target.value))}
                         >
-                            <option>20</option>
+                            <option>10</option>
                             <option>50</option>
                             <option>100</option>
                         </select>
