@@ -510,6 +510,23 @@ export default function UserTable({ users, refreshUsers }) {
                         className="inline-flex items-center gap-2 hover:text-gray-300"
                         onClick={handleDeleteSelected}
                     >
+                        Cambiar contraseña
+                        <span className="flex items-center space-x-1">
+                            <span className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-sm ring-1 ring-gray-500">
+                                ⌘
+                            </span>
+                            <span className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-sm ring-1 ring-gray-500">
+                                C
+                            </span>
+                        </span>
+                    </button>
+
+                    <span className="h-4 w-px bg-gray-500" aria-hidden="true" />
+                    <button
+                        type="button"
+                        className="inline-flex items-center gap-2 hover:text-gray-300"
+                        onClick={handleDeleteSelected}
+                    >
                         Eliminar
                         <span className="flex items-center space-x-1">
                             <span className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-sm ring-1 ring-gray-500">

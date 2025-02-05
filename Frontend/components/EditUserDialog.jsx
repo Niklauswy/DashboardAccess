@@ -76,15 +76,15 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
                 onChange={(e) => setEditUser({...editUser, name: e.target.value})}
               />
             </div>
-            {/* Unidad Organizativa con Select */}
+            {/* Carrera con Select */}
             <div className="space-y-2">
-              <Label htmlFor="editOu">Unidad Organizativa</Label>
+              <Label htmlFor="editOu">Carrera</Label>
               <Select 
                 value={editUser.ou} 
                 onValueChange={(value) => setEditUser({...editUser, ou: value})}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una unidad" />
+                  <SelectValue placeholder="Seleccione una carrera" />
                 </SelectTrigger>
                 <SelectContent>
                   {ous.map((ou) => (
@@ -104,7 +104,7 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
                 onChange={(e) => setEditUser({...editUser, password: e.target.value})}
               />
             </div>
-            
+
             {/* Grupos con Popover y Command */}
             <div className="space-y-2">
               <Label>Grupos</Label>
