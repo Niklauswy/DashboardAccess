@@ -116,16 +116,15 @@ export default function ComputerManagement() {
   return (
     <TooltipProvider>
       <div className="p-8 flex flex-col items-center justify-center min-h-screen">
-    
-        <div className="max-w-6xl mx-auto space-y-10">
+        {/* Update container to occupy full width */}
+        <div className="w-full mx-auto space-y-6">
           {classrooms.map((classroom) => {
-            const totalComputers = classroom.computers.length
+            const totalComputers = classroom.computers.length;
             const activeComputers = classroom.computers.filter(c => c.status === 'activa').length;
             const activePercentage = ((activeComputers / totalComputers) * 100).toFixed(1);
-
             return (
-              <Card key={classroom.id} className="shadow-lg border-0 bg-white/50 backdrop-blur">
-                <CardHeader className="border-b border-slate-100 bg-white">
+              <Card key={classroom.id} className="w-full shadow-lg border-0 bg-white/50 backdrop-blur p-4">
+                <CardHeader className="border-b border-slate-100 bg-white pb-3">
                   <div className="flex justify-between items-center">
                     <div className="space-y-1">
                       <CardTitle className="text-xl font-medium flex items-center text-slate-700">
@@ -141,8 +140,7 @@ export default function ComputerManagement() {
                     </Badge>
                   </div>
                 </CardHeader>
-
-                <CardContent className="p-6">
+                <CardContent className="p-4">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
@@ -156,9 +154,7 @@ export default function ComputerManagement() {
                             Desconocido
                             <Info 
                               className="h-3 w-3 ml-1 text-slate-400 cursor-help"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                              }}
+                              onClick={(e) => e.stopPropagation()}
                             />
                             <div className="invisible group-hover:visible absolute -top-12 left-0 bg-slate-800 text-white text-xs p-2 rounded w-64">
                               Una computadora se marca como &quot;desconocida&quot; cuando no ha registrado actividad en los últimos 3 meses.
@@ -167,16 +163,14 @@ export default function ComputerManagement() {
                         </div>
                       </div>
                     </div>
-
                     <div className="bg-white p-4 rounded-lg shadow-sm">
-                      <div className="flex h-8 gap-px" style={{ maxWidth: '100%' }}>
+                      <div className="flex h-8 gap-px w-full">
                         {classroom.computers.map((computer) => (
                           <Tooltip key={computer.id}>
                             <TooltipTrigger asChild>
                               <button
                                 className={`w-10 min-w-[10px] transition-all duration-200 ${statusColors[computer.status]} first:rounded-l last:rounded-r`}
                                 onClick={() => setSelectedComputer(computer)}
-                                style={{ width: `${100/50}%` }}
                               />
                             </TooltipTrigger>
                             <TooltipContent side="top" className="bg-slate-800 text-xs p-2">
@@ -185,7 +179,6 @@ export default function ComputerManagement() {
                             </TooltipContent>
                           </Tooltip>
                         ))}
-             
                       </div>
                     </div>
                   </div>
