@@ -143,11 +143,11 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
             {/* Unidad Organizativa */}
             <div className="space-y-2">
               <Label htmlFor="ou">
-                Unidad Organizativa <span className="text-destructive">*</span>
+                Carrera <span className="text-destructive">*</span>
               </Label>
               <Select value={newUser.ou} onValueChange={(value) => setNewUser({ ...newUser, ou: value })} required>
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una unidad" />
+                  <SelectValue placeholder="Seleccione una carrera" />
                 </SelectTrigger>
                 <SelectContent>
                   {ous.map((ou) => (

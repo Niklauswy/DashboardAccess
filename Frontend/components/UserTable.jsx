@@ -235,8 +235,7 @@ export default function UserTable({ users, refreshUsers }) {
     return (
         <div className="p-4 space-y-4 min-h-screen relative">
             {/* Fila de filtros */}
-            <div className="flex flex-col space-y-2">
-                {/* Primera fila: Input y Dropdowns */}
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
                 <div className="flex flex-wrap items-center gap-4">
                     <Input
                         placeholder="Filtrar usuarios..."
@@ -286,6 +285,14 @@ export default function UserTable({ users, refreshUsers }) {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
+                    {selectedCarreras.map((carrera) => (
+                        <Badge key={carrera} variant="secondary" className="px-2 py-1">
+                            {carrera}
+                            <Button variant="ghost" size="sm" className="ml-2 h-4 w-4 p-0" onClick={() => toggleCarrera(carrera)}>
+                                <X className="h-3 w-3" />
+                            </Button>
+                        </Badge>
+                    ))}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="border-dashed">
@@ -327,17 +334,6 @@ export default function UserTable({ users, refreshUsers }) {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                </div>
-                {/* Segunda fila: Badges de filtros activos */}
-                <div className="flex flex-wrap items-center gap-4">
-                    {selectedCarreras.map((carrera) => (
-                        <Badge key={carrera} variant="secondary" className="px-2 py-1">
-                            {carrera}
-                            <Button variant="ghost" size="sm" className="ml-2 h-4 w-4 p-0" onClick={() => toggleCarrera(carrera)}>
-                                <X className="h-3 w-3" />
-                            </Button>
-                        </Badge>
-                    ))}
                     {selectedGroups.map((group) => (
                         <Badge key={group} variant="secondary" className="px-2 py-1">
                             {group}
@@ -347,32 +343,32 @@ export default function UserTable({ users, refreshUsers }) {
                         </Badge>
                     ))}
                 </div>
-            </div>
-            {/* Fila de acciones */}
-            <div className="flex items-center gap-4">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="border-dashed">
-                            <Eye className="mr-2 h-4 w-4" />
-                            Ver
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        {columns.filter((column) => !column.fixed).map((column) => (
-                            <DropdownMenuItem key={column.key} onSelect={() => toggleColumn(column.key)}>
-                                {visibleColumns.includes(column.key) ? <Check className="mr-2 h-4 w-4" /> : <X className="mr-2 h-4 w-4" />}
-                                {column.label}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <ExportButton 
-                    data={sortedUsers}
-                    columns={columns.filter(col => col.key !== 'accion')}
-                    filename="usuarios"
-                />
-                <Button onClick={() => setOpen(true)}>Agregar Usuario</Button>
-                <AddUserForm open={open} onOpenChange={setOpen} refreshUsers={refreshUsers} />
+                {/* Fila de acciones */}
+                <div className="flex items-center gap-4">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="border-dashed">
+                                <Eye className="mr-2 h-4 w-4" />
+                                Ver
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            {columns.filter((column) => !column.fixed).map((column) => (
+                                <DropdownMenuItem key={column.key} onSelect={() => toggleColumn(column.key)}>
+                                    {visibleColumns.includes(column.key) ? <Check className="mr-2 h-4 w-4" /> : <X className="mr-2 h-4 w-4" />}
+                                    {column.label}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <ExportButton 
+                        data={sortedUsers}
+                        columns={columns.filter(col => col.key !== 'accion')}
+                        filename="usuarios"
+                    />
+                    <Button onClick={() => setOpen(true)}>Agregar Usuario</Button>
+                    <AddUserForm open={open} onOpenChange={setOpen} refreshUsers={refreshUsers} />
+                </div>
             </div>
             <div className="rounded-lg shadow overflow-hidden">
                 <Table>
