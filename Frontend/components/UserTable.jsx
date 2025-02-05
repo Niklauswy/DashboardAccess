@@ -33,6 +33,7 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast"
 import AddUserForm from "@/components/AddUserForm";
+import { classNames } from "@/lib/utils"; // si ya tienes una función para combinar clases
 
 const careerIcons = {
     CC: <Cpu className="h-4 w-4" />,
@@ -67,7 +68,7 @@ export default function UserTable({ users, refreshUsers }) {
     const [sortDirection, setSortDirection] = useState("asc");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [open, setOpen] = useState(false)
-    
+
     useEffect(() => {
         async function fetchOus() {
             const res = await fetch('/api/ous');
@@ -191,21 +192,40 @@ export default function UserTable({ users, refreshUsers }) {
         }
     }, [sortColumn]);
 
+    // Función para eliminar usuarios individualmente mediante confirmación
     const handleAction = useCallback((action, userId) => {
         switch (action) {
             case "edit":
                 console.log(`Editar usuario ${userId}`);
+                // Aquí se puede abrir un modal de edición si se requiere
                 break;
             case "delete":
-                console.log(`Eliminar usuario ${userId}`);
+                if (window.confirm(`¿Está seguro de eliminar el usuario ${userId}?`)) {
+                    console.log(`Eliminar usuario ${userId}`);
+                    // Lógica para eliminar usuario y actualizar la tabla
+                    refreshUsers();
+                    toast({ title: "Usuario eliminado" });
+                }
                 break;
             default:
                 break;
         }
-    }, []);
+    }, [refreshUsers, toast]);
+
+    // Función para eliminar múltiples usuarios seleccionados
+    const handleDeleteSelected = useCallback(() => {
+        if (selectedRows.length === 0) return;
+        if (window.confirm(`¿Está seguro de eliminar los ${selectedRows.length} usuarios seleccionados?`)) {
+            console.log("Eliminar usuarios:", selectedRows);
+            // Aquí se puede implementar la eliminación masiva mediante una API
+            setSelectedRows([]);
+            refreshUsers();
+            toast({ title: "Usuarios eliminados" });
+        }
+    }, [selectedRows, refreshUsers, toast]);
 
     return (
-        <div className="p-4 space-y-4 min-h-screen">
+        <div className="p-4 space-y-4 min-h-screen relative">
             <div className="flex items-center justify-between space-x-4">
                 <div className="flex items-center space-x-4">
                     <Input
@@ -385,9 +405,12 @@ export default function UserTable({ users, refreshUsers }) {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onSelect={() => handleAction("edit", user.username)}>Editar</DropdownMenuItem>
-                                                    <DropdownMenuItem onSelect={() => handleAction("delete", user.username)}>Eliminar</DropdownMenuItem>
-                                                    <DropdownMenuItem onSelect={() => handleAction("addLabel", user.username)}>Añadir Label</DropdownMenuItem>
+                                                    <DropdownMenuItem onSelect={() => handleAction("edit", user.username)}>
+                                                        Editar
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onSelect={() => handleAction("delete", user.username)}>
+                                                        Eliminar
+                                                    </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         ) : column.key === "groups" ? (
@@ -463,10 +486,46 @@ export default function UserTable({ users, refreshUsers }) {
                     </div>
                 </div>
             </div>
-
+            {/* Barra de acciones para múltiples usuarios seleccionados */}
+            <div
+                className={classNames(
+                    'absolute inset-x-0 -bottom-14 mx-auto flex w-fit items-center space-x-3 rounded-full border bg-gray-800 px-4 py-2 text-white font-medium shadow',
+                    selectedRows.length > 0 ? '' : 'hidden'
+                )}
+            ></div>
+                <p className="select-none tabular-nums">
+                    {selectedRows.length} usuario(s) seleccionados
+                </p>
+                <span className="h-4 w-px bg-gray-500" aria-hidden="true" />
+                <button
+                    type="button"
+                    className="inline-flex items-center gap-2 hover:text-gray-300"
+                    onClick={() => console.log("Editar selección:", selectedRows)}
+                >
+                    Editar
+                    <span className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-sm ring-1 ring-gray-500"></span>
+                        E
+                    </span>
+                </button>
+                <span className="h-4 w-px bg-gray-500" aria-hidden="true" />
+                <button
+                    type="button"
+                    className="inline-flex items-center gap-2 hover:text-gray-300"
+                    onClick={handleDeleteSelected}
+                >
+                    Eliminar
+                    <span className="flex items-center space-x-1"></span>
+                        <span className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-sm ring-1 ring-gray-500">
+                            ⌘
+                        </span>
+                        <span className="flex h-5 w-5 items-center justify-center rounded bg-gray-700 text-sm ring-1 ring-gray-500">
+                            D
+                        </span>
+                    </span>
+                </button>
+            </div>
         </div>
     );
-    
 }
 
 
