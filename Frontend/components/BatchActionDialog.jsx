@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 
 export default function BatchActionDialog({ open, onClose, actionType, selectedUsers, onConfirm }) {
   const [newPassword, setNewPassword] = useState("");
+  // Limit display to max 10 items
+  const displayedUsers = selectedUsers.length > 10 ? selectedUsers.slice(0, 10) : selectedUsers;
 
   const handleConfirm = () => {
-    // Pass the new password if actionType is changePassword; else just confirm deletion
     onConfirm(actionType === "changePassword" ? newPassword : null);
     setNewPassword("");
   };
@@ -27,9 +28,12 @@ export default function BatchActionDialog({ open, onClose, actionType, selectedU
               : "Ingrese la nueva contraseña para los siguientes usuarios:"}
           </p>
           <ul className="list-disc pl-5">
-            {selectedUsers.map((user) => (
+            {displayedUsers.map((user) => (
               <li key={user.username}>{user.username}</li>
             ))}
+            {selectedUsers.length > 10 && (
+              <li>y {selectedUsers.length - 10} más...</li>
+            )}
           </ul>
           {actionType === "changePassword" && (
             <Input
@@ -37,12 +41,13 @@ export default function BatchActionDialog({ open, onClose, actionType, selectedU
               placeholder="Nueva contraseña"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              className="mt-2"
             />
           )}
         </div>
         <DialogFooter className="flex justify-end gap-4 mt-4">
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleConfirm}>
+          <Button onClick={handleConfirm} variant={actionType==="delete" ? "destructive" : "default"}>
             {actionType === "delete" ? "Eliminar" : "Cambiar"}
           </Button>
         </DialogFooter>

@@ -247,16 +247,35 @@ export default function UserTable({ users, refreshUsers }) {
             // Perform deletion for selected users
             console.log("Eliminando usuarios:", selectedRows);
             // Implement API call for batch deletion here...
+            toast({ title: "Usuarios eliminados" });
             refreshUsers();
         } else {
             // Perform password update for all selected users using newPassword
             console.log("Cambiando contraseña a:", newPassword, "para usuarios:", selectedRows);
             // Implement API call for batch password update here...
+            toast({ title: "Contraseña actualizada" });
             refreshUsers();
         }
         // Reset selected rows if needed
         setSelectedRows([]);
     };
+
+    // New keyboard shortcuts for batch actions
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (selectedRows.length > 1) {
+                if (e.key.toLowerCase() === "c") {
+                    e.preventDefault();
+                    handleBatchAction("changePassword");
+                } else if (e.key.toLowerCase() === "d") {
+                    e.preventDefault();
+                    handleBatchAction("delete");
+                }
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [selectedRows]);
 
     return (
         <div className="p-4 space-y-4 min-h-screen relative">
