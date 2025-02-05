@@ -9,6 +9,7 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/comp
 import { Terminal, Apple, HelpCircle } from "lucide-react"
 import ErrorServer from '@/components/ErrorServer';
 import NoData from '@/components/NoData';
+import ComputerTableSkeleton from '@/components/ComputerTableSkeleton'  // <-- New import
 
 const osIcons = {
   windows: <Monitor className="h-6 w-6 text-blue-500" />,
@@ -54,29 +55,9 @@ export default function ComputerManagement() {
     ); // Move this middleware to parse JSON request bodies before routes
   }
 
+  // Show skeleton when loading
   if (!classroomsData) {
-    return (
-      <div className="p-8 flex flex-col items-center justify-center min-h-screen">
-   
-
-        <div className="max-w-6xl mx-auto space-y-10">
-          {[1, 2, 3].map((_, index) => (
-            <Card key={index} className="shadow-lg border-0 bg-white/50 backdrop-blur">
-              <CardHeader className="border-b border-slate-100 bg-white animate-pulse">
-                <div className="h-6 bg-slate-200 rounded w-1/3 mb-2"></div>
-                <div className="h-4 bg-slate-200 rounded w-1/4"></div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="h-4 bg-slate-200 rounded w-1/2 mb-4"></div>
-                  <div className="h-8 bg-slate-200 rounded w-full"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    )
+    return <ComputerTableSkeleton />;
   }
 
   let classrooms = []
@@ -115,7 +96,7 @@ export default function ComputerManagement() {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="p-8 flex flex-col items-center justify-center min-h-screen">
         {/* Update container to occupy full width */}
         <div className="w-full mx-auto space-y-6">
           {classrooms.map((classroom) => {
