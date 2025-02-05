@@ -241,7 +241,7 @@ export default function UserTable({ users, refreshUsers }) {
                         placeholder="Filtrar usuarios..."
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
-                        className="max-w-sm"
+                        className="max-w-sm flex-shrink-0"
                     />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>

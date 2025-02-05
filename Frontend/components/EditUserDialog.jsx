@@ -19,19 +19,31 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
           }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Usuario */}
             <div className="space-y-2">
               <Label htmlFor="editSamAccountName">Usuario</Label>
               <Input id="editSamAccountName" value={currentUser?.username || ''} readOnly />
             </div>
+            {/* Nombre */}
             <div className="space-y-2">
               <Label htmlFor="editName">Nombre</Label>
               <Input id="editName" defaultValue={currentUser?.name || ''} />
             </div>
+            {/* Unidad Organizativa */}
             <div className="space-y-2">
               <Label htmlFor="editOu">Unidad Organizativa</Label>
               <Input id="editOu" defaultValue={currentUser?.ou || ''} />
             </div>
-            {/* ...añadir más campos si se requiere... */}
+            {/* Grupos */}
+            <div className="space-y-2">
+              <Label htmlFor="editGroups">Grupos (separados por comas)</Label>
+              <Input id="editGroups" defaultValue={currentUser?.groups?.join(', ') || ''} />
+            </div>
+            {/* Contraseña */}
+            <div className="space-y-2">
+              <Label htmlFor="editPassword">Contraseña</Label>
+              <Input id="editPassword" type="password" placeholder="Nueva contraseña" />
+            </div>
           </div>
           <div className="flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
