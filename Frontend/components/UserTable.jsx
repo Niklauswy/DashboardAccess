@@ -74,6 +74,9 @@ export default function UserTable({ users, refreshUsers }) {
     });
     const [ous, setOus] = useState([]);
     const [groups, setGroups] = useState([]);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
         async function fetchOus() {
@@ -199,23 +202,20 @@ export default function UserTable({ users, refreshUsers }) {
     }, [sortColumn]);
 
     const handleAction = useCallback((action, userId) => {
+        const user = users.find(u => u.username === userId);
         switch (action) {
             case "edit":
-                console.log(`Editar usuario ${userId}`);
-                // Aquí se puede abrir un modal de edición para el usuario seleccionado
+                setCurrentUser(user);
+                setEditDialogOpen(true);
                 break;
             case "delete":
-                if (window.confirm(`¿Está seguro de eliminar el usuario ${userId}?`)) {
-                    console.log(`Eliminar usuario ${userId}`);
-                    // Lógica para eliminar individual y refrescar datos
-                    refreshUsers();
-                    toast({ title: "Usuario eliminado" });
-                }
+                setCurrentUser(user);
+                setDeleteDialogOpen(true);
                 break;
             default:
                 break;
         }
-    }, [refreshUsers, toast]);
+    }, [users]);
 
     const handleDeleteSelected = useCallback(() => {
         if (selectedRows.length < 2) return;
@@ -602,7 +602,7 @@ export default function UserTable({ users, refreshUsers }) {
             {selectedRows.length > 1 && (
                 <div
                     className={
-                        'absolute inset-x-0 -bottom-14 mx-auto flex w-fit items-center space-x-3 rounded-full border bg-gray-800 px-4 py-2 text-white font-medium shadow'
+                        'fixed bottom-0 left-0 right-0 mx-auto flex w-fit items-center space-x-3 rounded-full border bg-gray-800 px-4 py-2 text-white font-medium shadow z-50'
                     }
                 >
                     <p className="select-none">
@@ -637,6 +637,63 @@ export default function UserTable({ users, refreshUsers }) {
                     </button>
                 </div>
             )}
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl">Editar Usuario</DialogTitle>
+                    </DialogHeader>
+                    <form className="space-y-6 mt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="editSamAccountName">Usuario</Label>
+                                <Input id="editSamAccountName" value={currentUser?.username || ''} readOnly />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="editName">Nombre</Label>
+                                <Input id="editName" defaultValue={currentUser?.name || ''} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="editOu">Unidad Organizativa</Label>
+                                <Input id="editOu" defaultValue={currentUser?.ou || ''} />
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-4">
+                            <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+                                Cancelar
+                            </Button>
+                            <Button type="button">
+                                Actualizar
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl">Eliminar Usuario</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6 mt-4">
+                        <p>
+                            ¿Está seguro de eliminar el usuario <strong>{currentUser?.username}</strong>?
+                        </p>
+                        <div className="flex justify-end gap-4">
+                            <Button type="button" variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                                Cancelar
+                            </Button>
+                            <Button type="button" variant="destructive" onClick={() => {
+                                setDeleteDialogOpen(false);
+                                // Función placeholder para eliminar
+                                toast({ title: "Usuario eliminado" });
+                                refreshUsers();
+                            }}>
+                                Eliminar
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
     
