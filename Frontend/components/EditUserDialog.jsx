@@ -62,15 +62,11 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Editar Usuario</DialogTitle>
+          <DialogTitle className="text-2xl">Editando {currentUser?.username} </DialogTitle>
         </DialogHeader>
         <form className="space-y-6 mt-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Usuario (solo lectura) */}
-            <div className="space-y-2">
-              <Label htmlFor="editSamAccountName">Usuario</Label>
-              <Input id="editSamAccountName" value={currentUser?.username || ''} readOnly />
-            </div>
+      
             {/* Nombre */}
             <div className="space-y-2">
               <Label htmlFor="editName">Nombre</Label>
@@ -97,6 +93,18 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
                 </SelectContent>
               </Select>
             </div>
+
+                 {/* Contraseña */}
+                 <div className="space-y-2">
+              <Label htmlFor="editPassword">Contraseña</Label>
+              <Input 
+                id="editPassword" 
+                type="password" 
+                placeholder="Nueva contraseña"
+                onChange={(e) => setEditUser({...editUser, password: e.target.value})}
+              />
+            </div>
+            
             {/* Grupos con Popover y Command */}
             <div className="space-y-2">
               <Label>Grupos</Label>
@@ -153,16 +161,7 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
                 </div>
               )}
             </div>
-            {/* Contraseña */}
-            <div className="space-y-2">
-              <Label htmlFor="editPassword">Contraseña</Label>
-              <Input 
-                id="editPassword" 
-                type="password" 
-                placeholder="Nueva contraseña"
-                onChange={(e) => setEditUser({...editUser, password: e.target.value})}
-              />
-            </div>
+       
           </div>
           <div className="flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
