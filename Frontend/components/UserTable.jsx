@@ -263,6 +263,8 @@ export default function UserTable({ users, refreshUsers }) {
     // New keyboard shortcuts for batch actions
     useEffect(() => {
         const handleKeyDown = (e) => {
+            const tag = e.target.tagName.toLowerCase();
+            if (tag === "input" || tag === "textarea" || e.target.isContentEditable) return;
             if (selectedRows.length > 1) {
                 if (e.key.toLowerCase() === "c") {
                     e.preventDefault();
