@@ -34,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast"
 import EditUserDialog from "@/components/EditUserDialog";
+import BatchActionDialog from "@/components/BatchActionDialog";
 
 const careerIcons = {
     CC: <Cpu className="h-4 w-4" />,
@@ -80,6 +81,8 @@ export default function UserTable({ users, refreshUsers }) {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [open, setOpen] = useState(false)
+    const [batchDialogOpen, setBatchDialogOpen] = useState(false);
+    const [batchActionType, setBatchActionType] = useState(""); // "delete" or "changePassword"
 
     useEffect(() => {
         async function fetchOus() {
@@ -231,6 +234,29 @@ export default function UserTable({ users, refreshUsers }) {
         }
     }, [selectedRows, refreshUsers, toast]);
 
+    const handleBatchAction = (action) => {
+        setBatchActionType(action);
+        setBatchDialogOpen(true);
+    };
+
+    const selectedUsers = users.filter(user => selectedRows.includes(user.username));
+
+    const handleBatchConfirm = async (newPassword) => {
+        setBatchDialogOpen(false);
+        if (batchActionType === "delete") {
+            // Perform deletion for selected users
+            console.log("Eliminando usuarios:", selectedRows);
+            // Implement API call for batch deletion here...
+            refreshUsers();
+        } else {
+            // Perform password update for all selected users using newPassword
+            console.log("Cambiando contraseña a:", newPassword, "para usuarios:", selectedRows);
+            // Implement API call for batch password update here...
+            refreshUsers();
+        }
+        // Reset selected rows if needed
+        setSelectedRows([]);
+    };
 
     return (
         <div className="p-4 space-y-4 min-h-screen relative">
@@ -503,12 +529,11 @@ export default function UserTable({ users, refreshUsers }) {
                     <p className="select-none">
                         {selectedRows.length} usuarios seleccionados
                     </p>
-           
                     <span className="h-4 w-px bg-gray-500" aria-hidden="true" />
                     <button
                         type="button"
                         className="inline-flex items-center gap-2 hover:text-gray-300"
-                        onClick={handleDeleteSelected}
+                        onClick={() => handleBatchAction("changePassword")}
                     >
                         Cambiar contraseña
                         <span className="flex items-center space-x-1">
@@ -525,7 +550,7 @@ export default function UserTable({ users, refreshUsers }) {
                     <button
                         type="button"
                         className="inline-flex items-center gap-2 hover:text-gray-300"
-                        onClick={handleDeleteSelected}
+                        onClick={() => handleBatchAction("delete")}
                     >
                         Eliminar
                         <span className="flex items-center space-x-1">
@@ -573,6 +598,13 @@ export default function UserTable({ users, refreshUsers }) {
                     </div>
                 </DialogContent>
             </Dialog>
+            <BatchActionDialog
+                open={batchDialogOpen}
+                onClose={() => setBatchDialogOpen(false)}
+                actionType={batchActionType}
+                selectedUsers={selectedUsers}
+                onConfirm={handleBatchConfirm}
+            />
         </div>
     );
     
