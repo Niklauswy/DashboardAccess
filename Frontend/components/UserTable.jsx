@@ -33,6 +33,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast"
+import EditUserDialog from "@/components/EditUserDialog";
 
 const careerIcons = {
     CC: <Cpu className="h-4 w-4" />,
@@ -572,38 +573,19 @@ export default function UserTable({ users, refreshUsers }) {
                     </button>
                 </div>
             )}
-            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[600px]">
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl">Editar Usuario</DialogTitle>
-                    </DialogHeader>
-                    <form className="space-y-6 mt-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="editSamAccountName">Usuario</Label>
-                                <Input id="editSamAccountName" value={currentUser?.username || ''} readOnly />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="editName">Nombre</Label>
-                                <Input id="editName" defaultValue={currentUser?.name || ''} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="editOu">Unidad Organizativa</Label>
-                                <Input id="editOu" defaultValue={currentUser?.ou || ''} />
-                            </div>
-                        </div>
-                        <div className="flex justify-end gap-4">
-                            <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
-                                Cancelar
-                            </Button>
-                            <Button type="button">
-                                Actualizar
-                            </Button>
-                        </div>
-                    </form>
-                </DialogContent>
-            </Dialog>
-
+            <EditUserDialog
+                open={editDialogOpen}
+                onOpenChange={setEditDialogOpen}
+                currentUser={currentUser}
+                onUpdate={() => {
+                    // Lógica de actualización real si se desea
+                    // Ejemplo placeholder:
+                    console.log("Actualizar usuario", currentUser);
+                    setEditDialogOpen(false);
+                    toast({ title: "Usuario actualizado" });
+                    refreshUsers();
+                }}
+            />
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <DialogContent className="sm:max-w-[600px]">
                     <DialogHeader>
