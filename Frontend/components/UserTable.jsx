@@ -1,6 +1,7 @@
 'use client'
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import AddUserForm from "@/components/AddUserForm";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -77,6 +78,7 @@ export default function UserTable({ users, refreshUsers }) {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+    const [open, setOpen] = useState(false)
 
     useEffect(() => {
         async function fetchOus() {
@@ -404,75 +406,8 @@ export default function UserTable({ users, refreshUsers }) {
                     columns={columns.filter(col => col.key !== 'accion')}
                     filename="usuarios"
                 />
-                <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <SheetTrigger asChild>
-                        <Button variant="default">Agregar Usuario</Button>
-                    </SheetTrigger>
-                    <SheetContent>
-                        <SheetHeader>
-                            <SheetTitle>Agregar Usuario</SheetTitle>
-                        </SheetHeader>
-                        <form onSubmit={handleAddUser} className="space-y-6 mt-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> {/* Cambiado a 2 columnas en pantallas medianas */}
-                                <div className="flex flex-col">
-                                    <Label htmlFor="samAccountName">Usuario</Label>
-                                    <Input id="samAccountName" value={newUser.samAccountName} onChange={(e) => setNewUser({ ...newUser, samAccountName: e.target.value })} required />
-                                </div>
-                                <div className="flex flex-col">
-                                    <Label htmlFor="givenName">Nombre</Label>
-                                    <Input id="givenName" value={newUser.givenName} onChange={(e) => setNewUser({ ...newUser, givenName: e.target.value })} required />
-                                </div>
-                                <div className="flex flex-col">
-                                    <Label htmlFor="sn">Apellido</Label>
-                                    <Input id="sn" value={newUser.sn} onChange={(e) => setNewUser({ ...newUser, sn: e.target.value })} required />
-                                </div>
-                                <div className="flex flex-col">
-                                    <Label htmlFor="password">Contraseña</Label>
-                                    <Input id="password" type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required />
-                                </div>
-                                <div className="flex flex-col">
-                                    <Label htmlFor="ou">Unidad Organizativa</Label>
-                                    <select
-                                        id="ou"
-                                        value={newUser.ou}
-                                        onChange={(e) => setNewUser({ ...newUser, ou: e.target.value })}
-                                        required
-                                        className="border rounded p-2 w-full"
-                                    >
-                                        <option value="">Seleccione una unidad</option>
-                                        {ous.map((ou) => (
-                                            <option key={ou} value={ou}>{ou}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="flex flex-col">
-                                    <Label htmlFor="groups">Grupos</Label>
-                                    <select
-                                        id="groups"
-                                        multiple
-                                        value={newUser.groups}
-                                        onChange={(e) =>
-                                            setNewUser({ 
-                                                ...newUser, 
-                                                groups: Array.from(e.target.selectedOptions, option => option.value) 
-                                            })
-                                        }
-                                        required
-                                        className="border rounded p-2 w-full h-32" // Añadido altura para múltiples selecciones
-                                    >
-                                        {groups.map((group) => (
-                                            <option key={group} value={group}>{group}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                   
-                            </div>
-                            <SheetFooter className="flex justify-end">
-                                <Button type="submit" className="w-full md:w-auto">Agregar</Button> {/* Ajuste responsive */}
-                            </SheetFooter>
-                        </form>
-                    </SheetContent>
-                </Sheet>
+                    <Button onClick={() => setOpen(true)}>Agregar Usuario</Button>
+                    <AddUserForm open={open} onOpenChange={setOpen} refreshUsers={refreshUsers} />
             </div>
             <div className="rounded-lg shadow overflow-hidden">
                 <Table>
