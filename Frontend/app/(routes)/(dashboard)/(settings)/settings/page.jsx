@@ -41,7 +41,11 @@ export default function Settings() {
   const { data: systemInfo, error: systemInfoError } = useSWR(
     activeTab === "General" ? '/api/systeminfo' : null,
     fetcher,
-    { refreshInterval: 1000 }
+    {
+      refreshInterval: 1000,
+      dedupingInterval: 0, // Add this
+      revalidateOnFocus: false // Optional
+    }
   );
 
   // Conditionally fetch groups when in Usuarios or Grupos tabs
