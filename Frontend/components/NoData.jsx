@@ -11,7 +11,7 @@ const NoData = ({ message = "No hay datos disponibles en este momento." }) => {
                   animate={{ opacity: 1 }} 
                   transition={{ duration: 0.5 }}
                 >
-                    <div className="relative h-48 bg-blue-700">
+                    <div className="relative h-48 bg-green-800">
                         <motion.svg
                           className="absolute bottom-0 left-0 w-full"
                           viewBox="0 0 1440 320"
@@ -54,7 +54,7 @@ const NoData = ({ message = "No hay datos disponibles en este momento." }) => {
                           {message}
                         </motion.p>
                         <motion.button
-                          className="mt-6 px-4 py-2 bg-blue-700 text-white rounded-full font-medium hover:bg-blue-800 transition-colors duration-300"
+                          className="mt-6 px-4 py-2 bg-green-800 text-white rounded-full font-medium hover:bg-blue-800 transition-colors duration-300"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => window.location.reload()}

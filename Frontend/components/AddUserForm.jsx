@@ -64,16 +64,21 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
           description: `El usuario ${newUser.samAccountName} ha sido creado exitosamente.`,
         })
       } else {
+        // Extrae y muestra el error detallado,
+        // por ejemplo: "User GOku already exists"
+        const errorMessage = data.error || "Error desconocido al agregar el usuario."
+        console.error("Server error:", data)
         toast({
           title: "Error",
-          description: `Error: ${data.error}`,
+          description: errorMessage,
           variant: "destructive",
         })
       }
     } catch (error) {
+      console.error("Unexpected error:", error)
       toast({
         title: "Error inesperado",
-        description: "Error inesperado al agregar el usuario.",
+        description: error.message || "Ocurrió un error inesperado.",
         variant: "destructive",
       })
     }
@@ -140,12 +145,12 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                 required
               />
             </div>
-            {/* Unidad Organizativa */}
+            {/* Unidad Organizativa (Carrera) */}
             <div className="space-y-2">
               <Label htmlFor="ou">
                 Carrera <span className="text-destructive">*</span>
               </Label>
-              <Select value={newUser.ou} onValueChange={(value) => setNewUser({ ...newUser, ou: value })} required>
+              <Select value={newUser.ou} onValueChange={(value) => setNewUser({ ...newUser, ou: value })} >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccione una carrera" />
                 </SelectTrigger>
