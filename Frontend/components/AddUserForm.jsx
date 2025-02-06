@@ -65,7 +65,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
         })
       } else {
         // Extract and adjust error message if it indicates the user already exists
-        let errorMessage = data.error || "Error desconocido al agregar el usuario."
+        let errorMessage = data.details || "Error desconocido al agregar el usuario."
         const existsMatch = errorMessage.match(/User ([A-Z0-9]+) already exists/)
         if (existsMatch) {
           errorMessage = `El usuario ${existsMatch[1]} ya existe.`
