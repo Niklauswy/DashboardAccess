@@ -6,6 +6,7 @@ import {LogBarChart} from '@/app/(routes)/(dashboard)/logs/components/LogBarChar
 import {parse} from 'date-fns';
 import ErrorServer from '@/components/ErrorServer';
 import NoData from '@/components/NoData';
+import LogTableSkeleton from '@/app/(routes)/(dashboard)/logs/components/LogTableSkeleton';
 
 export default function Logs() {
     const [filters, setFilters] = useState({user: '', dateRange: '', ip: '', event: ''});
@@ -44,6 +45,10 @@ export default function Logs() {
 
     if (serverError) {
         return <ErrorServer message={serverError} onRetry={handleRetry} />;
+    }
+
+    if (!logs) {
+        return <LogTableSkeleton />;
     }
 
     // Check if logs is an array and non-empty
