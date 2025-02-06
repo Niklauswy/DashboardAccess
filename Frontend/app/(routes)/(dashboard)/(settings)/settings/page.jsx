@@ -23,8 +23,6 @@ import { Users, FileSpreadsheet, HardDrive, AlertCircle, RotateCcw, Clock, Serve
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("General")
-  const [domain, setDomain] = useState("example.com")
-  const [hostname, setHostname] = useState("zenti")
   const [logRotation, setLogRotation] = useState(7)
   const [detailedLogging, setDetailedLogging] = useState(false)
   const [csvFile, setCsvFile] = useState(null)
@@ -39,11 +37,10 @@ export default function Settings() {
   // Fetcher para SWR
   const fetcher = (url) => fetch(url).then(res => res.json());
 
-  // Utilizar useSWR para systemInfo con actualización cada segundo
+  // Utilizar useSWR para systemInfo sin actualización cada segundo
   const { data: systemInfo, error: systemInfoError } = useSWR(
     activeTab === "General" ? '/api/systeminfo' : null,
-    fetcher,
-    { refreshInterval: 1000 }
+    fetcher
   );
 
   // Conditionally fetch data based on active tab
@@ -156,8 +153,8 @@ export default function Settings() {
               ) : (
                 <>
                   <p><Clock className="inline w-4 h-4 mr-2" /> Time: {systemInfo?.time}</p>
-                  <p><Home className="inline w-4 h-4 mr-2" /> Hostname: {hostname}</p>
-                  <p><Server className="inline w-4 h-4 mr-2" /> Domain: {domain}</p>
+                  <p><Home className="inline w-4 h-4 mr-2" /> Hostname: {systemInfo?.hostname}</p>
+                  <p><Server className="inline w-4 h-4 mr-2" /> Domain: {systemInfo?.domain}</p>
                   <p><AlertCircle className="inline w-4 h-4 mr-2" /> Core version: {systemInfo?.coreVersion}</p>
                   <p><HardDrive className="inline w-4 h-4 mr-2" /> Software: {systemInfo?.software}</p>
                   <p><AlertCircle className="inline w-4 h-4 mr-2" /> System load: {systemInfo?.systemLoad}</p>
