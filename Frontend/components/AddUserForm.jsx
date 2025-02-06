@@ -64,12 +64,11 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
           description: `El usuario ${newUser.samAccountName} ha sido creado exitosamente.`,
         })
       } else {
-        // Extract and adjust error message if it indicates the user already exists
-        let errorMessage = data.details || "Error desconocido al agregar el usuario."
-        const existsMatch = errorMessage.match(/User ([A-Z0-9]+) already exists/)
-        if (existsMatch) {
-          errorMessage = `El usuario ${existsMatch[1]} ya existe.`
-        }
+        let fullErrorMessage = data.details || "Error desconocido al agregar el usuario."
+        // Split the error message into lines and try to extract the specific error
+        const lines = fullErrorMessage.split("\n")
+        const userExistsLine = lines.find(line => /User .* already exists/.test(line))
+        const errorMessage = userExistsLine ? userExistsLine.trim() : fullErrorMessage
         console.error("Server error:", data)
         toast({
           title: "Error",
