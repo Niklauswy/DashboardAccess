@@ -170,7 +170,7 @@ export default function Settings() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  CSV Import
+                  Importar CSV
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="ghost" size="sm" className="ml-auto">
@@ -219,7 +219,7 @@ export default function Settings() {
                   className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary"
                 >
                   <FileSpreadsheet className="w-12 h-12 mx-auto text-gray-400" />
-                  <p className="mt-2">Drag and drop a CSV file here, or click to select</p>
+                  <p className="mt-2">Arrastre y suelte un archivo CSV aquí, o haga clic para seleccionar</p>
                   <input
                     type="file"
                     accept=".csv"
@@ -229,28 +229,28 @@ export default function Settings() {
                   />
                   <Label htmlFor="csv-upload" className="mt-2 inline-block">
                     <Button variant="outline" size="sm" as="span">
-                      Select CSV
+                      Seleccione un archivo CSV
                     </Button>
                   </Label>
                 </div>
                 {csvFile && (
                   <div className="mt-4">
-                    <p className="text-sm text-gray-600">Selected file: {csvFile.name}</p>
-                    <Button className="mt-2" onClick={handleUpload}>Upload and Process Users</Button>
+                    <p className="text-sm text-gray-600">Archivo subido: {csvFile.name}</p>
+                    <Button className="mt-2" onClick={handleUpload}>Subir y Procesar Usuarios</Button>
                   </div>
                 )}
                 <div className="space-y-4 mt-2">
                   <div className="space-y-2">
-                    <Label htmlFor="default-password">Default Password</Label>
+                    <Label htmlFor="default-password">Contraseña por defecto</Label>
                     <Input
                       id="default-password"
                       type="password"
                       value={defaultPassword}
                       onChange={(e) => setDefaultPassword(e.target.value)}
-                      placeholder="Enter default password for new users"
+                      placeholder="Ingrese la contraseña por defecto para nuevos usuarios"
                     />
                   </div>
-                  <Button>Save Default Settings</Button>
+                  <Button>Guardar Configuración</Button>
                 </div>
               </CardContent>
             </Card>
