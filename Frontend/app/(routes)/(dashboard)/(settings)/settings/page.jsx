@@ -37,20 +37,23 @@ export default function Settings() {
   // Fetcher para SWR
   const fetcher = (url) => fetch(url).then(res => res.json());
 
-  // Utilizar useSWR para systemInfo sin actualización cada segundo
+  // Update systemInfo SWR hook to refresh every second
   const { data: systemInfo, error: systemInfoError } = useSWR(
     activeTab === "General" ? '/api/systeminfo' : null,
-    fetcher
+    fetcher,
+    { refreshInterval: 1000 }
   );
 
-  // Conditionally fetch data based on active tab
+  // Conditionally fetch groups when in Usuarios or Grupos tabs
   const shouldFetchGroups = activeTab === "Usuarios" || activeTab === "Grupos";
+  // Fetch OUs also when activeTab is Unidades
+  const shouldFetchOus = activeTab === "Usuarios" || activeTab === "Grupos" || activeTab === "Unidades";
   const { data: groups, error: groupsError } = useSWR(
     shouldFetchGroups ? '/api/groups' : null,
     fetcher
   );
   const { data: ous, error: ousError } = useSWR(
-    shouldFetchGroups ? '/api/ous' : null,
+    shouldFetchOus ? '/api/ous' : null,
     fetcher
   );
 
