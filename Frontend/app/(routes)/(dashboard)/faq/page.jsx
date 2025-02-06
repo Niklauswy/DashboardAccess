@@ -22,18 +22,32 @@ export default function FAQPage() {
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1" className="border-b-0">
                 <AccordionTrigger className="hover:bg-secondary/50 px-4 py-2 rounded-lg transition-colors">
-                  ¿Qué es este sitio web?
+                  Tipos de grupos
                 </AccordionTrigger>
                 <AccordionContent className="px-4 py-2 bg-secondary/20 rounded-lg mt-2">
-                  Este sitio web es una plataforma de preguntas frecuentes diseñada para proporcionar respuestas rápidas y fáciles a las consultas más comunes de nuestros usuarios.
+                  <p>Existen dos tipos de grupos:</p>
+                  <ul className="list-disc list-inside mt-2">
+
+                    <li>Security Groups: Se utilizan para asignar permisos y políticas de seguridad a los usuarios.</li>
+                    <li>Distribution Groups: Se utilizan para enviar correos electrónicos a un grupo de usuarios.</li>
+
+                  </ul>
+
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-2" className="border-b-0">
                 <AccordionTrigger className="hover:bg-secondary/50 px-4 py-2 rounded-lg transition-colors">
-                  ¿Cómo puedo contactar con el soporte?
+                  Schema Admin y Domain Admin
                 </AccordionTrigger>
                 <AccordionContent className="px-4 py-2 bg-secondary/20 rounded-lg mt-2">
-                  Puede contactar con nuestro equipo de soporte enviando un correo electrónico a soporte@ejemplo.com o llamando al número +1 234 567 890 durante el horario laboral.
+                  <p>Schema Admin y Domain Admin son roles de administración en Active Directory:</p>
+                  <ul className="list-disc list-inside mt-2">
+
+                    <li>Schema Admin: Permite modificar el esquema de Active Directory.</li>
+                    <li>Domain Admin: Permite administrar todos los objetos y configuraciones de un dominio.</li>
+
+                  </ul>
+
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3" className="border-b-0">
