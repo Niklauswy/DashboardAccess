@@ -76,6 +76,8 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
           description: errorMessage,
           variant: "destructive",
         })
+
+        console.log(data.error)
       }
     } catch (error) {
       console.error("Unexpected error:", error)
