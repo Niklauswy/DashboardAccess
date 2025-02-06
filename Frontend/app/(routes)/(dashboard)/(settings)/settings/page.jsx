@@ -40,15 +40,26 @@ export default function Settings() {
   const fetcher = (url) => fetch(url).then(res => res.json());
 
   // Utilizar useSWR para systemInfo con actualización cada segundo
-  const { data: systemInfo, error: systemInfoError } = useSWR('/api/systeminfo', fetcher, {
-    refreshInterval: 1000, // Actualizar cada 1 segundo
-  });
+  const { data: systemInfo, error: systemInfoError } = useSWR(
+    activeTab === "General" ? '/api/systeminfo' : null,
+    fetcher,
+    { refreshInterval: 1000 }
+  );
 
-  // 1. Agregar useSWR para grupos y OUs
-  const { data: groups, error: groupsError } = useSWR('/api/groups', fetcher);
-  const { data: ous, error: ousError } = useSWR('/api/ous', fetcher);
+  // Conditionally fetch data based on active tab
+  const shouldFetchGroups = activeTab === "Usuarios" || activeTab === "Grupos";
+  const { data: groups, error: groupsError } = useSWR(
+    shouldFetchGroups ? '/api/groups' : null,
+    fetcher
+  );
+  const { data: ous, error: ousError } = useSWR(
+    shouldFetchGroups ? '/api/ous' : null,
+    fetcher
+  );
 
+  // Fetch syslog only if "Logs" tab is active
   useEffect(() => {
+    if (activeTab !== "Logs") return;
     const fetchSyslog = async () => {
       try {
         const response = await fetch('/api/syslog');
@@ -75,7 +86,7 @@ export default function Settings() {
     return () => {
       clearInterval(syslogInterval);
     };
-  }, [])
+  }, [activeTab])
 
   const handleCsvDrop = (e) => {
     e.preventDefault()
@@ -112,42 +123,22 @@ export default function Settings() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold mb-6">Configuración</h1>
+    <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+      <h1 className="text-3xl font-bold mb-6 text-center">Configuración</h1>
 
-      <div className="tabs">
-        <div className="flex space-x-4 border-b">
-          <Button 
-            variant={activeTab === "General" ? "primary" : "ghost"} 
-            onClick={() => setActiveTab("General")}
+      <div role="tablist" className="flex flex-wrap justify-center gap-4 border-b">
+        {["General", "Usuarios", "Grupos", "Unidades", "Logs"].map(tab => (
+          <Button
+            key={tab}
+            role="tab"
+            aria-selected={activeTab === tab}
+            variant={activeTab === tab ? "primary" : "ghost"}
+            onClick={() => setActiveTab(tab)}
+            className="px-4 py-2 border-b-2"
           >
-            General
+            {tab}
           </Button>
-          <Button 
-            variant={activeTab === "Usuarios" ? "primary" : "ghost"} 
-            onClick={() => setActiveTab("Usuarios")}
-          >
-            Usuarios
-          </Button>
-          <Button 
-            variant={activeTab === "Grupos" ? "primary" : "ghost"} 
-            onClick={() => setActiveTab("Grupos")}
-          >
-            Grupos
-          </Button>
-          <Button 
-            variant={activeTab === "Unidades" ? "primary" : "ghost"} 
-            onClick={() => setActiveTab("Unidades")}
-          >
-            Unidades Organizacionales
-          </Button>
-          <Button 
-            variant={activeTab === "Logs" ? "primary" : "ghost"} 
-            onClick={() => setActiveTab("Logs")}
-          >
-            Logs
-          </Button>
-        </div>
+        ))}
       </div>
 
       <div className="mt-6">
@@ -188,10 +179,10 @@ export default function Settings() {
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="ghost" size="sm" className="ml-auto">
-                        <Info className="w-6 h-4" />
+                        <Info className="w-4 h-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="sm:max-w-[800px]">
                       <DialogHeader>
                         <DialogTitle>Formato CSV</DialogTitle>
                         <DialogDescription>
