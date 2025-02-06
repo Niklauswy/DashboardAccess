@@ -136,13 +136,9 @@ export default function Settings() {
             key={tab}
             role="tab"
             aria-selected={activeTab === tab}
-            // Highlight active tab with a distinct border color
-            className={
-              "px-4 py-2 border-b-2 " +
-              (activeTab === tab ? "border-blue-500 text-blue-500" : "border-transparent")
-            }
+            variant={activeTab === tab ? "primary" : "ghost"}
             onClick={() => setActiveTab(tab)}
-            variant={activeTab === tab ? "default" : "ghost"}
+            className="px-4 py-2 border-b-2"
           >
             {tab}
           </Button>

@@ -4,10 +4,13 @@ import LogTable from '@/app/(routes)/(dashboard)/logs/components/LogTable';
 import LogFilter from '@/app/(routes)/(dashboard)/logs/components/LogFiltrer';
 import {LogBarChart} from '@/app/(routes)/(dashboard)/logs/components/LogBarChart';
 import {parse} from 'date-fns';
+import ErrorServer from '@/components/ErrorServer';
+import NoData from '@/components/NoData';
 
 export default function Logs() {
     const [filters, setFilters] = useState({user: '', dateRange: '', ip: '', event: ''});
     const [logs, setLogs] = useState([]);
+    const [serverError, setServerError] = useState(null);
 
     useEffect(() => {
         async function fetchLogs() {
@@ -15,11 +18,16 @@ export default function Logs() {
                 const res = await fetch('/api/logs', { // Cambiado a ruta relativa
                     cache: 'no-store',
                 });
+                if (!res.ok) {
+                    throw new Error('Error fetching logs');
+                }
                 const data = await res.json();
                 console.log('Fetched logs:', data); // Añadido para depuración
                 setLogs(data);
+                setServerError(null);
             } catch (error) {
                 console.error('Error fetching logs:', error);
+                setServerError(error.message);
             }
         }
 
@@ -29,6 +37,18 @@ export default function Logs() {
         }, 5000);
         return () => clearInterval(intervalId);
     }, []);
+
+    const handleRetry = () => {
+        window.location.reload();
+    };
+
+    if (serverError) {
+        return <ErrorServer message={serverError} onRetry={handleRetry} />;
+    }
+
+    if (logs.length === 0) {
+        return <NoData message="No se encontraron logs." />;
+    }
 
     const filteredLogs = logs.filter(({user, ip, event, date}) => {
         const {user: filterUser, ip: filterIp, event: filterEvent, dateRange} = filters;

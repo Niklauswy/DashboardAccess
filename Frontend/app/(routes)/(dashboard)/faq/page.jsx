@@ -50,30 +50,7 @@ export default function FAQPage() {
 
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="item-3" className="border-b-0">
-                <AccordionTrigger className="hover:bg-secondary/50 px-4 py-2 rounded-lg transition-colors">
-                  ¿Cuáles son los horarios de atención?
-                </AccordionTrigger>
-                <AccordionContent className="px-4 py-2 bg-secondary/20 rounded-lg mt-2">
-                  Nuestro equipo de atención al cliente está disponible de lunes a viernes, de 9:00 AM a 6:00 PM (hora local).
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-4" className="border-b-0">
-                <AccordionTrigger className="hover:bg-secondary/50 px-4 py-2 rounded-lg transition-colors">
-                  ¿Cómo puedo restablecer mi contraseña?
-                </AccordionTrigger>
-                <AccordionContent className="px-4 py-2 bg-secondary/20 rounded-lg mt-2">
-                  Para restablecer su contraseña, haga clic en el enlace &quot;¿Olvidó su contraseña?&quot; en la página de inicio de sesión y siga las instrucciones enviadas a su correo electrónico registrado.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-5" className="border-b-0">
-                <AccordionTrigger className="hover:bg-secondary/50 px-4 py-2 rounded-lg transition-colors">
-                  ¿Ofrecen reembolsos?
-                </AccordionTrigger>
-                <AccordionContent className="px-4 py-2 bg-secondary/20 rounded-lg mt-2">
-                  Sí, ofrecemos reembolsos completos dentro de los 30 días posteriores a la compra si no está satisfecho con nuestro producto o servicio. Por favor, contacte con nuestro equipo de soporte para iniciar el proceso de reembolso.
-                </AccordionContent>
-              </AccordionItem>
+         
             </Accordion>
           </CardContent>
         </Card>
@@ -92,10 +69,7 @@ export default function FAQPage() {
             <Button variant="outline" className="w-full justify-start transition-colors hover:bg-primary/10">
               <FileDown className="mr-2 h-4 w-4" /> Manual de Usuario
             </Button>
-            <Button variant="outline" className="w-full justify-start transition-colors hover:bg-primary/10">
-              <FileDown className="mr-2 h-4 w-4" /> Guía de Inicio Rápido
-            </Button>
-
+        
           </CardContent>
         </Card>
       </div>
