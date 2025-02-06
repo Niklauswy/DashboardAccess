@@ -1,3 +1,4 @@
+'use client'
 import { promises as fs } from 'fs';
 import os from 'os';
 import checkDiskSpace from 'check-disk-space';
