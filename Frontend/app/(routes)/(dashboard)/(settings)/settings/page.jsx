@@ -188,7 +188,7 @@ export default function Settings() {
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="ghost" size="sm" className="ml-auto">
-                        <Info className="w-4 h-4" />
+                        <Info className="w-6 h-4" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
