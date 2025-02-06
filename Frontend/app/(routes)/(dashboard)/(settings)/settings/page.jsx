@@ -201,27 +201,41 @@ export default function Settings() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Username</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Full Name</TableHead>
-                            <TableHead>Group</TableHead>
+                            <TableHead>Usuario</TableHead>
+                            <TableHead>Nombre</TableHead>
+                            <TableHead>Apelllidos</TableHead>
+                            <TableHead>OU (Carrera)</TableHead>
+                            <TableHead>Grupo (Rol) [Estudiante, Invitado, Maestro]</TableHead>
+                            
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           <TableRow>
-                            <TableCell>john_doe</TableCell>
-                            <TableCell>john@example.com</TableCell>
-                            <TableCell>John Doe</TableCell>
-                            <TableCell>Users</TableCell>
+                            <TableCell>AL12345</TableCell>
+                            <TableCell>Goku</TableCell>
+                            <TableCell>Son</TableCell>
+                            <TableCell>CC</TableCell>
+                            <TableCell>Estudiante</TableCell>
                           </TableRow>
                           <TableRow>
-                            <TableCell>jane_smith</TableCell>
-                            <TableCell>jane@example.com</TableCell>
-                            <TableCell>Jane Smith</TableCell>
-                            <TableCell>Admins</TableCell>
+                            <TableCell>AL12346</TableCell>
+                            <TableCell>Vegeta</TableCell>
+                            <TableCell>Prince</TableCell>
+                            <TableCell>BIO</TableCell>
+                            <TableCell>Estudiante</TableCell>
                           </TableRow>
+
                         </TableBody>
                       </Table>
+                      {/* New alert with available groups and OUs fetched from the API */}
+                      <div className="mt-4 p-4 bg-gray-100 rounded">
+                        <p className="text-sm text-gray-700">
+                          Grupos permitidos: {groups ? groups.join(", ") : "Cargando..."}
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          Unidades Organizacionales permitidas: {ous ? ous.join(", ") : "Cargando..."}
+                        </p>
+                      </div>
                     </DialogContent>
                   </Dialog>
                 </CardTitle>

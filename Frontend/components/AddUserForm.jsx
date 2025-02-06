@@ -65,7 +65,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
         })
       } else {
         let fullErrorMessage = data.details || "Error desconocido al agregar el usuario."
-        // Split the error message into lines and try to extract the specific error
+
         const lines = fullErrorMessage.split("\n")
         const userExistsLine = lines.find(line => /User .* already exists/.test(line))
         const errorMessage = userExistsLine ? userExistsLine.trim() : fullErrorMessage
@@ -76,7 +76,6 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
           variant: "destructive",
         })
 
-        console.log(data.error)
       }
     } catch (error) {
       console.error("Unexpected error:", error)
