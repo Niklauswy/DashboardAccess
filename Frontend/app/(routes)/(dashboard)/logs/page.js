@@ -46,7 +46,8 @@ export default function Logs() {
         return <ErrorServer message={serverError} onRetry={handleRetry} />;
     }
 
-    if (logs.length === 0) {
+    // Check if logs is an array and non-empty
+    if (!Array.isArray(logs) || logs.length === 0) {
         return <NoData message="No se encontraron logs." />;
     }
 
