@@ -26,7 +26,7 @@ sub format_user {
     my $username = $user->get('samAccountName') // 'Unknown';
     my $distinguishedName = $user->get('distinguishedName') // 'Unknown';
     my ($ou) = $distinguishedName =~ /OU=([^,]+)/;
-    $ou = $ou // 'Unknown';
+    $ou = $ou // 'Desconocido';
 
     my @groups = map { /CN=([^,]+)/ ? $1 : 'Unknown' } $user->get('memberOf');
 

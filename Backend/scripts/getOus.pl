@@ -1,36 +1,26 @@
 #!/usr/bin/perl
-
 use strict;
 use warnings;
 use JSON;
 
 use EBox;
+use EBox::Global;
 use EBox::Samba;
 
 EBox::init();
 
 my $samba = EBox::Global->modInstance('samba');
 
-my $users = $samba->users();
-
-# Crear un hash para almacenar las OUs únicas
-my %ou_data;
-
-# Iterar sobre todos los usuarios
-foreach my $user (@$users) {
-    # Obtener el distinguishedName del usuario
-    my $distinguishedName = $user->get('distinguishedName');
-
-    my ($ou) = $distinguishedName =~ /OU=([^,]+)/;
-    next unless $ou;  # Ignorar si no tiene OU
-
-    # Añadir la OU al hash
-    $ou_data{$ou} = 1;
+unless ($samba->isEnabled()) {
+    die "El módulo Samba no está habilitado.\n";
 }
 
-# Convertir el hash a una lista de OUs
-my @ou_list = sort keys %ou_data;
+my $ous = $samba->ous();
 
+# excluir la OU "Domain Controllers"
+my @filtered_ous = grep { $_->name ne 'Domain Controllers' } @$ous;
 
-my $json = JSON->new->utf8->pretty->encode(\@ou_list);
+my @ou_names = map { $_->name } @filtered_ous;
+my $json = JSON->new->utf8->pretty->encode([sort @ou_names]);
+
 print $json;

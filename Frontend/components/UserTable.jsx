@@ -31,7 +31,6 @@ import { Monitor, Database, Beaker, Leaf } from "lucide-react";
 import ExportButton from '@/components/ExportButton';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast"
 import EditUserDialog from "@/components/EditUserDialog";
 import BatchActionDialog from "@/components/BatchActionDialog";
@@ -52,7 +51,7 @@ const columns = [
     { key: "ou", label: "Carrera" },
     { key: "logonCount", label: "Total Logs", sortable: true },
     { key: "lastLogon", label: "Último Inicio", sortable: true },
-    { key: "groups", label: "Grupos", sortable: false }, // Asegurar que 'groups' no sea sortable si es necesario
+    { key: "groups", label: "Grupos", sortable: false }, 
     { key: "accion", label: "", fixed: true },
 ];
 

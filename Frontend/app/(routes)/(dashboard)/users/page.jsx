@@ -18,16 +18,15 @@ export default function UsersPage() {
     }
 
     if (error) {
-        return <ErrorServer message="Error al cargar los usuarios, parece ser un error del servidor" onRetry={fetchUsersData} />;
+        return <ErrorServer message="Error al cargar 
+        los usuarios, parece ser un error del servidor" onRetry={fetchUsersData} />;
     }
 
     if (!users) {
         return <UserTableSkeleton />;
     }
 
-    if (users.length === 0) {
-        return <NoData />;
-    }
+  
 
     return (
         <div>
