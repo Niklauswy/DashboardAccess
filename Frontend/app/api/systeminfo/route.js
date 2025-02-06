@@ -1,28 +1,38 @@
 import { promises as fs } from 'fs';
 import os from 'os';
-import checkDiskSpace from 'check-disk-space'; // Asegúrate de instalar esta dependencia
+import checkDiskSpace from 'check-disk-space';
 
 export async function GET() {
     try {
-        const uptime = os.uptime(); // Tiempo de actividad en segundos
-        const load = os.loadavg(); // Promedio de carga del sistema [1, 5, 15 minutos]
-        const totalMem = os.totalmem();
-        const freeMem = os.freemem();
-        const usedMem = totalMem - freeMem;
-        const storagePath = '/'; // Ruta de la partición que deseas monitorear
+        const uptime = os.uptime();
+        const load = os.loadavg();
+        const host = os.hostname();
+        // Derive domain from hostname (if available)
+        let domain = "N/A";
+        if (host.includes('.')) {
+          domain = host.split('.').slice(1).join('.');
+        }
+        const storagePath = '/';
         const diskSpace = await checkDiskSpace(storagePath);
-
+        const used = diskSpace.size - diskSpace.free;
+        const capacity = ((used / diskSpace.size) * 100).toFixed(1);
+        
         const systemInfo = {
-            time: new Date().toLocaleTimeString(), // Hora actual
-            coreVersion: '8.0.3', // Actualizar dinámicamente si es posible
-            software: '1 component updates, 120 system updates (80 security)', // Actualizar dinámicamente si es posible
+            time: new Date().toLocaleTimeString(), // Updated every request
+            hostname: host,
+            domain,
+            coreVersion: '8.0.3',
+            software: '1 component updates, 120 system updates (80 security)',
             systemLoad: load.map(l => l.toFixed(2)).join(', '),
             uptime: formatUptime(uptime),
-            storage: `${(diskSpace.used / 1e9).toFixed(1)} GB / ${(diskSpace.size / 1e9).toFixed(1)} GB (${diskSpace.capacity}%)`
+            storage: `${(used / 1e9).toFixed(1)} GB / ${(diskSpace.size / 1e9).toFixed(1)} GB (${capacity}%)`
         };
 
         return new Response(JSON.stringify(systemInfo), {
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-store'
+            },
         });
     } catch (error) {
         console.error('Error fetching system info:', error);
