@@ -31,6 +31,10 @@ export default function Settings() {
   const [defaultPassword, setDefaultPassword] = useState("")
   const [syslogEntries, setSyslogEntries] = useState([])
   const [syslogError, setSyslogError] = useState(null); // Nuevo estado para errores de syslog
+  // New state variables for creating users in series
+  const [newUserPrefix, setNewUserPrefix] = useState("")
+  const [newUserQuantity, setNewUserQuantity] = useState(1)
+  const [newUserDefaultPassword, setNewUserDefaultPassword] = useState("")
 
   // Fetcher para SWR
   const fetcher = (url) => fetch(url).then(res => res.json());
@@ -95,6 +99,16 @@ export default function Settings() {
       // Reset the file input after upload
       setCsvFile(null)
     }
+  }
+
+  const handleCreateUsers = () => {
+    const users = []
+    for (let i = 1; i <= newUserQuantity; i++) {
+      const number = String(i).padStart(2, "0")
+      users.push(`${newUserPrefix}${number}`)
+    }
+    console.log("Creating users:", users, "with default password:", newUserDefaultPassword)
+    // ...your actual user creation logic here...
   }
 
   return (
@@ -255,7 +269,47 @@ export default function Settings() {
               </CardContent>
             </Card>
 
-    
+            {/* New section for creating users in series */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Crear Usuarios en Serie</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="user-prefix">Prefijo</Label>
+                    <Input
+                      id="user-prefix"
+                      value={newUserPrefix}
+                      onChange={(e) => setNewUserPrefix(e.target.value)}
+                      placeholder="Ej: Invitado"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="user-quantity">Cantidad de Usuarios: {newUserQuantity}</Label>
+                    <Slider
+                      id="user-quantity"
+                      min={1}
+                      max={50}
+                      step={1}
+                      value={[newUserQuantity]}
+                      onValueChange={(value) => setNewUserQuantity(value[0])}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="user-default-password">Contraseña por defecto</Label>
+                    <Input
+                      id="user-default-password"
+                      type="password"
+                      value={newUserDefaultPassword}
+                      onChange={(e) => setNewUserDefaultPassword(e.target.value)}
+                      placeholder="Ingrese la contraseña"
+                    />
+                  </div>
+                  <Button onClick={handleCreateUsers}>Crear Usuarios</Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
         {activeTab === "Grupos" && (
