@@ -64,9 +64,12 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
           description: `El usuario ${newUser.samAccountName} ha sido creado exitosamente.`,
         })
       } else {
-        // Extrae y muestra el error detallado,
-        // por ejemplo: "User GOku already exists"
-        const errorMessage = data.error || "Error desconocido al agregar el usuario."
+        // Extract and adjust error message if it indicates the user already exists
+        let errorMessage = data.error || "Error desconocido al agregar el usuario."
+        const existsMatch = errorMessage.match(/User ([A-Z0-9]+) already exists/)
+        if (existsMatch) {
+          errorMessage = `El usuario ${existsMatch[1]} ya existe.`
+        }
         console.error("Server error:", data)
         toast({
           title: "Error",
@@ -150,7 +153,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
               <Label htmlFor="ou">
                 Carrera <span className="text-destructive">*</span>
               </Label>
-              <Select value={newUser.ou} onValueChange={(value) => setNewUser({ ...newUser, ou: value })} >
+              <Select value={newUser.ou} onValueChange={(value) => setNewUser({ ...newUser, ou: value })} required >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccione una carrera" />
                 </SelectTrigger>
