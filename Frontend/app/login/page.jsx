@@ -3,6 +3,7 @@ import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Button from '@/components/ui/button';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -61,13 +62,13 @@ export default function LoginPage() {
                 required
               />
             </div>
-            <button 
+            <Button 
               type="submit" 
             
               className="w-full py-2 text-white rounded font-medium transition"
             >
               Iniciar Sesión
-            </button>
+            </Button>
           </form>
         </div>
       </div>
