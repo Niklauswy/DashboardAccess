@@ -63,7 +63,8 @@ export default function LoginPage() {
             </div>
             <button 
               type="submit" 
-              className="w-full py-2 bg-blue-500 text-white rounded font-medium hover:bg-blue-600 transition"
+              variant="primary"
+              className="w-full py-2 text-white rounded font-medium transition"
             >
               Iniciar Sesión
             </button>
