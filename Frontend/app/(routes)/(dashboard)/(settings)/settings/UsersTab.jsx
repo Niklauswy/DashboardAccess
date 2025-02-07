@@ -60,22 +60,25 @@ export default function UsersTab() {
             ou: row[3],
             groups: [row[4]]
           }
-          const res = await fetch("/api/users", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(userData)
-          })
-          const data = await res.json()
-          if (!res.ok) {
-            toast({
-              title: `Error creando ${userData.samAccountName}`,
-              description: data.details || `Ocurrió un error al crear el usuario ${userData.samAccountName}.`,
-              variant: "destructive",
+          try {
+            const res = await fetch("/api/users", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(userData)
             })
-          } else {
+            const data = await res.json()
+            if (!res.ok) {
+              throw new Error(data.details || data.error || `Ocurrió un error al crear el usuario ${userData.samAccountName}.`)
+            }
             toast({
               title: `Usuario ${userData.samAccountName} creado`,
               description: `El usuario ${userData.samAccountName} se creó correctamente.`,
+            })
+          } catch (error) {
+            toast({
+              title: `Error creando ${userData.samAccountName}`,
+              description: error.message,
+              variant: "destructive",
             })
           }
         }
