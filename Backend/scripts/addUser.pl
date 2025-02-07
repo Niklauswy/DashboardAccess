@@ -10,25 +10,21 @@ use Try::Tiny;
 
 # Function to print debug messages to STDERR
 sub debug {
-     my ($msg) = @_;
-     print STDERR "$msg\n";
-     return;
+    my ($msg) = @_;
+    # print STDERR "$msg\n";  # Descomentar si necesitas debug
+    return;
 }
-
-#debug("Ejecutando addUser.pl script");
 
 # Initialize EBox
 EBox::init();
 
 # Read JSON data from stdin
 my $json_text = do { local $/; <STDIN> };
-#debug("Received JSON: $json_text");
 
 my $user_data;
 try {
     $user_data = decode_json($json_text);
 } catch {
-    debug("JSON decoding failed: $_");
     print encode_json({ error => 'Datos JSON inválidos' });
     exit(1);
 };
@@ -42,18 +38,14 @@ my $ou             = $user_data->{ou};
 my $groups         = $user_data->{groups};
 my $description    = $user_data->{description} || '';
 
-#debug("Extracted Data - Usuario: $samAccountName, Nombre: $givenName, Apellido: $sn, OU: $ou, Grupos: " . join(", ", @$groups));
-
 # Validate required fields
 unless ($samAccountName && $givenName && $sn && $password && $ou && $groups) {
-    debug("Validation failed: Missing required fields");
     print encode_json({ error => 'Faltan campos requeridos' });
     exit(1);
 }
 
 # Get default users container
 my $defaultContainer = EBox::Samba::User->defaultContainer();
-#debug("Default Users Container: $defaultContainer");
 
 # Function to check if a user already exists
 sub user_exists {
@@ -64,7 +56,6 @@ sub user_exists {
 
 # Check if the user already exists
 if (user_exists($samAccountName)) {
-    debug("El usuario $samAccountName ya existe");
     print encode_json({ error => "Usuario $samAccountName ya existe. Saltando..." });
     exit(1);
 }
@@ -80,9 +71,7 @@ try {
         description    => $description,
         password       => $password
     );
-    debug("User $samAccountName created successfully");
 } catch {
-    debug("Error creating user: $_");
     print encode_json({ error => "Error al crear el usuario: $_" });
     exit(1);
 };
@@ -90,27 +79,28 @@ try {
 # Move the user to the specified OU if defined and not empty
 if (defined $ou && $ou ne '') {
     my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"OU=$ou\"";
-    debug("Executing: $commandMove");
-    my $outputMove = qx($commandMove 2>&1);
-    if ($? != 0) {
-        debug("Error moving user: $outputMove");
-        print encode_json({ error => "Error al mover el usuario $samAccountName a la OU $ou: $outputMove" });
+    my $outputMove = qx($commandMove 2>&1);  # Captura stdout y stderr
+
+    if ($? != 0) {  # Si hubo un error
+        # Verifica si el error menciona "parent does not exist"
+        if ($outputMove =~ /parent does not exist/i) {
+            print encode_json({ error => "El contenedor/OU '$ou' no existe." });
+        } else {
+            # Si es otro tipo de error, muestra el mensaje original
+            print encode_json({ error => "Error al mover el usuario $samAccountName a la OU $ou: $outputMove" });
+        }
         exit(1);
     }
-    debug("User $samAccountName moved to OU $ou successfully");
 }
 
 # Add the user to the specified groups
 foreach my $groupName (@$groups) {
     my $commandAddGroup = "sudo samba-tool group addmembers \"$groupName\" \"$samAccountName\"";
-    debug("Executing: $commandAddGroup");
     my $outputAddGroup = qx($commandAddGroup 2>&1);
     if ($? != 0) {
-        debug("Error adding user to group: $outputAddGroup");
         print encode_json({ error => "Error al añadir el usuario $samAccountName al grupo $groupName: $outputAddGroup" });
         exit(1);
     }
-    debug("User $samAccountName added to group $groupName successfully");
 }
 
 # Success response
