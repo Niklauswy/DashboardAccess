@@ -133,6 +133,11 @@ export default function Settings() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(userData)
           });
+
+          const data = await res.json()
+
+          console.error("Server error:", data)
+
           if (!res.ok) {
             toast({
               title: `Error creando ${userData.samAccountName}`,
