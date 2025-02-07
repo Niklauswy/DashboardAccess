@@ -21,6 +21,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Users, FileSpreadsheet, HardDrive, AlertCircle, RotateCcw, Clock, Server, Info, Database, Home } from "lucide-react"
 import Papa from 'papaparse'; // ensure PapaParse is imported
+import { useToast } from "@/hooks/use-toast"; // NEW toast import
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("General")
@@ -34,6 +35,7 @@ export default function Settings() {
   const [newUserPrefix, setNewUserPrefix] = useState("")
   const [newUserQuantity, setNewUserQuantity] = useState(1)
   const [newUserDefaultPassword, setNewUserDefaultPassword] = useState("")
+  const { toast } = useToast(); // initialize toast hook
 
   // Fetcher para SWR
   const fetcher = (url) => fetch(url).then(res => res.json());
@@ -112,35 +114,53 @@ export default function Settings() {
     if (!csvFile) return;
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const csvText = e.target.result;
-      // Parse CSV without headers. Each row is an array.
-      const results = Papa.parse(csvText, { header: false, skipEmptyLines: true });
-      const records = results.data;
-      for (const row of records) {
-        const userData = {
-          samAccountName: row[0],
-          givenName: row[1],
-          sn: row[2],
-          password: defaultPassword,   // assign password from user input
-          ou: row[3],
-          groups: [ row[4] ]
-        };
-        const res = await fetch("/api/users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(userData)
-        });
-        if (!res.ok) {
-          console.error(`Error creating user ${userData.samAccountName}`);
-        } else {
-          console.log(`Created user ${userData.samAccountName}`);
+      try {
+        const csvText = e.target.result;
+        // Parse CSV without headers. Each row is an array.
+        const results = Papa.parse(csvText, { header: false, skipEmptyLines: true });
+        const records = results.data;
+        for (const row of records) {
+          const userData = {
+            samAccountName: row[0],
+            givenName: row[1],
+            sn: row[2],
+            password: defaultPassword,   // assign password from user input
+            ou: row[3],
+            groups: [ row[4] ]
+          };
+          const res = await fetch("/api/users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(userData)
+          });
+          if (!res.ok) {
+            toast({
+              title: `Error creando ${userData.samAccountName}`,
+              description: `Ocurrió un error al crear el usuario ${userData.samAccountName}.`,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: `Usuario ${userData.samAccountName} creado`,
+              description: `El usuario ${userData.samAccountName} se creó correctamente.`,
+            });
+          }
         }
+        setCsvFile(null);
+        toast({
+          title: "Procesamiento CSV",
+          description: "Todos los usuarios han sido procesados exitosamente.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error en CSV",
+          description: error.message || "Error al procesar el archivo CSV.",
+          variant: "destructive",
+        });
       }
-      setCsvFile(null);
-      console.log("CSV processed successfully");
     };
     reader.readAsText(csvFile);
-  }
+  };
 
   const handleCreateUsers = () => {
     const users = []
@@ -267,7 +287,11 @@ export default function Settings() {
                   className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary"
                 >
                   <FileSpreadsheet className="w-12 h-12 mx-auto text-gray-400" />
-                  <p className="mt-2">Arrastre y suelte o seleccione un archivo CSV</p>
+                  {csvFile ? (
+                    <p className="mt-2 font-medium">{csvFile.name}</p>
+                  ) : (
+                    <p className="mt-2">Arrastre y suelte o seleccione un archivo CSV</p>
+                  )}
                   <input
                     id="csv-upload"
                     type="file"
@@ -284,13 +308,8 @@ export default function Settings() {
                     Seleccione un archivo CSV
                   </Button>
                 </div>
-                {csvFile && (
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-600">Archivo subido: {csvFile.name}</p>
-                    <Button className="mt-2" onClick={handleUpload}>Subir y Procesar Usuarios</Button>
-                  </div>
-                )}
-                <div className="space-y-2">
+                {/* Removed duplicate "Subir y Procesar Usuarios" button */}
+                <div className="space-y-2 mt-4">
                   <Label htmlFor="default-password">Contraseña por defecto</Label>
                   <Input
                     id="default-password"
@@ -299,7 +318,14 @@ export default function Settings() {
                     onChange={(e) => setDefaultPassword(e.target.value)}
                     placeholder="Ingrese la contraseña por defecto para nuevos usuarios"
                   />
-                  <Button className="mt-2">Guardar Configuración</Button>
+                  {/* Button disabled if no password is provided */}
+                  <Button
+                    className="mt-2"
+                    disabled={!defaultPassword}
+                    onClick={handleUpload}
+                  >
+                    Subir y Procesar Usuarios
+                  </Button>
                 </div>
               </CardContent>
             </Card>
