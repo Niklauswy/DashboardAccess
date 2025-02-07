@@ -48,7 +48,6 @@ export default function UsersTab() {
     reader.onload = async (e) => {
       try {
         const csvText = e.target.result
-        // Parse CSV (without headers)
         const results = Papa.parse(csvText, { header: false, skipEmptyLines: true })
         const records = results.data
         for (const row of records) {
@@ -68,12 +67,17 @@ export default function UsersTab() {
             })
             const data = await res.json()
             if (!res.ok) {
-              throw new Error(data.details || data.error || `Ocurrió un error al crear el usuario ${userData.samAccountName}.`)
+              toast({
+                title: `Error creando ${userData.samAccountName}`,
+                description: data.details || data.error || `Ocurrió un error al crear el usuario ${userData.samAccountName}.`,
+                variant: "destructive",
+              })
+            } else {
+              toast({
+                title: `Usuario ${userData.samAccountName} creado`,
+                description: `El usuario ${userData.samAccountName} se creó correctamente.`,
+              })
             }
-            toast({
-              title: `Usuario ${userData.samAccountName} creado`,
-              description: `El usuario ${userData.samAccountName} se creó correctamente.`,
-            })
           } catch (error) {
             toast({
               title: `Error creando ${userData.samAccountName}`,
