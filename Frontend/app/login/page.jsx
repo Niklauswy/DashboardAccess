@@ -1,8 +1,12 @@
 'use client'
-import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { signIn } from 'next-auth/react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -22,53 +26,50 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Sección informativa (oculta en móvil) */}
+      {/* Left-side illustrative image (hidden on small screens) */}
       <div className="hidden md:flex md:w-1/2 bg-gray-50 items-center justify-center p-10">
         <Image 
-          src="/cimarron.png" 
-          alt="Ilustración de Login" 
-          width={300} 
-          height={300} 
-          className="mb-4"
+          src="/cimarron.png"
+          alt="Ilustración de Login"
+          width={300}
+          height={300}
         />
       </div>
-
-      {/* Sección de Login */}
+      {/* Login form using shadcn UI components */}
       <div className="flex flex-1 items-center justify-center p-10">
-        <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
-          <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">Inicia Sesión</h2>
-          {error && (
-            <p className="text-red-500 text-center mb-4">{error}</p>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-gray-700 mb-1">Usuario</label>
-              <input 
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full border border-gray-300 rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 mb-1">Contraseña</label>
-              <input 
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-gray-300 rounded py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              />
-            </div>
-            <button 
-              type="submit" 
-              className="w-full py-2 bg-blue-500 text-white rounded font-medium hover:bg-blue-600 transition"
-            >
-              Iniciar Sesión
-            </button>
-          </form>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Inicia Sesión</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="username">Usuario</Label>
+                <Input 
+                  id="username"
+                  type="text"
+                  placeholder="Ingrese su usuario"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="password">Contraseña</Label>
+                <Input 
+                  id="password"
+                  type="password"
+                  placeholder="Ingrese su contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full">Iniciar Sesión</Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
