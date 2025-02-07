@@ -63,7 +63,7 @@ export default function LoginPage() {
             </div>
             <button 
               type="submit" 
-              variant="primary"
+            
               className="w-full py-2 text-white rounded font-medium transition"
             >
               Iniciar Sesión
