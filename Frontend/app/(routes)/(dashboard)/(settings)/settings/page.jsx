@@ -107,12 +107,23 @@ export default function Settings() {
     }
   }
 
-  const handleUpload = () => {
-    if (csvFile) {
-      // Here you would typically send the file to your server
-      console.log("Uploading file:", csvFile.name)
-      // Reset the file input after upload
-      setCsvFile(null)
+  const handleUpload = async () => {
+    if (!csvFile) return;
+    try {
+      const formData = new FormData();
+      formData.append("csv", csvFile);
+      const res = await fetch("/api/uploadCsv", {
+        method: "POST",
+        body: formData
+      });
+      if (!res.ok) {
+        console.error("Failed to upload CSV");
+        return;
+      }
+      setCsvFile(null);
+      console.log("CSV uploaded and processed");
+    } catch (err) {
+      console.error("Error uploading CSV:", err);
     }
   }
 
@@ -123,7 +134,6 @@ export default function Settings() {
       users.push(`${newUserPrefix}${number}`)
     }
     console.log("Creating users:", users, "with default password:", newUserDefaultPassword)
-    // ...your actual user creation logic here...
   }
 
   return (

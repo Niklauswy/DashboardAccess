@@ -10,18 +10,19 @@ use Try::Tiny;
 
 # Function to print debug messages to STDERR
 sub debug {
-    my ($msg) = @_;
-    print STDERR "$msg\n";
+     my ($msg) = @_;
+     print STDERR "$msg\n";
+     return;
 }
 
-debug("Starting addUser.pl script");
+#debug("Ejecutando addUser.pl script");
 
 # Initialize EBox
 EBox::init();
 
 # Read JSON data from stdin
 my $json_text = do { local $/; <STDIN> };
-debug("Received JSON: $json_text");
+#debug("Received JSON: $json_text");
 
 my $user_data;
 try {
@@ -41,7 +42,7 @@ my $ou             = $user_data->{ou};
 my $groups         = $user_data->{groups};
 my $description    = $user_data->{description} || '';
 
-debug("Extracted Data - Usuario: $samAccountName, Nombre: $givenName, Apellido: $sn, OU: $ou, Grupos: " . join(", ", @$groups));
+#debug("Extracted Data - Usuario: $samAccountName, Nombre: $givenName, Apellido: $sn, OU: $ou, Grupos: " . join(", ", @$groups));
 
 # Validate required fields
 unless ($samAccountName && $givenName && $sn && $password && $ou && $groups) {
@@ -52,7 +53,7 @@ unless ($samAccountName && $givenName && $sn && $password && $ou && $groups) {
 
 # Get default users container
 my $defaultContainer = EBox::Samba::User->defaultContainer();
-debug("Default Users Container: $defaultContainer");
+#debug("Default Users Container: $defaultContainer");
 
 # Function to check if a user already exists
 sub user_exists {
@@ -63,7 +64,7 @@ sub user_exists {
 
 # Check if the user already exists
 if (user_exists($samAccountName)) {
-    debug("User $samAccountName already exists");
+    debug("El usuario $samAccountName ya existe");
     print encode_json({ error => "Usuario $samAccountName ya existe. Saltando..." });
     exit(1);
 }
