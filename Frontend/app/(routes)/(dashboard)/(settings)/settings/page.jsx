@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Users, FileSpreadsheet, HardDrive, AlertCircle, RotateCcw, Clock, Server, Info, Database, Home } from "lucide-react"
+import Papa from 'papaparse'; // ensure PapaParse is imported
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("General")
@@ -101,30 +102,44 @@ export default function Settings() {
   }
 
   const handleCsvSelect = (e) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file && file.type === "text/csv") {
-      setCsvFile(file)
+      setCsvFile(file);
     }
   }
 
   const handleUpload = async () => {
     if (!csvFile) return;
-    try {
-      const formData = new FormData();
-      formData.append("csv", csvFile);
-      const res = await fetch("/api/uploadCsv", {
-        method: "POST",
-        body: formData
-      });
-      if (!res.ok) {
-        console.error("Failed to upload CSV");
-        return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const csvText = e.target.result;
+      // Parse CSV without headers. Each row is an array.
+      const results = Papa.parse(csvText, { header: false, skipEmptyLines: true });
+      const records = results.data;
+      for (const row of records) {
+        const userData = {
+          samAccountName: row[0],
+          givenName: row[1],
+          sn: row[2],
+          password: defaultPassword,   // assign password from user input
+          ou: row[3],
+          groups: [ row[4] ]
+        };
+        const res = await fetch("/api/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userData)
+        });
+        if (!res.ok) {
+          console.error(`Error creating user ${userData.samAccountName}`);
+        } else {
+          console.log(`Created user ${userData.samAccountName}`);
+        }
       }
       setCsvFile(null);
-      console.log("CSV uploaded and processed");
-    } catch (err) {
-      console.error("Error uploading CSV:", err);
-    }
+      console.log("CSV processed successfully");
+    };
+    reader.readAsText(csvFile);
   }
 
   const handleCreateUsers = () => {
@@ -249,22 +264,25 @@ export default function Settings() {
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={handleCsvDrop}
-                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary"
+                  className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary"
                 >
                   <FileSpreadsheet className="w-12 h-12 mx-auto text-gray-400" />
-                  <p className="mt-2">Arrastre y suelte un archivo CSV aquí, o haga clic para seleccionar</p>
+                  <p className="mt-2">Arrastre y suelte o seleccione un archivo CSV</p>
                   <input
+                    id="csv-upload"
                     type="file"
                     accept=".csv"
-                    onChange={handleCsvSelect}
                     className="hidden"
-                    id="csv-upload"
+                    onChange={handleCsvSelect}
                   />
-                  <Label htmlFor="csv-upload" className="mt-2 inline-block">
-                    <Button variant="outline" size="sm" as="span">
-                      Seleccione un archivo CSV
-                    </Button>
-                  </Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => document.getElementById("csv-upload").click()}
+                  >
+                    Seleccione un archivo CSV
+                  </Button>
                 </div>
                 {csvFile && (
                   <div className="mt-4">
@@ -272,22 +290,19 @@ export default function Settings() {
                     <Button className="mt-2" onClick={handleUpload}>Subir y Procesar Usuarios</Button>
                   </div>
                 )}
-                <div className="space-y-4 mt-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="default-password">Contraseña por defecto</Label>
-                    <Input
-                      id="default-password"
-                      type="password"
-                      value={defaultPassword}
-                      onChange={(e) => setDefaultPassword(e.target.value)}
-                      placeholder="Ingrese la contraseña por defecto para nuevos usuarios"
-                    />
-                  </div>
-                  <Button>Guardar Configuración</Button>
+                <div className="space-y-2">
+                  <Label htmlFor="default-password">Contraseña por defecto</Label>
+                  <Input
+                    id="default-password"
+                    type="password"
+                    value={defaultPassword}
+                    onChange={(e) => setDefaultPassword(e.target.value)}
+                    placeholder="Ingrese la contraseña por defecto para nuevos usuarios"
+                  />
+                  <Button className="mt-2">Guardar Configuración</Button>
                 </div>
               </CardContent>
             </Card>
-
             {/* New section for creating users in series */}
             <Card>
               <CardHeader>
@@ -314,6 +329,7 @@ export default function Settings() {
                       value={[newUserQuantity]}
                       onValueChange={(value) => setNewUserQuantity(value[0])}
                     />
+                    <span className="w-12 text-right">{newUserQuantity}</span>
                   </div>
                   <div>
                     <Label htmlFor="user-default-password">Contraseña por defecto</Label>
@@ -380,7 +396,7 @@ export default function Settings() {
           </div>
         )}
         {activeTab === "Logs" && (
-          <div>
+          <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
