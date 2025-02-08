@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Users, FileSpreadsheet, Info } from "lucide-react"
 import Papa from "papaparse"
 import { useToast } from "@/hooks/use-toast"
-
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog"
 // ...existing imports if needed...
 
 const fetcher = (url) => fetch(url).then(res => res.json())
@@ -22,6 +22,8 @@ export default function UsersTab() {
   const [newUserPrefix, setNewUserPrefix] = useState("")
   const [newUserQuantity, setNewUserQuantity] = useState(1)
   const [newUserDefaultPassword, setNewUserDefaultPassword] = useState("")
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false)
+  const [errorMessages, setErrorMessages] = useState([])
   const { toast } = useToast()
 
   const { data: groups } = useSWR('/api/groups', fetcher)
@@ -65,12 +67,10 @@ export default function UsersTab() {
             })
           }
         })
+
         if (errors.length > 0) {
-          toast({
-            title: "Error en formato CSV",
-            description: errors.join(" "),
-            variant: "destructive",
-          })
+          setErrorMessages(errors)
+          setErrorDialogOpen(true)
           return
         }
         
@@ -276,6 +276,25 @@ export default function UsersTab() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* AlertDialog for CSV validation errors */}
+      <AlertDialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error en formato CSV</AlertDialogTitle>
+            <AlertDialogDescription>
+              {errorMessages.map((msg, idx) => (
+                <p key={idx} className="text-sm text-red-600">{msg}</p>
+              ))}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setErrorDialogOpen(false)}>
+              Cerrar
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
