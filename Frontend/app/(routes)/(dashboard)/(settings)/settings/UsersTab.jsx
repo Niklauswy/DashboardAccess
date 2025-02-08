@@ -23,6 +23,7 @@ export default function UsersTab() {
   const [newUserDefaultPassword, setNewUserDefaultPassword] = useState("")
   const [errorDialogOpen, setErrorDialogOpen] = useState(false)
   const [errorMessages, setErrorMessages] = useState([])
+  const [isReviewing, setIsReviewing] = useState(false)
   const { toast } = useToast()
 
   const { data: groups } = useSWR('/api/groups', fetcher)
@@ -45,6 +46,7 @@ export default function UsersTab() {
 
   const handleUpload = async () => {
     if (!csvFile) return
+    setIsReviewing(true)
     const reader = new FileReader()
     reader.onload = async (e) => {
       try {
@@ -68,6 +70,7 @@ export default function UsersTab() {
         })
 
         if (errors.length > 0) {
+          setIsReviewing(false)
           setErrorMessages(errors)
           setErrorDialogOpen(true)
           return
@@ -106,12 +109,14 @@ export default function UsersTab() {
             })
           }
         }
+        setIsReviewing(false)
         setCsvFile(null)
         toast({
           title: "Procesamiento CSV",
           description: "Todos los usuarios han sido procesados exitosamente.",
         })
       } catch (error) {
+        setIsReviewing(false)
         toast({
           title: "Error en CSV",
           description: error.message || "Error al procesar el archivo CSV.",
@@ -275,6 +280,18 @@ export default function UsersTab() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Dialog to indicate CSV review process */}
+      {isReviewing && (
+        <Dialog open={true} onOpenChange={() => {}}>
+          <DialogContent className="sm:max-w-[600px]">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Revisando CSV...</h3>
+              <p className="text-sm">Validando el archivo, por favor espere.</p>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       
       {/* Dialog for CSV validation errors */}
       <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
