@@ -11,7 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Users, FileSpreadsheet, Info } from "lucide-react"
 import Papa from "papaparse"
 import { useToast } from "@/hooks/use-toast"
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog"
 // ...existing imports if needed...
 
 const fetcher = (url) => fetch(url).then(res => res.json())
@@ -277,24 +276,22 @@ export default function UsersTab() {
         </CardContent>
       </Card>
       
-      {/* AlertDialog for CSV validation errors */}
-      <AlertDialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Error en formato CSV</AlertDialogTitle>
-            <AlertDialogDescription>
+      {/* Dialog for CSV validation errors */}
+      <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-red-600">Error en formato CSV</h3>
+            <div className="space-y-2">
               {errorMessages.map((msg, idx) => (
-                <p key={idx} className="text-sm text-red-600">{msg}</p>
+                <p key={idx} className="text-sm text-gray-800">{msg}</p>
               ))}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setErrorDialogOpen(false)}>
-              Cerrar
-            </AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={() => setErrorDialogOpen(false)}>Cerrar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
