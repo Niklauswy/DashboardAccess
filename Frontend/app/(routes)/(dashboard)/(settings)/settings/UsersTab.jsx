@@ -51,6 +51,29 @@ export default function UsersTab() {
         // Parse CSV (without headers)
         const results = Papa.parse(csvText, { header: false, skipEmptyLines: true })
         const records = results.data
+
+        // Validate: each row must have exactly 5 non-empty fields.
+        const errors = []
+        records.forEach((row, index) => {
+          if (row.length !== 5) {
+            errors.push(`Fila ${index + 1}: Se esperaban 5 campos pero se recibieron ${row.length}.`)
+          } else {
+            row.forEach((field, idx) => {
+              if (!field || field.trim() === "") {
+                errors.push(`Fila ${index + 1}: El campo ${idx + 1} está vacío.`)
+              }
+            })
+          }
+        })
+        if (errors.length > 0) {
+          toast({
+            title: "Error en formato CSV",
+            description: errors.join(" "),
+            variant: "destructive",
+          })
+          return
+        }
+        
         for (const row of records) {
           const userData = {
             samAccountName: row[0],
@@ -68,6 +91,7 @@ export default function UsersTab() {
             })
             const data = await res.json()
             console.log(data)
+            
             if (!res.ok) {
               throw new Error(data.details || data.error || `Ocurrió un error al crear el usuario ${userData.samAccountName}.`)
             }

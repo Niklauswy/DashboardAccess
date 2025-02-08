@@ -66,7 +66,6 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
       } else {
         let fullErrorMessage = data.details || "Error desconocido al agregar el usuario."
 
-        const lines = fullErrorMessage.split("\n")
  
         console.error("Server error:", data)
         toast({
