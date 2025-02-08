@@ -55,23 +55,29 @@ export default function UsersTab() {
         const results = Papa.parse(csvText, { header: false, skipEmptyLines: true })
         const records = results.data
 
-        // Validate: each row must have exactly 5 non-empty fields.
-        const errors = []
+        // Aggregate errors per row.
+        const aggregatedErrors = []
         records.forEach((row, index) => {
           if (row.length !== 5) {
-            errors.push(`Fila ${index + 1}: Se esperaban 5 campos pero se recibieron ${row.length}.`)
+            aggregatedErrors.push(`Fila ${index + 1}: Se esperaban 5 campos pero se recibieron ${row.length}.`)
           } else {
-            row.forEach((field, idx) => {
-              if (!field || field.trim() === "") {
-                errors.push(`Fila ${index + 1}: El campo ${idx + 1} está vacío.`)
-              }
-            })
+            const emptyCount = row.reduce((acc, field) => (!field || field.trim() === "") ? acc + 1 : acc, 0)
+            if (emptyCount > 0) {
+              aggregatedErrors.push(`Fila ${index + 1}: Tiene ${emptyCount} campo${emptyCount > 1 ? 's' : ''} vacío${emptyCount > 1 ? 's' : ''}.`)
+            }
           }
         })
 
-        if (errors.length > 0) {
+        if (aggregatedErrors.length > 0) {
+          // Limit to 10 records.
+          const maxDisplay = 10
+          let displayedErrors = aggregatedErrors.slice(0, maxDisplay)
+          const extraCount = aggregatedErrors.length - maxDisplay
+          if (extraCount > 0) {
+            displayedErrors.push(`... y ${extraCount} fila${extraCount > 1 ? 's' : ''} más tienen errores.`)
+          }
           setIsReviewing(false)
-          setErrorMessages(errors)
+          setErrorMessages(displayedErrors)
           setErrorDialogOpen(true)
           return
         }
