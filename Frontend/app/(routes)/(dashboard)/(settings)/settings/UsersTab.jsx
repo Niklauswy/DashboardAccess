@@ -82,6 +82,7 @@ export default function UsersTab() {
           return
         }
         
+        let encounteredError = false
         for (const row of records) {
           const userData = {
             samAccountName: row[0],
@@ -108,6 +109,7 @@ export default function UsersTab() {
               description: `El usuario ${userData.samAccountName} se creó correctamente.`,
             })
           } catch (error) {
+            encounteredError = true
             toast({
               title: `Error creando ${userData.samAccountName}`,
               description: error.message,
@@ -117,10 +119,12 @@ export default function UsersTab() {
         }
         setIsReviewing(false)
         setCsvFile(null)
-        toast({
-          title: "Procesamiento CSV",
-          description: "Todos los usuarios han sido procesados exitosamente.",
-        })
+        if (!encounteredError) {
+          toast({
+            title: "Procesamiento CSV",
+            description: "Todos los usuarios han sido procesados exitosamente.",
+          })
+        }
       } catch (error) {
         setIsReviewing(false)
         toast({
@@ -303,7 +307,7 @@ export default function UsersTab() {
       <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-red-600">Error en formato CSV</h3>
+            <h3 className="text-lg font-semibold text-red-600">Errores en formato CSV</h3>
             <div className="space-y-2">
               {errorMessages.map((msg, idx) => (
                 <p key={idx} className="text-sm text-gray-800">{msg}</p>
