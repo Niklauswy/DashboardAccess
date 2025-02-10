@@ -7,6 +7,7 @@ use EBox;
 use EBox::Samba::User;
 use File::Slurp;
 use Try::Tiny;
+use EBox::Samba::OU; # Asegurarse que EBox::Samba::OU está disponible
 
 # Function to print debug messages to STDERR
 sub debug {
@@ -81,8 +82,22 @@ try {
     exit(1);
 };
 
-# Move the user to the specified OU if defined and not empty
-if (defined $ou && $ou ne '') {
+# Move the user to the specified OU if defined and valid, otherwise use default container
+if (not defined $ou || $ou eq '') {
+    $ou = EBox::Samba::User->defaultContainer();
+} else {
+    unless (EBox::Samba::OU->exists($ou)) {
+        debug("La OU '$ou' no existe. Usando contenedor por defecto.");
+        $ou = EBox::Samba::User->defaultContainer();
+    }
+}
+
+# Ejecutar movimiento solo si el usuario no está ya en el contenedor por defectosub defaultContainer
+{
+    my $usersMod = EBox::Global->getInstance()->modInstance('samba');
+    return $usersMod->defaultNamingContext();
+}
+if ($ou ne $defaultContainer) {
     my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"OU=$ou\" -d 3";
     debug("Moviendo usuario $samAccountName a la OU: $ou");
     my $outputMove = qx($commandMove 2>&1);
