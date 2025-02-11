@@ -86,12 +86,14 @@ try {
 if (not defined $ou || $ou eq '') {
     $ou = EBox::Samba::User->defaultContainer();
 } else {
-    my $ou_obj = EBox::Samba::OU->byName($ou);  # new code
-    if (not $ou_obj) {
+    my $defaultDN = EBox::Samba::User->defaultContainer();
+    my $ou_dn = "ou=$ou," . $defaultDN;  # construct expected DN for the OU
+    my $ou_obj = EBox::Samba::OU->new( dn => $ou_dn );
+    if (not $ou_obj->exists()) {   # using existing exists() method
         debug("La OU '$ou' no existe. Usando contenedor por defecto.");
-        $ou = EBox::Samba::User->defaultContainer();
+        $ou = $defaultDN;
     } else {
-        $ou = $ou_obj->dn;  # use distinguished name if required
+        $ou = $ou_obj->dn;
     }
 }
 
