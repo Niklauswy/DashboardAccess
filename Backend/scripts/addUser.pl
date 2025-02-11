@@ -46,9 +46,11 @@ unless ($samAccountName && $givenName && $sn && $password && $ou && $groups) {
     exit(1);
 }
 
-# Get default users container
+# Get default users container and its DN string
 my $defaultContainer = EBox::Samba::User->defaultContainer();
-#debug("Contenedor por defecto obtenido: $defaultContainer");
+my $defaultDN = (ref $defaultContainer && $defaultContainer->can('dn'))
+    ? $defaultContainer->dn
+    : $defaultContainer;
 
 # Function to check if a user already exists
 sub user_exists {
@@ -84,9 +86,8 @@ try {
 
 # Move the user to the specified OU if defined and valid, otherwise use default container
 if (not defined $ou || $ou eq '') {
-    $ou = EBox::Samba::User->defaultContainer();
+    $ou = $defaultDN;
 } else {
-    my $defaultDN = EBox::Samba::User->defaultContainer();
     my $ou_dn = "ou=$ou," . $defaultDN;  # construct expected DN for the OU
     my $ou_obj = EBox::Samba::OU->new( dn => $ou_dn );
     if (not $ou_obj->exists()) {   # using existing exists() method
@@ -97,8 +98,8 @@ if (not defined $ou || $ou eq '') {
     }
 }
 
-if ($ou ne $defaultContainer) {
-    my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"OU=$ou\" -d 3";
+if ($ou ne $defaultDN) {
+    my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"$ou\" -d 3";
     debug("Moviendo usuario $samAccountName a la OU: $ou");
     my $outputMove = qx($commandMove 2>&1);
 
