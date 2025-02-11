@@ -86,7 +86,7 @@ try {
 if (not defined $ou || $ou eq '') {
     $ou = EBox::Samba::User->defaultContainer();
 } else {
-    unless (EBox::Samba::OU->exists($ou)) {
+    unless (EBox::Samba::OU->exists({ name => $ou })) {  # changed line
         debug("La OU '$ou' no existe. Usando contenedor por defecto.");
         $ou = EBox::Samba::User->defaultContainer();
     }

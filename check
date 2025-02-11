@@ -1,2 +1,62 @@
-just check one thing
-api/auth/error?error=Configuration
+Si sacas una PC con samba-tool computer delete, si sirve, ya no se puede volver a acceder desde la computadora y pues deja de salir en el computer list
+
+
+Pero si sacamos una pc del dominio directo desde el work station no se vera reflejado en el arbol de LDAP del server (arreglar eso) o verificar a la hora de quitarla de workstatin tambien sacarla en el servidor
+
+### Diferencias entre grupos
+
+-Schema admins
+No permite agregar computadora al dominio
+Permisos para auth como admin en la pc
+
+-Domains admins
+Permite agregar computadoras al dominio
+
+
+cpan install IO::Uncompress::Gunzip
+cpan install DateTime
+cpan Parallel::ForkManager
+
+check-disk-space
+
+<VirtualHost *:80>
+    ServerName yourdomain.com
+
+    ProxyPreserveHost On
+    ProxyRequests Off
+    ProxyPass / http://localhost:3000/
+    ProxyPassReverse / http://localhost:3000/
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+
+
+sudo systemctl restart apache2
+
+
+Por defecto, cada usuario de dominio tiene su propio directorio personal, el cual es montado en la letra :H, sin embargo, en caso de que no queramos usar dicha funcionalidad, podemos deshabilitarla modificando el parámetro disable_home_share en el archivo de configu>
+
+sudo zs samba restart
+
+
+Cuando se saca una pc en la pc aparecera
+The security database on the server does not have a computer account for this workstation trust relationship
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
