@@ -940,77 +940,7 @@ Normal dashboard
             </CardContent>
           </Card>
         </div>
-        {dataError && <p className="text-red-500">{dataError}</p>}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Tabla de Top 10 Usuarios */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {/* Icono */}
-                Top 10 Usuarios con Más Logs
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {topUsersData.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Usuario</TableHead>
-                      <TableHead>Conteo de Logs</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {topUsersData.map((user, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{user.username}</TableCell>
-                        <TableCell>{user.logCount}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <p>Cargando...</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Tabla de Últimos Logins */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {/* Icono */}
-                Últimos Logins
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {recentLoginsData.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Fecha</TableHead>
-                      <TableHead>Usuario</TableHead>
-                      <TableHead>IP</TableHead>
-                      {/* Agrega más columnas si es necesario */}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentLoginsData.map((log, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{log.date}</TableCell>
-                        <TableCell>{log.user}</TableCell>
-                        <TableCell>{log.ip}</TableCell>
-                        {/* Agrega más celdas si es necesario */}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <p>Cargando...</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
       </div>
 
   )
