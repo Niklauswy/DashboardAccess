@@ -35,6 +35,7 @@ export default function UsersTab() {
   const [serieGroups, setSerieGroups] = useState([])
   const [seriePasswordError, setSeriePasswordError] = useState("")
   const [openSeriesGroups, setOpenSeriesGroups] = useState(false)
+  const [csvPasswordError, setCsvPasswordError] = useState("")
 
   // Password validator: minimum 8 characters, one uppercase, one lowercase, and one digit.
   const validatePassword = (password) => {
@@ -167,13 +168,45 @@ export default function UsersTab() {
     reader.readAsText(csvFile)
   }
 
-  const handleCreateUsers = () => {
-    const users = []
+  const handleCreateUsers = async () => {
+    if (!newUserDefaultPassword || !validatePassword(newUserDefaultPassword)) {
+      setSeriePasswordError("La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas y un dígito.")
+      return
+    }
+    setSeriePasswordError("")
     for (let i = 1; i <= newUserQuantity; i++) {
       const number = String(i).padStart(2, "0")
-      users.push(`${newUserPrefix}${number}`)
+      const username = `${newUserPrefix}${number}`
+      const userData = {
+        samAccountName: username,
+        givenName: username,
+        sn: "FC",
+        password: newUserDefaultPassword,
+        ou: serieOU,        // may be empty if no selection
+        groups: serieGroups // may be empty array if none selected
+      }
+      try {
+        const res = await fetch("/api/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userData)
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          throw new Error(data.details || data.error || `Error creando ${username}.`)
+        }
+        toast({
+          title: `Usuario ${username} creado`,
+          description: `El usuario ${username} se creó correctamente.`,
+        })
+      } catch (error) {
+        toast({
+          title: `Error creando ${username}`,
+          description: error.message,
+          variant: "destructive",
+        })
+      }
     }
-    console.log("Creating users:", users, "with default password:", newUserDefaultPassword)
   }
 
   return (
@@ -278,9 +311,18 @@ export default function UsersTab() {
               id="default-password"
               type="password"
               value={defaultPassword}
-              onChange={(e) => setDefaultPassword(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                setDefaultPassword(value)
+                if (!validatePassword(value)) {
+                  setCsvPasswordError("La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas y un dígito.")
+                } else {
+                  setCsvPasswordError("")
+                }
+              }}
               placeholder="Ingrese la contraseña por defecto"
             />
+            {csvPasswordError && <p className="text-sm text-destructive">{csvPasswordError}</p>}
             <Button className="mt-2" disabled={!defaultPassword} onClick={handleUpload}>
               Subir y Procesar Usuarios
             </Button>
@@ -340,6 +382,9 @@ export default function UsersTab() {
                   <SelectValue placeholder="Seleccione una carrera" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem key="empty" value="">
+                    Ninguna
+                  </SelectItem>
                   {(ous || []).map((ou) => (
                     <SelectItem key={ou} value={ou}>
                       {ou}
@@ -363,11 +408,16 @@ export default function UsersTab() {
                     <CommandList>
                       <CommandEmpty>No se encontraron grupos.</CommandEmpty>
                       <CommandGroup className="max-h-64 overflow-auto">
+                        <CommandItem key="empty-groups" onSelect={() => setSerieGroups([])}>
+                          Vacío
+                        </CommandItem>
                         {(groups || []).map((group) => (
                           <CommandItem
                             key={group}
                             onSelect={() => {
-                              setSerieGroups(serieGroups.includes(group) ? serieGroups.filter((g) => g !== group) : [...serieGroups, group])
+                              setSerieGroups(serieGroups.includes(group)
+                                ? serieGroups.filter((g) => g !== group)
+                                : [...serieGroups, group])
                             }}
                           >
                             <Check className={cn("mr-2 h-4 w-4", serieGroups.includes(group) ? "opacity-100" : "opacity-0")} />
