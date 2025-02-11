@@ -1,0 +1,133 @@
+% Template para Practicas/Tareas/Actividades
+% latex -file-line-error -interaction=nonstopmode main.tex
+% bibtex main
+\documentclass[11pt]{article}
+\usepackage{emoji}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+
+% ========================= VARIABLES =================================
+\newcommand{\reportTitle}{Manual [Linux]  }
+\newcommand{\subtitle}{}
+
+\input{/home/klaus/Latex/base/variables.tex}
+\input{/home/klaus/Latex/base/packages.tex}
+\input{/home/klaus/Latex/base/styles.tex}
+\input{/home/klaus/Latex/base/functions.tex}
+
+% \setlength{\parindent}{0pt}
+
+
+% Define custom tcolorbox styles
+\tcbset{
+    note/.style={
+        colback=yellow!10!white,
+        colframe=yellow!50!black,
+        fonttitle=\bfseries,
+        title=NOTA
+    },
+    important/.style={
+        colback=red!10!white,
+        colframe=red!50!black,
+        fonttitle=\bfseries,
+        title=IMPORTANTE
+    }
+}
+% Define custom colors
+\definecolor{codebg}{rgb}{0.95,0.95,0.95}
+\definecolor{codeframe}{rgb}{0.8,0.8,0.8}
+
+% Customize the listings environment
+\lstset{
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=10pt,
+    breaklines=true,
+    breakatwhitespace=false,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4,
+    captionpos=b
+}
+\begin{document}
+%***************** TITLE PAGE  ******************************
+    \include{portadaNormal}
+
+    \newgeometry{top=3cm, bottom=3cm}
+
+    \section{Introducción}
+
+    En este manual, se describen los pasos necesarios para configurar y unir una máquina Linux a un dominio Active Directory. Se detallan las configuraciones de red, la instalación de paquetes necesarios, y los comandos para verificar y unirse al dominio. Además, se incluyen configuraciones adicionales específicas para diferentes distribuciones de Linux como Ubuntu, Debian y Raspberry Pi OS. Este documento está dirigido a administradores de sistemas y usuarios avanzados que necesiten integrar sus sistemas Linux en un entorno de dominio Active Directory.
+
+    \begin{tcolorbox}[note]
+        Nota: Asegúrese de tener privilegios de administrador y acceso a las credenciales del dominio antes de comenzar con las configuraciones.
+    \end{tcolorbox}
+
+    \section{Congigurar IP servidor}
+    Debemos configurar el archivo /etc/hosts para que la máquina pueda resolver el nombre del servidor.
+    \begin{lstlisting}
+        sudo nano /etc/hosts
+    \end{lstlisting}
+    Añadir la siguiente linea al archivo.
+    \begin{lstlisting}
+        148.231.211.158 server
+        148.231.211.158 access
+    \end{lstlisting}
+
+
+
+    \section{Instalación de paquetes}
+    Para que funcione el active directoy en linux, se necesitar varios paquetes, entre ellos \texttt{realmd} y \texttt{sssd}.
+    Pero bastará con instalar \texttt{realmd} para que se instalen los paquetes necesarios.
+
+    \begin{lstlisting}
+        sudo apt install realmd
+    \end{lstlisting}
+
+
+
+
+
+
+    \section{Unirse al dominio}
+    \begin{tcolorbox}[important]
+        Asegurarse de que la máquina ya tenga el hostname (con la nomeclatura correcta)  antes de unirse al dominio.
+    \end{tcolorbox}
+    \begin{enumerate}
+        \item Verificar dominio. \\
+       Ejecutar el siguiente comando para verificar el dominio este funcionado.
+        \begin{lstlisting}
+    sudo realm discover domain
+        \end{lstlisting}
+
+        \item Unirse al dominio \\
+        Para unirse al dominio, se necesita un usuario con permisos de administrador.
+        \begin{lstlisting}
+    sudo realm join domain -V
+        \end{lstlisting}
+    \end{enumerate}
+
+
+    \section{Configuraciónes adicionales}
+    A partir de este punto, se deben realizar configuraciones adicionales, pero dependen de la distribución de linux que se este utilizando. A continuación se muestran algunas configuraciones en 3 distribuciones populares.
+
+    \subsection{Ubuntu [22.] }
+
+
+    \subsection{Debian}
+
+    \subsection{Raspberry Pi OS}
+    \bibliography{/home/klaus/Latex/base/main}
+    \bibliographystyle{plain}
+
+\end{document}
