@@ -12,7 +12,8 @@ import { Users, FileSpreadsheet, Info } from "lucide-react"
 import Papa from "papaparse"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-// ...existing imports if needed...
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+
 
 const fetcher = (url) => fetch(url).then(res => res.json())
 
