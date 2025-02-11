@@ -35,12 +35,12 @@ my $samAccountName = $user_data->{samAccountName};
 my $givenName      = $user_data->{givenName};
 my $sn             = $user_data->{sn};
 my $password       = $user_data->{password};
-my $ou             = $user_data->{ou};
+my $ou             = defined $user_data->{ou} ? $user_data->{ou} : "";
 my $groups         = $user_data->{groups};
 my $description    = $user_data->{description} || '';
 
-# Validate required fields
-unless ($samAccountName && $givenName && $sn && $password && $ou && $groups) {
+# Validate required fields (OU and groups are now optional)
+unless ($samAccountName && $givenName && $sn && $password) {
     print encode_json({ error => 'Faltan campos requeridos' });
     debug("Faltan campos requeridos en el JSON.");
     exit(1);
@@ -51,6 +51,12 @@ my $defaultContainer = EBox::Samba::User->defaultContainer();
 my $defaultDN = (ref $defaultContainer && $defaultContainer->can('dn'))
     ? $defaultContainer->dn
     : $defaultContainer;
+
+# Use default container if OU is empty
+$ou = $ou =~ /\S/ ? $ou : $defaultDN;
+
+# Ensure groups is an array reference; if not, default to empty array.
+$groups = (ref $groups eq 'ARRAY') ? $groups : [];
 
 # Function to check if a user already exists
 sub user_exists {
@@ -84,8 +90,8 @@ try {
     exit(1);
 };
 
-# Move the user to the specified OU if defined and valid, otherwise use default container
-if (not defined $ou || $ou eq '') {
+# Move the user to the specified OU if provided and valid, otherwise use default container
+if ($ou eq $defaultDN) {
     $ou = $defaultDN;
 } else {
     my $ou_dn = "ou=$ou," . $defaultDN;  # construct expected DN for the OU
@@ -116,8 +122,9 @@ if ($ou ne $defaultDN) {
     }
 }
 
-# Add the user to the specified groups
+# Add the user to the specified groups (if any)
 foreach my $groupName (@$groups) {
+    next unless $groupName =~ /\S/;
     debug("Añadiendo usuario $samAccountName al grupo $groupName.");
     my $commandAddGroup = "sudo samba-tool group addmembers \"$groupName\" \"$samAccountName\"";
     my $outputAddGroup = qx($commandAddGroup 2>&1);
