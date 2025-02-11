@@ -25,6 +25,17 @@ export default function UsersTab() {
   const [errorMessages, setErrorMessages] = useState([])
   const [isReviewing, setIsReviewing] = useState(false)
   const { toast } = useToast()
+  // New states for series creation
+  const [serieOU, setSerieOU] = useState("")
+  const [serieGroups, setSerieGroups] = useState([])
+  const [seriePasswordError, setSeriePasswordError] = useState("")
+  const [openSeriesGroups, setOpenSeriesGroups] = useState(false)
+
+  // Password validator: minimum 8 characters, one uppercase, one lowercase, and one digit.
+  const validatePassword = (password) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
+    return regex.test(password)
+  }
 
   const { data: groups } = useSWR('/api/groups', fetcher)
   const { data: ous } = useSWR('/api/ous', fetcher)
@@ -304,9 +315,75 @@ export default function UsersTab() {
                 id="user-default-password"
                 type="password"
                 value={newUserDefaultPassword}
-                onChange={(e) => setNewUserDefaultPassword(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setNewUserDefaultPassword(value)
+                  if (!validatePassword(value)) {
+                    setSeriePasswordError("La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas y un dígito.")
+                  } else {
+                    setSeriePasswordError("")
+                  }
+                }}
                 placeholder="Ingrese la contraseña"
               />
+              {seriePasswordError && <p className="text-sm text-destructive">{seriePasswordError}</p>}
+            </div>
+            <div>
+              <Label htmlFor="serie-ou">Carrera</Label>
+              <Select value={serieOU} onValueChange={setSerieOU} id="serie-ou">
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione una carrera" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ous.map((ou) => (
+                    <SelectItem key={ou} value={ou}>
+                      {ou}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Grupos</Label>
+              <Popover open={openSeriesGroups} onOpenChange={setOpenSeriesGroups}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" role="combobox" aria-expanded={openSeriesGroups} className="w-full justify-between">
+                    {serieGroups.length > 0 ? `${serieGroups.length} grupos seleccionados` : "Seleccione grupos"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar grupos..." />
+                    <CommandList>
+                      <CommandEmpty>No se encontraron grupos.</CommandEmpty>
+                      <CommandGroup className="max-h-64 overflow-auto">
+                        {groups.map((group) => (
+                          <CommandItem
+                            key={group}
+                            onSelect={() => {
+                              setSerieGroups(serieGroups.includes(group) ? serieGroups.filter((g) => g !== group) : [...serieGroups, group])
+                            }}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4", serieGroups.includes(group) ? "opacity-100" : "opacity-0")} />
+                            {group}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {serieGroups.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {serieGroups.map((group) => (
+                    <Badge key={group} variant="secondary" className="flex items-center gap-1">
+                      {group}
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => setSerieGroups(serieGroups.filter((g) => g !== group))} />
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
             <Button onClick={handleCreateUsers}>Crear Usuarios</Button>
           </div>
