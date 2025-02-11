@@ -409,7 +409,7 @@ export default function UsersTab() {
                       <CommandEmpty>No se encontraron grupos.</CommandEmpty>
                       <CommandGroup className="max-h-64 overflow-auto">
                         <CommandItem key="empty-groups" onSelect={() => setSerieGroups([])}>
-                          Vacío
+                          Niguno
                         </CommandItem>
                         {(groups || []).map((group) => (
                           <CommandItem
