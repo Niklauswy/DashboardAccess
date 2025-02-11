@@ -35,20 +35,28 @@ my $samAccountName = $user_data->{samAccountName};
 my $givenName      = $user_data->{givenName};
 my $sn             = $user_data->{sn};
 my $password       = $user_data->{password};
-my $ou             = $user_data->{ou};
+my $ou             = defined $user_data->{ou} ? $user_data->{ou} : "";
 my $groups         = $user_data->{groups};
 my $description    = $user_data->{description} || '';
 
-# Validate required fields
-unless ($samAccountName && $givenName && $sn && $password && $ou && $groups) {
+# Validate required fields (OU and groups are now optional)
+unless ($samAccountName && $givenName && $sn && $password) {
     print encode_json({ error => 'Faltan campos requeridos' });
     debug("Faltan campos requeridos en el JSON.");
     exit(1);
 }
 
-# Get default users container
+# Get default users container and its DN string
 my $defaultContainer = EBox::Samba::User->defaultContainer();
-#debug("Contenedor por defecto obtenido: $defaultContainer");
+my $defaultDN = (ref $defaultContainer && $defaultContainer->can('dn'))
+    ? $defaultContainer->dn
+    : $defaultContainer;
+
+# Use default container if OU is empty
+$ou = $ou =~ /\S/ ? $ou : $defaultDN;
+
+# Ensure groups is an array reference; if not, default to empty array.
+$groups = (ref $groups eq 'ARRAY') ? $groups : [];
 
 # Function to check if a user already exists
 sub user_exists {
@@ -82,23 +90,22 @@ try {
     exit(1);
 };
 
-# Move the user to the specified OU if defined and valid, otherwise use default container
-if (not defined $ou || $ou eq '') {
-    $ou = EBox::Samba::User->defaultContainer();
+# Move the user to the specified OU if provided and valid, otherwise use default container
+if ($ou eq $defaultDN) {
+    $ou = $defaultDN;
 } else {
-    unless (EBox::Samba::OU->exists($ou)) {
+    my $ou_dn = "ou=$ou," . $defaultDN;  # construct expected DN for the OU
+    my $ou_obj = EBox::Samba::OU->new( dn => $ou_dn );
+    if (not $ou_obj->exists()) {   # using existing exists() method
         debug("La OU '$ou' no existe. Usando contenedor por defecto.");
-        $ou = EBox::Samba::User->defaultContainer();
+        $ou = $defaultDN;
+    } else {
+        $ou = $ou_obj->dn;
     }
 }
 
-# Ejecutar movimiento solo si el usuario no está ya en el contenedor por defectosub defaultContainer
-{
-    my $usersMod = EBox::Global->getInstance()->modInstance('samba');
-    return $usersMod->defaultNamingContext();
-}
-if ($ou ne $defaultContainer) {
-    my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"OU=$ou\" -d 3";
+if ($ou ne $defaultDN) {
+    my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"$ou\" -d 3";
     debug("Moviendo usuario $samAccountName a la OU: $ou");
     my $outputMove = qx($commandMove 2>&1);
 
@@ -115,8 +122,9 @@ if ($ou ne $defaultContainer) {
     }
 }
 
-# Add the user to the specified groups
+# Add the user to the specified groups (if any)
 foreach my $groupName (@$groups) {
+    next unless $groupName =~ /\S/;
     debug("Añadiendo usuario $samAccountName al grupo $groupName.");
     my $commandAddGroup = "sudo samba-tool group addmembers \"$groupName\" \"$samAccountName\"";
     my $outputAddGroup = qx($commandAddGroup 2>&1);
