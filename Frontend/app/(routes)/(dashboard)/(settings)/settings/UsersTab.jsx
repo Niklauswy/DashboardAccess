@@ -255,15 +255,19 @@ export default function UsersTab() {
                       <TableCell>BIO</TableCell>
                       <TableCell>Estudiante</TableCell>
                     </TableRow>
+                    <TableRow>
+                      <TableCell>Invitado</TableCell>
+                      <TableCell>Invitado01</TableCell>
+                      <TableCell>FC</TableCell>
+ 
+                    </TableRow>
                   </TableBody>
                 </Table>
                 <div className="mt-4 p-4 bg-gray-50 border-l-4 border-blue-500 rounded">
     <p className="text-sm text-gray-700">
-      Puedes omitir la OU y el Grupo si no deseas asignarlos.
+      Se puede omitir la OU y el Grupo si no deseas asignarlos.
     </p>
-    <p className="text-sm font-semibold mt-2">
-      Ejemplo: <span className="text-gray-900">AL12345, Goku, Son,,,</span>
-    </p>
+
   </div>
   <div className="mt-4 p-4 bg-gray-100 rounded">
     <p className="text-sm text-gray-700">
