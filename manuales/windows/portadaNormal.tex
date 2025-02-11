@@ -1,41 +1,23 @@
-
 \begin{titlepage}
     \newgeometry{top=2cm, bottom=3.5cm}
 
-    \vspace*{2cm} %
+    \vspace*{4cm} %
 
-    \begin{spacing}{\ifdefempty{\subtitle}{1.5}{2}}
-        \centering
+    \begin{center}
         \Huge{
             \textbf{\reportTitle}
         }
+        \vspace{1cm}
         \ifdefempty{\subtitle}{}{
-            \par
             \Large{
                 \textbf{\subtitle}
             }
         }
-    \end{spacing}
+    \end{center}
 
-    \hrule
     \vfill
 
-
-    \begin{flushright}
-        \LARGE{\nico}  / 369153
-        \vspace{1cm}
-
-        \subject\\ %Materia
-
-        \Large
-        \Large{Docente: \teacherName }\\
-
-        \course\\
-        \university
-        \vspace{1cm}
-        Ensenada, Baja California, \today
-
-    \end{flushright}
+    \begin{center}
+        \large{Ensenada, Baja California}
+    \end{center}
 \end{titlepage}
-
-\newcommand{\leftUpperHeader}{\subject}
