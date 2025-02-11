@@ -58,18 +58,29 @@ export default function UsersTab() {
         // Aggregate errors per row.
         const aggregatedErrors = []
         records.forEach((row, index) => {
-          if (row.length !== 5) {
-            aggregatedErrors.push(`Fila ${index + 1}: Se esperaban 5 campos pero se recibieron ${row.length}.`)
+          if (row.length < 3 || row.length > 5) {
+            aggregatedErrors.push(`Fila ${index + 1}: Se esperaban entre 3 y 5 campos pero se recibieron ${row.length}.`)
           } else {
-            const emptyCount = row.reduce((acc, field) => (!field || field.trim() === "") ? acc + 1 : acc, 0)
-            if (emptyCount > 0) {
-              aggregatedErrors.push(`Fila ${index + 1}: Tiene ${emptyCount} campo${emptyCount > 1 ? 's' : ''} vacío${emptyCount > 1 ? 's' : ''}.`)
+            // Pad row with empty strings if needed
+            while (row.length < 5) {
+              row.push("")
+            }
+            // Validate mandatory fields (first three should not be empty)
+            if (!row[0].trim() || !row[1].trim() || !row[2].trim()) {
+              aggregatedErrors.push(`Fila ${index + 1}: Los primeros 3 campos son obligatorios y no deben estar vacíos.`)
+            }
+            // Validate OU (4th field) if provided
+            if (row[3].trim() && ous && !ous.includes(row[3].trim())) {
+              aggregatedErrors.push(`Fila ${index + 1}: La OU '${row[3].trim()}' no existe.`)
+            }
+            // Validate Group (5th field) if provided
+            if (row[4].trim() && groups && !groups.includes(row[4].trim())) {
+              aggregatedErrors.push(`Fila ${index + 1}: El grupo '${row[4].trim()}' no existe.`)
             }
           }
         })
 
         if (aggregatedErrors.length > 0) {
-          // Limit to 10 records.
           const maxDisplay = 10
           let displayedErrors = aggregatedErrors.slice(0, maxDisplay)
           const extraCount = aggregatedErrors.length - maxDisplay
@@ -81,16 +92,20 @@ export default function UsersTab() {
           setErrorDialogOpen(true)
           return
         }
-        
+
         let encounteredError = false
         for (const row of records) {
+          // Ensure row is padded to 5 columns
+          while (row.length < 5) {
+            row.push("")
+          }
           const userData = {
-            samAccountName: row[0],
-            givenName: row[1],
-            sn: row[2],
+            samAccountName: row[0].trim(),
+            givenName: row[1].trim(),
+            sn: row[2].trim(),
             password: defaultPassword,
-            ou: row[3],
-            groups: [row[4]]
+            ou: row[3].trim(),   // will be empty if not provided
+            groups: row[4].trim() ? [row[4].trim()] : []
           }
           try {
             const res = await fetch("/api/users", {
@@ -100,7 +115,6 @@ export default function UsersTab() {
             })
             const data = await res.json()
             console.log(data)
-            
             if (!res.ok) {
               throw new Error(data.details || data.error || `Ocurrió un error al crear el usuario ${userData.samAccountName}.`)
             }
