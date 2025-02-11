@@ -336,7 +336,7 @@ export default function UsersTab() {
                   <SelectValue placeholder="Seleccione una carrera" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ous.map((ou) => (
+                  {(ous || []).map((ou) => (
                     <SelectItem key={ou} value={ou}>
                       {ou}
                     </SelectItem>
@@ -359,7 +359,7 @@ export default function UsersTab() {
                     <CommandList>
                       <CommandEmpty>No se encontraron grupos.</CommandEmpty>
                       <CommandGroup className="max-h-64 overflow-auto">
-                        {groups.map((group) => (
+                        {(groups || []).map((group) => (
                           <CommandItem
                             key={group}
                             onSelect={() => {
