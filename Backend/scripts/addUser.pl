@@ -86,17 +86,15 @@ try {
 if (not defined $ou || $ou eq '') {
     $ou = EBox::Samba::User->defaultContainer();
 } else {
-    unless (EBox::Samba::OU->exists({ name => $ou })) {  # changed line
+    my $ou_obj = EBox::Samba::OU->byName($ou);  # new code
+    if (not $ou_obj) {
         debug("La OU '$ou' no existe. Usando contenedor por defecto.");
         $ou = EBox::Samba::User->defaultContainer();
+    } else {
+        $ou = $ou_obj->dn;  # use distinguished name if required
     }
 }
 
-# Ejecutar movimiento solo si el usuario no está ya en el contenedor por defectosub defaultContainer
-{
-    my $usersMod = EBox::Global->getInstance()->modInstance('samba');
-    return $usersMod->defaultNamingContext();
-}
 if ($ou ne $defaultContainer) {
     my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"OU=$ou\" -d 3";
     debug("Moviendo usuario $samAccountName a la OU: $ou");
