@@ -11,7 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Users, FileSpreadsheet, Info } from "lucide-react"
 import Papa from "papaparse"
 import { useToast } from "@/hooks/use-toast"
-// ...existing imports if needed...
 
 const fetcher = (url) => fetch(url).then(res => res.json())
 
@@ -194,14 +193,22 @@ export default function UsersTab() {
                     </TableRow>
                   </TableBody>
                 </Table>
-                <div className="mt-4 p-4 bg-gray-100 rounded">
-                  <p className="text-sm text-gray-700">
-                    Grupos permitidos: {groups ? groups.join(", ") : "Cargando..."}
-                  </p>
-                  <p className="text-sm text-gray-700">
-                    Unidades Organizacionales: {ous ? ous.join(", ") : "Cargando..."}
-                  </p>
-                </div>
+                <div className="mt-4 p-4 bg-gray-50 border-l-4 border-blue-500 rounded">
+    <p className="text-sm text-gray-700">
+      Puedes omitir la OU y el Grupo si no deseas asignarlos.
+    </p>
+    <p className="text-sm font-semibold mt-2">
+      Ejemplo: <span className="text-gray-900">AL12345, Goku, Son,,,</span>
+    </p>
+  </div>
+  <div className="mt-4 p-4 bg-gray-100 rounded">
+    <p className="text-sm text-gray-700">
+      Grupos permitidos: {groups ? groups.join(", ") : "Cargando..."}
+    </p>
+    <p className="text-sm text-gray-700">
+      Unidades Organizacionales: {ous ? ous.join(", ") : "Cargando..."}
+    </p>
+  </div>
               </DialogContent>
             </Dialog>
           </CardTitle>
