@@ -11,11 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Users, FileSpreadsheet, Info } from "lucide-react"
 import Papa from "papaparse"
 import { useToast } from "@/hooks/use-toast"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Check, ChevronsUpDown, X } from "lucide-react"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-
+// ...existing imports if needed...
 
 const fetcher = (url) => fetch(url).then(res => res.json())
 
@@ -29,17 +25,6 @@ export default function UsersTab() {
   const [errorMessages, setErrorMessages] = useState([])
   const [isReviewing, setIsReviewing] = useState(false)
   const { toast } = useToast()
-  // New states for series creation
-  const [serieOU, setSerieOU] = useState("")
-  const [serieGroups, setSerieGroups] = useState([])
-  const [seriePasswordError, setSeriePasswordError] = useState("")
-  const [openSeriesGroups, setOpenSeriesGroups] = useState(false)
-
-  // Password validator: minimum 8 characters, one uppercase, one lowercase, and one digit.
-  const validatePassword = (password) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
-    return regex.test(password)
-  }
 
   const { data: groups } = useSWR('/api/groups', fetcher)
   const { data: ous } = useSWR('/api/ous', fetcher)
@@ -73,29 +58,18 @@ export default function UsersTab() {
         // Aggregate errors per row.
         const aggregatedErrors = []
         records.forEach((row, index) => {
-          if (row.length < 3 || row.length > 5) {
-            aggregatedErrors.push(`Fila ${index + 1}: Se esperaban entre 3 y 5 campos pero se recibieron ${row.length}.`)
+          if (row.length !== 5) {
+            aggregatedErrors.push(`Fila ${index + 1}: Se esperaban 5 campos pero se recibieron ${row.length}.`)
           } else {
-            // Pad row with empty strings if needed
-            while (row.length < 5) {
-              row.push("")
-            }
-            // Validate mandatory fields (first three should not be empty)
-            if (!row[0].trim() || !row[1].trim() || !row[2].trim()) {
-              aggregatedErrors.push(`Fila ${index + 1}: Los primeros 3 campos son obligatorios y no deben estar vacíos.`)
-            }
-            // Validate OU (4th field) if provided
-            if (row[3].trim() && ous && !ous.includes(row[3].trim())) {
-              aggregatedErrors.push(`Fila ${index + 1}: La OU '${row[3].trim()}' no existe.`)
-            }
-            // Validate Group (5th field) if provided
-            if (row[4].trim() && groups && !groups.includes(row[4].trim())) {
-              aggregatedErrors.push(`Fila ${index + 1}: El grupo '${row[4].trim()}' no existe.`)
+            const emptyCount = row.reduce((acc, field) => (!field || field.trim() === "") ? acc + 1 : acc, 0)
+            if (emptyCount > 0) {
+              aggregatedErrors.push(`Fila ${index + 1}: Tiene ${emptyCount} campo${emptyCount > 1 ? 's' : ''} vacío${emptyCount > 1 ? 's' : ''}.`)
             }
           }
         })
 
         if (aggregatedErrors.length > 0) {
+          // Limit to 10 records.
           const maxDisplay = 10
           let displayedErrors = aggregatedErrors.slice(0, maxDisplay)
           const extraCount = aggregatedErrors.length - maxDisplay
@@ -107,20 +81,16 @@ export default function UsersTab() {
           setErrorDialogOpen(true)
           return
         }
-
+        
         let encounteredError = false
         for (const row of records) {
-          // Ensure row is padded to 5 columns
-          while (row.length < 5) {
-            row.push("")
-          }
           const userData = {
-            samAccountName: row[0].trim(),
-            givenName: row[1].trim(),
-            sn: row[2].trim(),
+            samAccountName: row[0],
+            givenName: row[1],
+            sn: row[2],
             password: defaultPassword,
-            ou: row[3].trim(),   // will be empty if not provided
-            groups: row[4].trim() ? [row[4].trim()] : []
+            ou: row[3],
+            groups: [row[4]]
           }
           try {
             const res = await fetch("/api/users", {
@@ -130,6 +100,7 @@ export default function UsersTab() {
             })
             const data = await res.json()
             console.log(data)
+            
             if (!res.ok) {
               throw new Error(data.details || data.error || `Ocurrió un error al crear el usuario ${userData.samAccountName}.`)
             }
@@ -193,7 +164,7 @@ export default function UsersTab() {
                 <DialogHeader>
                   <DialogTitle>Formato CSV</DialogTitle>
                   <DialogDescription>
-                    El archivo CSV debe seguir este formato [Sin encabezados]:
+                    El archivo CSV debe seguir este formato:
                   </DialogDescription>
                 </DialogHeader>
                 <Table>
@@ -223,22 +194,14 @@ export default function UsersTab() {
                     </TableRow>
                   </TableBody>
                 </Table>
-                <div className="mt-4 p-4 bg-gray-50 border-l-4 border-blue-500 rounded">
-    <p className="text-sm text-gray-700">
-      Puedes omitir la OU y el Grupo si no deseas asignarlos.
-    </p>
-    <p className="text-sm font-semibold mt-2">
-      Ejemplo: <span className="text-gray-900">AL12345, Goku, Son,,,</span>
-    </p>
-  </div>
-  <div className="mt-4 p-4 bg-gray-100 rounded">
-    <p className="text-sm text-gray-700">
-      Grupos permitidos: {groups ? groups.join(", ") : "Cargando..."}
-    </p>
-    <p className="text-sm text-gray-700">
-      Unidades Organizacionales: {ous ? ous.join(", ") : "Cargando..."}
-    </p>
-  </div>
+                <div className="mt-4 p-4 bg-gray-100 rounded">
+                  <p className="text-sm text-gray-700">
+                    Grupos permitidos: {groups ? groups.join(", ") : "Cargando..."}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    Unidades Organizacionales: {ous ? ous.join(", ") : "Cargando..."}
+                  </p>
+                </div>
               </DialogContent>
             </Dialog>
           </CardTitle>
@@ -319,75 +282,9 @@ export default function UsersTab() {
                 id="user-default-password"
                 type="password"
                 value={newUserDefaultPassword}
-                onChange={(e) => {
-                  const value = e.target.value
-                  setNewUserDefaultPassword(value)
-                  if (!validatePassword(value)) {
-                    setSeriePasswordError("La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas y un dígito.")
-                  } else {
-                    setSeriePasswordError("")
-                  }
-                }}
+                onChange={(e) => setNewUserDefaultPassword(e.target.value)}
                 placeholder="Ingrese la contraseña"
               />
-              {seriePasswordError && <p className="text-sm text-destructive">{seriePasswordError}</p>}
-            </div>
-            <div>
-              <Label htmlFor="serie-ou">Carrera</Label>
-              <Select value={serieOU} onValueChange={setSerieOU} id="serie-ou">
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una carrera" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(ous || []).map((ou) => (
-                    <SelectItem key={ou} value={ou}>
-                      {ou}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Grupos</Label>
-              <Popover open={openSeriesGroups} onOpenChange={setOpenSeriesGroups}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" role="combobox" aria-expanded={openSeriesGroups} className="w-full justify-between">
-                    {serieGroups.length > 0 ? `${serieGroups.length} grupos seleccionados` : "Seleccione grupos"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Buscar grupos..." />
-                    <CommandList>
-                      <CommandEmpty>No se encontraron grupos.</CommandEmpty>
-                      <CommandGroup className="max-h-64 overflow-auto">
-                        {(groups || []).map((group) => (
-                          <CommandItem
-                            key={group}
-                            onSelect={() => {
-                              setSerieGroups(serieGroups.includes(group) ? serieGroups.filter((g) => g !== group) : [...serieGroups, group])
-                            }}
-                          >
-                            <Check className={cn("mr-2 h-4 w-4", serieGroups.includes(group) ? "opacity-100" : "opacity-0")} />
-                            {group}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              {serieGroups.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {serieGroups.map((group) => (
-                    <Badge key={group} variant="secondary" className="flex items-center gap-1">
-                      {group}
-                      <X className="h-3 w-3 cursor-pointer" onClick={() => setSerieGroups(serieGroups.filter((g) => g !== group))} />
-                    </Badge>
-                  ))}
-                </div>
-              )}
             </div>
             <Button onClick={handleCreateUsers}>Crear Usuarios</Button>
           </div>
