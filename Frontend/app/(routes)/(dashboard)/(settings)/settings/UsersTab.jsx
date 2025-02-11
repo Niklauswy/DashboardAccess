@@ -182,7 +182,7 @@ export default function UsersTab() {
         givenName: username,
         sn: "FC",
         password: newUserDefaultPassword,
-        ou: serieOU,        // may be empty if no selection
+        ou: serieOU === "none" ? "" : serieOU, // update here
         groups: serieGroups // may be empty array if none selected
       }
       try {
@@ -382,7 +382,7 @@ export default function UsersTab() {
                   <SelectValue placeholder="Seleccione una carrera" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem key="empty" value="">
+                  <SelectItem key="empty" value="none">
                     Ninguna
                   </SelectItem>
                   {(ous || []).map((ou) => (
