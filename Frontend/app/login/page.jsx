@@ -26,7 +26,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left-side illustrative image (hidden on small screens) */}
       <div className="hidden md:flex md:w-1/2 bg-gray-50 items-center justify-center p-10">
         <Image 
           src="/cimarron.png"
@@ -35,7 +34,6 @@ export default function LoginPage() {
           height={300}
         />
       </div>
-      {/* Login form using shadcn UI components */}
       <div className="flex flex-1 items-center justify-center p-10">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">

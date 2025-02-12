@@ -29,15 +29,13 @@ export default function UsersTab() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false)
   const [errorMessages, setErrorMessages] = useState([])
   const [isReviewing, setIsReviewing] = useState(false)
-  const { toast } = useToast()
-  // New states for series creation
   const [serieOU, setSerieOU] = useState("")
   const [serieGroups, setSerieGroups] = useState([])
   const [seriePasswordError, setSeriePasswordError] = useState("")
   const [openSeriesGroups, setOpenSeriesGroups] = useState(false)
   const [csvPasswordError, setCsvPasswordError] = useState("")
-
-  // Password validator: minimum 8 characters, one uppercase, one lowercase, and one digit.
+  const { toast } = useToast()
+  
   const validatePassword = (password) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
     return regex.test(password)
@@ -68,29 +66,27 @@ export default function UsersTab() {
     reader.onload = async (e) => {
       try {
         const csvText = e.target.result
-        // Parse CSV (without headers)
         const results = Papa.parse(csvText, { header: false, skipEmptyLines: true })
         const records = results.data
 
-        // Aggregate errors per row.
         const aggregatedErrors = []
         records.forEach((row, index) => {
           if (row.length < 3 || row.length > 5) {
             aggregatedErrors.push(`Fila ${index + 1}: Se esperaban entre 3 y 5 campos pero se recibieron ${row.length}.`)
           } else {
-            // Pad row with empty strings if needed
+
             while (row.length < 5) {
               row.push("")
             }
-            // Validate mandatory fields (first three should not be empty)
+
             if (!row[0].trim() || !row[1].trim() || !row[2].trim()) {
               aggregatedErrors.push(`Fila ${index + 1}: Los primeros 3 campos son obligatorios y no deben estar vacíos.`)
             }
-            // Validate OU (4th field) if provided
+
             if (row[3].trim() && ous && !ous.includes(row[3].trim())) {
               aggregatedErrors.push(`Fila ${index + 1}: La OU '${row[3].trim()}' no existe.`)
             }
-            // Validate Group (5th field) if provided
+            
             if (row[4].trim() && groups && !groups.includes(row[4].trim())) {
               aggregatedErrors.push(`Fila ${index + 1}: El grupo '${row[4].trim()}' no existe.`)
             }
@@ -112,7 +108,6 @@ export default function UsersTab() {
 
         let encounteredError = false
         for (const row of records) {
-          // Ensure row is padded to 5 columns
           while (row.length < 5) {
             row.push("")
           }
@@ -121,7 +116,7 @@ export default function UsersTab() {
             givenName: row[1].trim(),
             sn: row[2].trim(),
             password: defaultPassword,
-            ou: row[3].trim(),   // will be empty if not provided
+            ou: row[3].trim(),   
             groups: row[4].trim() ? [row[4].trim()] : []
           }
           try {
@@ -182,8 +177,8 @@ export default function UsersTab() {
         givenName: username,
         sn: "FC",
         password: newUserDefaultPassword,
-        ou: serieOU === "none" ? "" : serieOU, // update here
-        groups: serieGroups // may be empty array if none selected
+        ou: serieOU === "none" ? "" : serieOU, 
+        groups: serieGroups 
       }
       try {
         const res = await fetch("/api/users", {
@@ -461,7 +456,6 @@ export default function UsersTab() {
         </Dialog>
       )}
       
-      {/* Dialog for CSV validation errors */}
       <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <div className="space-y-4">
