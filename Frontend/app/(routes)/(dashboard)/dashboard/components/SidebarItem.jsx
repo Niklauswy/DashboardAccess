@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import {usePathname} from "next/navigation"; // Asegúrate de importar Link de Next.js o de la librería que estés utilizando
+import {usePathname} from "next/navigation";
 
 export  default function SidebarItem(props) {
   const { item } = props;

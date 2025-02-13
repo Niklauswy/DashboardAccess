@@ -6,7 +6,7 @@ export default withAuth({
   pages: { signIn: '/login' }
 });
 
-// Protege todas las rutas excepto _next, api, login, etc.
+// Pa proteger todas las rutas excepto _next, login, etc.
 export const config = { 
   matcher: [
     '/((?!login|_next/static|favicon.ico).*)'

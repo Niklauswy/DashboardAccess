@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 
 export default function BatchActionDialog({ open, onClose, actionType, selectedUsers, onConfirm }) {
   const [newPassword, setNewPassword] = useState("");
-  // Limit display to max 10 items
+  //  display to max 10 items
   const displayedUsers = selectedUsers.length > 10 ? selectedUsers.slice(0, 10) : selectedUsers;
 
   const handleConfirm = () => {

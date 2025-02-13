@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator"
 
 import { Users, FileSpreadsheet, HardDrive, AlertCircle, RotateCcw, Clock, Server, Info, Database, Home } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
-import UsersTab from "./UsersTab"  
+import UsersTab from "./components/UsersTab"
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("General")

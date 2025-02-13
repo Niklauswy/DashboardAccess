@@ -11,7 +11,6 @@ const NotFound = () => {
     const ctx = canvas.getContext("2d")
     let animationFrameId
 
-    // Ajustar el tamaño del canvas
     const resizeCanvas = () => {
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
@@ -125,7 +124,7 @@ const NotFound = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
         >
-      
+   
         </motion.div>
       </motion.div>
     </div>
