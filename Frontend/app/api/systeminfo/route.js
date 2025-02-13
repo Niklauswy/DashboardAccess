@@ -8,7 +8,6 @@ export async function GET() {
         const uptime = os.uptime();
         const load = os.loadavg();
         const host = os.hostname();
-        // Derive domain from hostname (if available)
         let domain = "N/A";
         if (host.includes('.')) {
           domain = host.split('.').slice(1).join('.');
@@ -19,7 +18,7 @@ export async function GET() {
         const capacity = ((used / diskSpace.size) * 100).toFixed(1);
         
         const systemInfo = {
-            time: new Date().toLocaleTimeString(), // Updated every request
+            time: new Date().toLocaleTimeString(), 
             hostname: host,
             domain,
             coreVersion: '8.0.3',

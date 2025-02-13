@@ -1,36 +1,26 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import useSWR from 'swr'; // Importar useSWR para manejo eficiente de datos
+import useSWR from 'swr'; 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
 import { Users, FileSpreadsheet, HardDrive, AlertCircle, RotateCcw, Clock, Server, Info, Database, Home } from "lucide-react"
-import Papa from 'papaparse'; // ensure PapaParse is imported
-import { useToast } from "@/hooks/use-toast"; // NEW toast import
-import UsersTab from "./UsersTab"  // New import for separated Usuarios component
+import { useToast } from "@/hooks/use-toast";
+import UsersTab from "./UsersTab"  
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("General")
   const [logRotation, setLogRotation] = useState(7)
   const [detailedLogging, setDetailedLogging] = useState(false)
   const [syslogEntries, setSyslogEntries] = useState([])
-  const [syslogError, setSyslogError] = useState(null); // Nuevo estado para errores de syslog
-  const { toast } = useToast(); // initialize toast hook
+  const [syslogError, setSyslogError] = useState(null); 
+  const { toast } = useToast();
 
   // Fetcher para SWR
   const fetcher = (url) => fetch(url).then(res => res.json());
@@ -41,14 +31,12 @@ export default function Settings() {
     fetcher,
     {
       refreshInterval: 1000,
-      dedupingInterval: 0, // Add this
-      revalidateOnFocus: false // Optional
+      dedupingInterval: 0, 
+      revalidateOnFocus: false // Opt
     }
   );
 
-  // Conditionally fetch groups when in Usuarios or Grupos tabs
   const shouldFetchGroups = activeTab === "Usuarios" || activeTab === "Grupos";
-  // Fetch OUs also when activeTab is Unidades
   const shouldFetchOus = activeTab === "Usuarios" || activeTab === "Grupos" || activeTab === "Unidades";
   const { data: groups, error: groupsError } = useSWR(
     shouldFetchGroups ? '/api/groups' : null,
@@ -79,10 +67,8 @@ export default function Settings() {
       }
     };
 
-    // Realizar la solicitud inicial
     fetchSyslog();
 
-    // Configurar polling para syslog cada 5 segundos
     const syslogInterval = setInterval(fetchSyslog, 5000);
 
     return () => {
