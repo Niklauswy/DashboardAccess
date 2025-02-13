@@ -28,7 +28,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex">
       <div className="hidden md:flex md:w-1/2 bg-gray-50 items-center justify-center p-10">
         <Image 
-          src="/cimarron.png"
+          src="/public/cimarron.png"
           alt="Ilustración de Login"
           width={300}
           height={300}
