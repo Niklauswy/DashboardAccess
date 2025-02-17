@@ -2,7 +2,7 @@ import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 import Link from "next/link"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/components/lib/utils"
 import { buttonVariants } from "@/components/ui/button";
 
 const Pagination = ({

@@ -4,7 +4,7 @@ import * as React from "react";
 import {format, parse, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth} from "date-fns";
 import {es} from "date-fns/locale";
 import {Calendar as CalendarIcon} from "lucide-react";
-import {cn} from "@/lib/utils";
+import {cn} from "@/components/lib/utils";
 import {Button} from "@/components/ui/button";
 import {Calendar} from "@/components/ui/calendar";
 import {

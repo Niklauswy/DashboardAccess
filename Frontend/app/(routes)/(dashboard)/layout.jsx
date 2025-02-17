@@ -1,22 +1,29 @@
-import Sidebar from "@/app/(routes)/(dashboard)/dashboard/components/Sidebar";
+'use client'
+import { useState } from "react";
 import NavbarDashboard from "@/app/(routes)/(dashboard)/dashboard/components/NavbarDashboard";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 
-export default function DashboardLayout({children}) {
-    return (
-        <div className="flex w-full h-full">
-            <div className="hidden h-full xl:block  w-80  xl:fixed">
-                <Sidebar/>
-            </div>
-            <div className="w-full  h-full  xl:ml-80">
-                <NavbarDashboard/>
+export default function DashboardLayout({ children }) {
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const toggleSidebar = () => setSidebarCollapsed(prev => !prev);
 
-                <div className=" h-full">{children}</div>
+  return (
+    <div className="flex w-full h-full">
+      {/* Sidebar para xl screens */}
+      <div className={`hidden xl:block fixed ${isSidebarCollapsed ? "w-16" : "w-80"} h-full`}>
+        <SidebarProvider>
+          <AppSidebar collapsed={isSidebarCollapsed} />
+          <SidebarTrigger onClick={toggleSidebar} />
+        </SidebarProvider>
+      </div>
 
-
-            </div>
-
-
-        </div>
-
-    )
+      {/* Main content area */}
+      <div className={`flex flex-col w-full ml-0 xl:ml-${isSidebarCollapsed ? "16" : "80"}`}>
+        <main className="flex-1">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
 }

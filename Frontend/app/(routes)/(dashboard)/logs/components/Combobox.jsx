@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { ChevronsUpDown, Check, User } from "lucide-react"; // Importa el ícono que prefieras
-import { cn } from "@/lib/utils";
+import { cn } from "@/components/lib/utils";
 
 const Combobox = ({ options, placeholder, onChange, value, icon: Icon }) => {
   const [inputValue, setInputValue] = React.useState(value || "");

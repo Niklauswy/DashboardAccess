@@ -31,7 +31,7 @@ import { Monitor, Database, Beaker, Leaf } from "lucide-react";
 import ExportButton from '@/components/ExportButton';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/hooks/use-toast"
 import EditUserDialog from "@/components/EditUserDialog";
 import BatchActionDialog from "@/components/BatchActionDialog";
 
