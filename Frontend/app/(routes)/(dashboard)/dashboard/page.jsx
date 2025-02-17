@@ -1,4 +1,5 @@
 "use client"
+import { Component } from "@/components/chat"
 
 export function Dashboard() {
 
@@ -6,7 +7,7 @@ export function Dashboard() {
       <div>
       <p>HOla</p>
          
-
+      <Component/>
       </div>
 
   )

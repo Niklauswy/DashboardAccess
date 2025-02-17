@@ -137,14 +137,14 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
               <Label htmlFor="password">
                 Contraseña <span className="text-destructive">*</span>
               </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Ingrese la contraseña"
-                value={newUser.password}
-                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                required
-              />
+          
+                <PasswordInput
+                            id="password"
+                            value={newUser.password}
+                            onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                            placeholder="Ingrese la contraseña"
+                            required
+                          />
             </div>
             {/* Unidad Organizativa (Carrera) */}
             <div className="space-y-2">

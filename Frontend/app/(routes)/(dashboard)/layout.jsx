@@ -3,23 +3,34 @@ import { useState } from "react";
 import NavbarDashboard from "@/app/(routes)/(dashboard)/dashboard/components/NavbarDashboard";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { CustomTrigger } from "./dashboard/components/CustomTrigger";
 
 export default function DashboardLayout({ children }) {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const toggleSidebar = () => setSidebarCollapsed(prev => !prev);
+  
+
 
   return (
     <div className="flex w-full h-full">
       {/* Sidebar para xl screens */}
-      <div className={`hidden xl:block fixed ${isSidebarCollapsed ? "w-16" : "w-80"} h-full`}>
+      <div >
         <SidebarProvider>
-          <AppSidebar collapsed={isSidebarCollapsed} />
-          <SidebarTrigger onClick={toggleSidebar} />
+          <AppSidebar />
+        </SidebarProvider>
+      </div>
+
+      {/* Mobile Sidebar */}
+      <div className="block xl:hidden fixed top-0 left-0 h-full" 
+           style={{ "--sidebar-width": "20rem", "--sidebar-width-mobile": "20rem" }}>
+        <SidebarProvider>
+          <AppSidebar />
+          <CustomTrigger onClick={toggleSidebar} />
         </SidebarProvider>
       </div>
 
       {/* Main content area */}
-      <div className={`flex flex-col w-full ml-0 xl:ml-${isSidebarCollapsed ? "16" : "80"}`}>
+      <div className={`flex flex-col w-full ml-0 `}>
         <main className="flex-1">
           {children}
         </main>

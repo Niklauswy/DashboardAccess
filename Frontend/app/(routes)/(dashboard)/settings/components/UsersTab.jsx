@@ -17,6 +17,7 @@ import { Check, ChevronsUpDown, X } from "lucide-react"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/components/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { PasswordInput } from "@/components/PasswordInput"
 
 const fetcher = (url) => fetch(url).then(res => res.json())
 
@@ -36,11 +37,6 @@ export default function UsersTab() {
   const [csvPasswordError, setCsvPasswordError] = useState("")
   const { toast } = useToast()
   
-  const validatePassword = (password) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
-    return regex.test(password)
-  }
-
   const { data: groups } = useSWR('/api/groups', fetcher)
   const { data: ous } = useSWR('/api/ous', fetcher)
 
@@ -164,8 +160,8 @@ export default function UsersTab() {
   }
 
   const handleCreateUsers = async () => {
-    if (!newUserDefaultPassword || !validatePassword(newUserDefaultPassword)) {
-      setSeriePasswordError("La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas y un dígito.")
+    if (!newUserDefaultPassword) {
+      setSeriePasswordError("Ingrese una contraseña válida.")
       return
     }
     setSeriePasswordError("")
@@ -260,7 +256,7 @@ export default function UsersTab() {
                 </Table>
                 <div className="mt-4 p-4 bg-gray-50 border-l-4 border-blue-500 rounded">
     <p className="text-sm text-gray-700">
-      Se puede omitir la OU y el Grupo si no deseas asignarlos.
+      Se puede omitir la OU y el Grupo si no es necesario asignarlos.
     </p>
 
   </div>
@@ -306,22 +302,12 @@ export default function UsersTab() {
           </div>
           <div className="space-y-2 mt-4">
             <Label htmlFor="default-password">Contraseña por defecto</Label>
-            <Input
+            <PasswordInput
               id="default-password"
-              type="password"
               value={defaultPassword}
-              onChange={(e) => {
-                const value = e.target.value
-                setDefaultPassword(value)
-                if (!validatePassword(value)) {
-                  setCsvPasswordError("La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas y un dígito.")
-                } else {
-                  setCsvPasswordError("")
-                }
-              }}
+              onChange={(e) => setDefaultPassword(e.target.value)}
               placeholder="Ingrese la contraseña por defecto"
             />
-            {csvPasswordError && <p className="text-sm text-destructive">{csvPasswordError}</p>}
             <Button className="mt-2" disabled={!defaultPassword} onClick={handleUpload}>
               Subir y Procesar Usuarios
             </Button>
@@ -357,19 +343,10 @@ export default function UsersTab() {
             </div>
             <div>
               <Label htmlFor="user-default-password">Contraseña por defecto</Label>
-              <Input
+              <PasswordInput
                 id="user-default-password"
-                type="password"
                 value={newUserDefaultPassword}
-                onChange={(e) => {
-                  const value = e.target.value
-                  setNewUserDefaultPassword(value)
-                  if (!validatePassword(value)) {
-                    setSeriePasswordError("La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas y un dígito.")
-                  } else {
-                    setSeriePasswordError("")
-                  }
-                }}
+                onChange={(e) => setNewUserDefaultPassword(e.target.value)}
                 placeholder="Ingrese la contraseña"
               />
               {seriePasswordError && <p className="text-sm text-destructive">{seriePasswordError}</p>}

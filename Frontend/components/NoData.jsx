@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 const NoData = ({ message = "No hay datos disponibles en este momento." }) => {
     return (
-        <div className="flex items-center justify-center w-full h-full mt-48">
+        <div className="flex items-center justify-center w-full h-full ">
             <Card className="overflow-hidden max-w-md w-full">
                 <motion.div 
                   initial={{ opacity: 0 }} 

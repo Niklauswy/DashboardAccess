@@ -78,7 +78,7 @@ export default function Settings() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-6">
-      <h1 className="text-3xl font-bold mb-6 text-center">Configuración</h1>
+      <h1 className="text-4xl font-bold text-center mb-8 ">Configuración</h1>
 
       <div role="tablist" className="flex flex-wrap justify-center gap-4 border-b">
         {["General", "Usuarios", "Grupos", "Unidades", "Logs"].map(tab => (
@@ -184,7 +184,7 @@ export default function Settings() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="log-rotation">Log Rotation (days)</Label>
+                  <Label htmlFor="log-rotation">Rotación de logs (Días)</Label>
                   <div className="flex items-center space-x-2">
                     <RotateCcw className="w-4 h-4 text-gray-500" />
                     <Slider
@@ -204,9 +204,9 @@ export default function Settings() {
                     checked={detailedLogging}
                     onCheckedChange={setDetailedLogging}
                   />
-                  <Label htmlFor="detailed-logging">Enable Detailed Logging</Label>
+                  <Label htmlFor="detailed-logging">Habilitar registro detallado</Label>
                 </div>
-                <Button>Save Log Settings</Button>
+                <Button>Guardar Configuración</Button>
               </CardContent>
             </Card>
 

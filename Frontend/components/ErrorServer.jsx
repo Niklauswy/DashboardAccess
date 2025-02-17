@@ -3,7 +3,7 @@ import { motion } from "framer-motion"
 
             const ErrorServer = ({ message = "Lo sentimos, algo salió mal." }) => {
               return (
-                <div className="flex items-center justify-center w-full h-full mt-48">
+                <div className="flex items-center justify-center w-full h-full">
                   <Card className="overflow-hidden max-w-md w-full">
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
                       <div className="relative h-48 bg-green-800">
@@ -49,7 +49,7 @@ import { motion } from "framer-motion"
                           {message}
                         </motion.p>
                         <motion.button
-                          className="mt-6 px-4 py-2 bg-green-800 text-white rounded-full font-medium hover:bg-red-900 transition-colors duration-300"
+                          className="mt-6 px-4 py-2 bg-green-700 text-white rounded-full font-medium hover:bg-green-800 transition-colors duration-300"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => window.location.reload()}

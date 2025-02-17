@@ -9,11 +9,10 @@ import { FileDown } from 'lucide-react'
 export default function FAQPage() {
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 flex flex-col items-center justify-start py-12 px-4">
-      <h1 className="text-6xl font-bold text-center mb-8 text-primary">FAQ</h1>
+    <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+      <h1 className="text-4xl font-bold text-center mb-8 ">FAQ</h1>
       
-
-      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
         <Card className="col-span-2">
           <CardHeader>
             <CardTitle>Preguntas Frecuentes</CardTitle>
