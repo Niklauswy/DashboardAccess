@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge"
 import { Check, ChevronsUpDown, X } from "lucide-react"
 import { cn } from "@/components/lib/utils"
+import { PasswordInput } from "@/components/PasswordInput"
 
 export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
   const { toast } = useToast()

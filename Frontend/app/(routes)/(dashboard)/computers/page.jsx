@@ -9,7 +9,7 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/comp
 import { Terminal, Apple, HelpCircle } from "lucide-react"
 import ErrorServer from '@/components/ErrorServer';
 import NoData from '@/components/NoData';
-import ComputerTableSkeleton from '@/components/ComputerTableSkeleton'  // <-- New import
+import ComputerTableSkeleton from '@/components/skeletons/ComputerTableSkeleton'  // <-- New import
 
 const osIcons = {
   windows: <Monitor className="h-6 w-6 text-blue-500" />,

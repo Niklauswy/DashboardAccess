@@ -12,9 +12,9 @@ export const authOptions = {
       async authorize(credentials) {
         // Users hardcodeados por mientras, a posteriori implementar con BDD
         const users = [
-          { id: 1, username: "aadmin", password: "secret", name: "Admin User", role: "admin" },
+          { id: 1, username: "Admin", password: "secret", name: "Administrator", role: "admin" },
           { id: 2, username: "user", password: "secret", name: "Regular User", role: "user" },
-          { id: 3, username: "Nico", password: "nico", name: "Nicooo User", role: "user" }
+          { id: 3, username: "nico", password: "nico", name: "Nicolas", role: "user" }
         ];
         
         const user = users.find(u => 
@@ -64,7 +64,7 @@ export const authOptions = {
   },
   session: { 
     strategy: "jwt",
-    maxAge: 24 * 60 * 60 // 24 horas
+    maxAge: 1 * 60  // Nomas 1 hora de sesión
   },
   debug: process.env.NODE_ENV === "development",
   secret: process.env.NEXTAUTH_SECRET

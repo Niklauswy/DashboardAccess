@@ -1,10 +1,14 @@
 "use client";
+
+
 import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-// Import Image component but also keep regular img as fallback
 import Image from "next/image";
+
+
 export default function LoginPage() {
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -12,15 +16,16 @@ export default function LoginPage() {
   
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = searchParams?.get("callbackUrl") || "/";
   const { data: session, status } = useSession();
+  
   
   // Redirigir si ya está autenticado
   useEffect(() => {
-    if (status === "authenticated" && session) {
+    if (status === "authenticated" && session && !isLoading) {
       router.push(callbackUrl);
     }
-  }, [session, status, router, callbackUrl]);
+  }, [session, status, router, callbackUrl, isLoading]);
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,19 +52,33 @@ export default function LoginPage() {
     }
   };
   
-  // No mostrar nada mientras verificamos la sesión
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="spinner"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
+        <div className="text-center bg-white p-8 rounded-xl shadow-lg">
+          <div className="flex justify-center mb-4">
+            <Image 
+              src="/cimarron.png" 
+              alt="Logo Cimarron UABC" 
+              width={80} 
+              height={80}
+              className="mx-auto opacity-80"
+            />
+          </div>
+          
+          {/* Spinner mejorado */}
+          <div className="flex justify-center items-center my-6">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00723F]"></div>
+          </div>
+          
+          <p className="text-gray-600 font-medium">Preparando el acceso...</p>
+          <p className="text-sm text-gray-400 mt-2">Universidad Autónoma de Baja California</p>
         </div>
       </div>
     );
   }
   
-  // Solo mostrar el formulario si no está autenticado
+
   if (status === "unauthenticated") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -68,14 +87,14 @@ export default function LoginPage() {
             <div className="flex justify-center">
          
               
-              <Image 
-                src="/cimarron.png" 
-                alt="Logo Cimarron UABC" 
-                width={120} 
-                height={120}
-                className="mx-auto"
-         
-              />
+            <Image 
+  src="/cimarron.png" 
+  alt="Logo Cimarron UABC" 
+  width={80} 
+  height={80}
+  className="mx-auto opacity-80"
+  unoptimized
+/>
              
             </div>
             <h2 className="mt-6 text-3xl font-extrabold text-gray-900">

@@ -19,7 +19,7 @@ export async function middleware(request) {
   
   // Si es ruta de login y ya hay sesión, redirigir al dashboard
   if (path === '/login' && session) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
   
   // Si es una ruta protegida y no hay sesión, redirigir a login

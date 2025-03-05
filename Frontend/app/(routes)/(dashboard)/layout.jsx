@@ -1,6 +1,5 @@
 'use client'
 import { useState } from "react";
-import NavbarDashboard from "@/app/(routes)/(dashboard)/dashboard/components/NavbarDashboard";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { CustomTrigger } from "./dashboard/components/CustomTrigger";

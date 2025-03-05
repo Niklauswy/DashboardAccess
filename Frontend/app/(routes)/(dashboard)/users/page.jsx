@@ -1,7 +1,7 @@
 'use client'
 import useSWR from 'swr';
 import UserTable from '@/components/UserTable';
-import UserTableSkeleton from '@/components/UserTableSkeleton';
+import UserTableSkeleton from '@/components/skeletons/UserTableSkeleton';
 import ErrorServer from '@/components/ErrorServer';
 
 export default function UsersPage() {
