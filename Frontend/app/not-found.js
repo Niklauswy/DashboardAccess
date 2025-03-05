@@ -1,132 +1,87 @@
 'use client'
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 
 const NotFound = () => {
-  const canvasRef = useRef(null)
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext("2d")
-    let animationFrameId
-
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-    }
-    resizeCanvas()
-    window.addEventListener("resize", resizeCanvas)
-
-    // Crear partículas
-    const particlesArray = []
-    const numberOfParticles = 100
-
-    class Particle {
-      constructor() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
-        this.size = Math.random() * 5 + 1
-        this.speedX = Math.random() * 3 - 1.5
-        this.speedY = Math.random() * 3 - 1.5
-      }
-      update() {
-        this.x += this.speedX
-        this.y += this.speedY
-        if (this.size > 0.2) this.size -= 0.1
-      }
-      draw() {
-        ctx.fillStyle = "rgba(173, 216, 230, 0.5)"
-        ctx.beginPath()
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
-        ctx.fill()
-      }
-    }
-
-    const init = () => {
-      for (let i = 0; i < numberOfParticles; i++) {
-        particlesArray.push(new Particle())
-      }
-    }
-    init()
-
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      for (let i = 0; i < particlesArray.length; i++) {
-        particlesArray[i].update()
-        particlesArray[i].draw()
-        if (particlesArray[i].size <= 0.2) {
-          particlesArray.splice(i, 1)
-          i--
-          particlesArray.push(new Particle())
-        }
-      }
-      animationFrameId = requestAnimationFrame(animate)
-    }
-    animate()
-
-    return () => {
-      window.removeEventListener("resize", resizeCanvas)
-      cancelAnimationFrame(animationFrameId)
-    }
-  }, [])
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center px-4 relative overflow-hidden">
-      <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Professional geometric background pattern */}
+      <div className="absolute inset-0 pattern-background "></div>
+      
       <motion.div
-        className="text-center relative z-10"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
+        className="text-center relative z-10 px-4 max-w-4xl"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
       >
-        <motion.div
-          className="relative inline-block"
-          initial={{ scale: 0.8 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 10 }}
-        >
-          <svg className="w-64 h-64 md:w-80 md:h-80" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <path
-              fill="#00723F"
-              d="M43.5,-68.5C56.6,-61.3,67.6,-49.4,75.4,-35.3C83.2,-21.2,87.8,-4.9,85.6,10.3C83.4,25.5,74.3,39.6,62.7,50.6C51.1,61.6,37,69.5,21.7,74.1C6.4,78.8,-10.1,80.2,-25.3,76.2C-40.5,72.2,-54.3,62.8,-65.2,50.3C-76,37.8,-83.8,22.2,-85.5,5.7C-87.2,-10.8,-82.8,-28.3,-73.2,-41.9C-63.5,-55.5,-48.7,-65.2,-34.2,-71.7C-19.8,-78.1,-5.7,-81.3,7.4,-79.1C20.5,-76.9,30.4,-75.7,43.5,-68.5Z"
-              transform="translate(100 100)"
-            />  
-          </svg>
+        <div className="flex flex-col md:flex-row items-center justify-center md:space-x-12">
+          {/* Left side: 404 number */}
           <motion.div
-            className="absolute inset-0 flex items-center justify-center text-white text-7xl md:text-8xl font-bold"
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-[120px] md:text-[180px] font-bold text-black leading-none relative mb-8 md:mb-0"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
           >
-            404
+            <span className="relative z-10">404</span>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[110%] h-[40%] bg-[#00723F] opacity-20 rounded-full -z-10"></div>
           </motion.div>
-        </motion.div>
-        <motion.h1
-          className="mt-8 text-4xl md:text-5xl font-bold text-gray-800"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-        >
-          Página no encontrada
-        </motion.h1>
-        <motion.p
-          className="mt-4 text-xl text-gray-600 max-w-md mx-auto"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-        >
-          Lo sentimos, la página que estás buscando no existe o ha sido movida.
-        </motion.p>
-        <motion.div
-          className="mt-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
-        >
-   
-        </motion.div>
+          
+          {/* Right side: Content */}
+          <div className="text-left">
+            <motion.h1
+              className="text-3xl md:text-4xl font-bold text-gray-800 mb-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
+              Página no encontrada
+            </motion.h1>
+            
+            <motion.div
+              className="h-1 w-16 bg-[#00723F] rounded mb-4"
+              initial={{ width: 0 }}
+              animate={{ width: 64 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+            ></motion.div>
+            
+            <motion.p
+              className="text-gray-600 mb-8 max-w-md"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
+            >
+              Lo sentimos, la página que estás buscando no existe o ha sido movida. 
+              Por favor, verifica la URL o regresa a la página principal.
+            </motion.p>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9, duration: 0.6 }}
+            >
+              <Link href="/dashboard" className="inline-flex items-center px-6 py-3 bg-[#00723F] text-white font-medium rounded-md hover:bg-[#005c32] transition-colors duration-200">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Regresar al inicio
+              </Link>
+            </motion.div>
+          </div>
+        </div>
       </motion.div>
+      
+      {/* UABC small logo watermark */}
+      <div className="absolute bottom-6 right-6 text-[#00723F] opacity-30 font-semibold text-xl">
+        UABC
+      </div>
+      
+      {/* CSS for the geometric pattern background */}
+      <style jsx>{`
+        .pattern-background {
+          background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300723F' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+      `}</style>
     </div>
   )
 }

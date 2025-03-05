@@ -16,10 +16,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const userData = await request.json();
-        // Validate required fields
-        // ...existing validation...
 
-        // Call the backend API endpoint for creating
         const response = await fetch('http://localhost:5000/api/users/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -42,10 +39,7 @@ export async function POST(request) {
 export async function PUT(request) {
     try {
         const userData = await request.json();
-        // Validate required fields
-        // ...existing validation...
 
-        // Call the backend API endpoint for editing
         const response = await fetch('http://localhost:5000/api/users/edit', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
