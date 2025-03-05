@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export default function BatchActionDialog({ open, onClose, actionType, selectedUsers, onConfirm }) {
   const [newPassword, setNewPassword] = useState("");
@@ -36,13 +36,16 @@ export default function BatchActionDialog({ open, onClose, actionType, selectedU
             )}
           </ul>
           {actionType === "changePassword" && (
-            <Input
-              type="password"
-              placeholder="Nueva contraseña"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="mt-2"
-            />
+
+                            <PasswordInput
+                                        id="password"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        placeholder="Ingrese la nueva contraseña para todos los usuarios"
+                                        required
+                                        className="mt-2"
+
+                                      />
           )}
         </div>
         <DialogFooter className="flex justify-end gap-4 mt-4">
