@@ -149,10 +149,7 @@ export default function ComputerManagement() {
         <div className="w-full  mx-auto space-y-6">
        
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div>
-      <h1 className="text-4xl font-bold text-center mb-8 ">FAQ</h1>
-              <p className="text-slate-500 mt-1">Monitoreo y control de equipos por area</p>
-            </div>
+     
             <Button 
               variant="outline"
               size="sm"
