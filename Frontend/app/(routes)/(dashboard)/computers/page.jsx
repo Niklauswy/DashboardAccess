@@ -147,18 +147,7 @@ export default function ComputerManagement() {
     <TooltipProvider>
       <div className="p-4 md:p-8 flex flex-col min-h-screen ">
         <div className="w-full  mx-auto space-y-6">
-       
-        <div className="flex items-end flex-col md:flex-row justify-end gap-4 mt-6">
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={handleRetry}
-              className="flex items-center gap-1 text-slate-600 border-slate-200 hover:bg-slate-100"
-            >
-              <RefreshCcw className="h-4 w-4" />
-              Actualizar
-            </Button>
-          </div>
+
 
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -265,6 +254,15 @@ export default function ComputerManagement() {
                 <HelpCircle className="h-4 w-4 mr-1" />
                 Desconocido
               </Button>
+              <Button 
+              variant="outline"
+              size="sm"
+              onClick={handleRetry}
+              className="flex items-center gap-1 text-slate-600 border-slate-200 hover:bg-slate-100"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              Actualizar
+            </Button>
             </div>
           </div>
 
