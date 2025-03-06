@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import useSWR from 'swr'; 
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -21,6 +21,30 @@ export default function Settings() {
   const [syslogEntries, setSyslogEntries] = useState([])
   const [syslogError, setSyslogError] = useState(null); 
   const { toast } = useToast();
+
+  const [hoveredIndex, setHoveredIndex] = useState(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [hoverStyle, setHoverStyle] = useState({})
+  const [activeStyle, setActiveStyle] = useState({ left: "0px", width: "0px" })
+  const tabRefs = useRef([])
+  const tabs = ["General", "Usuarios", "Grupos", "Unidades", "Logs"]
+
+
+  useEffect(() => {
+    const activeEl = tabRefs.current[activeIndex]
+    if (activeEl) {
+      setActiveStyle({ left: `${activeEl.offsetLeft}px`, width: `${activeEl.offsetWidth}px` })
+    }
+  }, [activeIndex])
+
+  useEffect(() => {
+    if (tabRefs.current[0]) {
+      setActiveStyle({
+        left: `${tabRefs.current[0].offsetLeft}px`,
+        width: `${tabRefs.current[0].offsetWidth}px`
+      })
+    }
+  }, [])
 
   // Fetcher para SWR
   const fetcher = (url) => fetch(url).then(res => res.json());
@@ -80,20 +104,31 @@ export default function Settings() {
     <div className="p-4 md:p-6 lg:p-8 space-y-6 ">
       <h1 className="text-4xl font-bold text-center mb-8 ">Configuración</h1>
 
-      <div role="tablist" className="flex flex-wrap justify-center gap-4 border-b">
-        {["General", "Usuarios", "Grupos", "Unidades", "Logs"].map(tab => (
-          <Button
-            key={tab}
-            role="tab"
-            aria-selected={activeTab === tab}
-            variant={activeTab === tab ? "primary" : "ghost"}
-            onClick={() => setActiveTab(tab)}
-            className="px-4 py-2 border-b-2"
-          >
-            {tab}
-          </Button>
-        ))}
+      <div className="relative">
+        {/* Se removió el div de hover */}
+        <div
+          className="absolute bottom-[-6px] h-[2px] bg-green-600 dark:bg-white transition-all duration-300 ease-out z-0"
+          style={activeStyle}
+        />
+        <div className="flex space-x-2 justify-center relative z-10">
+          {tabs.map((tab, i) => (
+            <div
+              key={tab}
+              ref={(el) => (tabRefs.current[i] = el)}
+              onClick={() => {
+                setActiveTab(tab)
+                setActiveIndex(i)
+              }}
+              className={`px-3 py-2 cursor-pointer transition-colors duration-300 ${
+                activeTab === tab ? "text-black dark:text-white" : "text-gray-500 dark:text-gray-400"
+              }`}
+            >
+              {tab}
+            </div>
+          ))}
+        </div>
       </div>
+
 
       <div className="mt-6">
         {activeTab === "General" && (
