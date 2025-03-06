@@ -148,8 +148,7 @@ export default function ComputerManagement() {
       <div className="p-4 md:p-8 flex flex-col min-h-screen ">
         <div className="w-full  mx-auto space-y-6">
        
-          <div className="flex items-end flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-     
+        <div className="flex items-end flex-col md:flex-row justify-end gap-4 mt-6">
             <Button 
               variant="outline"
               size="sm"
