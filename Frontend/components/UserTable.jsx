@@ -279,7 +279,7 @@ export default function UserTable({ users, refreshUsers }) {
     }, [selectedRows]);
 
     return (
-        <div className="p-4 space-y-4 min-h-screen relative">
+        <div className="p-4 md:p-8 flex flex-col min-h-screen ">
             {/* Fila de filtros */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
                 <div className="flex flex-wrap items-center gap-4">
