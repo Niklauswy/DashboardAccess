@@ -11,7 +11,7 @@ export default function DashboardLayout({ children }) {
 
 
   return (
-    <div className="flex w-full h-full">
+    <div className="flex w-full h-full ">
       {/* Sidebar para xl screens */}
       <div >
         <SidebarProvider>
@@ -29,7 +29,7 @@ export default function DashboardLayout({ children }) {
       </div>
 
       {/* Main content area */}
-      <div className={`flex flex-col w-full ml-0 `}>
+      <div className={`flex flex-col w-full ml-0  bg-slate-50`}>
         <main className="flex-1">
           {children}
         </main>

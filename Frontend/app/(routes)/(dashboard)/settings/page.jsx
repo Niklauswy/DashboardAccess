@@ -77,7 +77,7 @@ export default function Settings() {
   }, [activeTab])
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 ">
       <h1 className="text-4xl font-bold text-center mb-8 ">Configuración</h1>
 
       <div role="tablist" className="flex flex-wrap justify-center gap-4 border-b">

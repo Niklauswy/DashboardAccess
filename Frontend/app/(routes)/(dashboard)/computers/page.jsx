@@ -145,13 +145,13 @@ export default function ComputerManagement() {
 
   return (
     <TooltipProvider>
-      <div className="p-4 md:p-8 flex flex-col min-h-screen bg-slate-50">
-        <div className="w-full max-w-7xl mx-auto space-y-6">
-          {/* Dashboard Header */}
+      <div className="p-4 md:p-8 flex flex-col min-h-screen ">
+        <div className="w-full  mx-auto space-y-6">
+       
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-slate-800">Gestión de Computadoras</h1>
-              <p className="text-slate-500 mt-1">Monitoreo y control de equipos por aula</p>
+      <h1 className="text-4xl font-bold text-center mb-8 ">FAQ</h1>
+              <p className="text-slate-500 mt-1">Monitoreo y control de equipos por area</p>
             </div>
             <Button 
               variant="outline"
