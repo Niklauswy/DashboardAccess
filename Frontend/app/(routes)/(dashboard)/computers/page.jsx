@@ -148,13 +148,13 @@ export default function ComputerManagement() {
       <div className="p-4 md:p-8 flex flex-col min-h-screen ">
         <div className="w-full  mx-auto space-y-6">
        
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div className="flex items-end flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
      
             <Button 
               variant="outline"
               size="sm"
               onClick={handleRetry}
-              className="flex items-end gap-1 text-slate-600 border-slate-200 hover:bg-slate-100"
+              className="flex items-center gap-1 text-slate-600 border-slate-200 hover:bg-slate-100"
             >
               <RefreshCcw className="h-4 w-4" />
               Actualizar
