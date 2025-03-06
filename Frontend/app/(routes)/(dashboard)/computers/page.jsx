@@ -13,6 +13,16 @@ import { Terminal, Apple, HelpCircle, Cpu, Wifi } from "lucide-react"
 import ErrorServer from '@/components/ErrorServer'
 import NoData from '@/components/NoData'
 import ComputerTableSkeleton from '@/components/skeletons/ComputerTableSkeleton'
+import Image from 'next/image'
+
+// UABC Color Theme
+const uabcColors = {
+  primary: '#006341', // UABC Green
+  secondary: '#F2A900', // UABC Gold
+  accent: '#00843D', // Lighter green
+  light: '#F5F5F5',
+  dark: '#333333',
+}
 
 const osIcons = {
   windows: <Monitor className="h-5 w-5 text-blue-500" />,
@@ -24,24 +34,24 @@ const osIcons = {
 
 const statusConfig = {
   activa: {
-    color: 'bg-emerald-500',
-    hoverColor: 'hover:bg-emerald-600',
-    gradient: 'from-emerald-400 to-emerald-500',
-    icon: <CheckCircle className="h-4 w-4 text-emerald-500" />,
+    color: 'bg-[#00843D]',
+    hoverColor: 'hover:bg-[#006341]',
+    gradient: 'from-[#00843D] to-[#006341]',
+    icon: <CheckCircle className="h-4 w-4 text-[#00843D]" />,
     name: 'Activa',
-    textColor: 'text-emerald-700',
-    bgColor: 'bg-emerald-50',
-    borderColor: 'border-emerald-200'
+    textColor: 'text-[#006341]',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-[#00843D]/20'
   },
   mantenimiento: {
-    color: 'bg-amber-500',
+    color: 'bg-[#F2A900]',
     hoverColor: 'hover:bg-amber-600',
-    gradient: 'from-amber-400 to-amber-500',
-    icon: <Clock className="h-4 w-4 text-amber-500" />,
+    gradient: 'from-[#F2A900] to-amber-600',
+    icon: <Clock className="h-4 w-4 text-[#F2A900]" />,
     name: 'Mantenimiento',
     textColor: 'text-amber-700',
     bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-200'
+    borderColor: 'border-[#F2A900]/20'
   },
   desconocido: {
     color: 'bg-slate-300',
@@ -145,234 +155,319 @@ export default function ComputerManagement() {
 
   return (
     <TooltipProvider>
-      <div className="p-4 md:p-8 flex flex-col min-h-screen bg-slate-50">
-        <div className="w-full max-w-7xl mx-auto space-y-6">
-          {/* Dashboard Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800">Gestión de Computadoras</h1>
-              <p className="text-slate-500 mt-1">Monitoreo y control de equipos por aula</p>
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-white to-green-50">
+        {/* UABC Header Banner */}
+        <div className="bg-[#006341] text-white py-4 px-6 shadow-md">
+          <div className="w-full max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Add UABC logo here */}
+              <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center overflow-hidden">
+                <div className="text-[#006341] font-bold text-xs text-center">
+                  LOGO<br/>UABC
+                </div>
+                {/* Uncomment and add proper logo path
+                <Image 
+                  src="/images/uabc-logo.png" 
+                  alt="UABC Logo"
+                  width={48}
+                  height={48}
+                />
+                */}
+              </div>
+              <div>
+                <h1 className="text-xl font-bold">Universidad Autónoma de Baja California</h1>
+                <p className="text-sm opacity-80">Sistema de Gestión de Laboratorios</p>
+              </div>
             </div>
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={handleRetry}
-              className="flex items-center gap-1 text-slate-600 border-slate-200 hover:bg-slate-100"
-            >
-              <RefreshCcw className="h-4 w-4" />
-              Actualizar
-            </Button>
-          </div>
-
-          {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-white shadow-sm border border-slate-100">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm text-slate-500">Total de Computadoras</p>
-                  <p className="text-2xl font-bold text-slate-800">{totalComputers}</p>
-                </div>
-                <div className="p-3 rounded-full bg-blue-50">
-                  <Monitor className="h-5 w-5 text-blue-500" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-white shadow-sm border border-slate-100">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm text-slate-500">Activas</p>
-                  <p className="text-2xl font-bold text-emerald-600">{activeComputers}</p>
-                </div>
-                <div className="p-3 rounded-full bg-emerald-50">
-                  <CheckCircle className="h-5 w-5 text-emerald-500" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-white shadow-sm border border-slate-100">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm text-slate-500">En Mantenimiento</p>
-                  <p className="text-2xl font-bold text-amber-600">{maintenanceComputers}</p>
-                </div>
-                <div className="p-3 rounded-full bg-amber-50">
-                  <Clock className="h-5 w-5 text-amber-500" />
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-white shadow-sm border border-slate-100">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm text-slate-500">Desconocido</p>
-                  <p className="text-2xl font-bold text-slate-600">{unknownComputers}</p>
-                </div>
-                <div className="p-3 rounded-full bg-slate-100">
-                  <HelpCircle className="h-5 w-5 text-slate-500" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-slate-100">
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Buscar por nombre o IP..."
-                className="pl-9 border-slate-200"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            <div className="flex gap-2 w-full md:w-auto">
-              <Button 
-                onClick={() => setActiveFilter('all')}
-                variant={activeFilter === 'all' ? 'default' : 'outline'}
-                size="sm"
-                className={activeFilter !== 'all' ? "border-slate-200" : ""}
-              >
-                Todos
-              </Button>
-              <Button 
-                onClick={() => setActiveFilter('activa')}
-                variant={activeFilter === 'activa' ? 'default' : 'outline'}
-                size="sm"
-                className={activeFilter !== 'activa' ? 
-                  "text-emerald-700 border-emerald-200 hover:bg-emerald-50" : 
-                  "bg-emerald-500 hover:bg-emerald-600"}
-              >
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Activas
-              </Button>
-              <Button 
-                onClick={() => setActiveFilter('mantenimiento')}
-                variant={activeFilter === 'mantenimiento' ? 'default' : 'outline'}
-                size="sm"
-                className={activeFilter !== 'mantenimiento' ? 
-                  "text-amber-700 border-amber-200 hover:bg-amber-50" : 
-                  "bg-amber-500 hover:bg-amber-600"}
-              >
-                <Clock className="h-4 w-4 mr-1" />
-                Mantenimiento
-              </Button>
-              <Button 
-                onClick={() => setActiveFilter('desconocido')}
-                variant={activeFilter === 'desconocido' ? 'default' : 'outline'}
-                size="sm"
-                className={activeFilter !== 'desconocido' ? 
-                  "text-slate-700 border-slate-200 hover:bg-slate-50" : 
-                  "bg-slate-500 hover:bg-slate-600"}
-              >
-                <HelpCircle className="h-4 w-4 mr-1" />
-                Desconocido
-              </Button>
+            <div className="hidden md:block">
+              <p className="text-sm">Facultad de Ingeniería y Negocios</p>
             </div>
           </div>
+        </div>
 
-          {/* Classroom Cards */}
-          {filteredClassrooms.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm p-8 text-center border border-slate-100">
-              <HelpCircle className="h-12 w-12 mx-auto text-slate-300 mb-3" />
-              <h3 className="text-lg font-medium text-slate-700 mb-1">No se encontraron resultados</h3>
-              <p className="text-slate-500 mb-4">No hay computadoras que coincidan con tus criterios de búsqueda.</p>
-              <Button variant="outline" onClick={() => {setSearchTerm(''); setActiveFilter('all');}}>
-                Limpiar filtros
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {filteredClassrooms.map((classroom) => {
-                const totalComputers = classroom.computers.length;
-                const activeComputers = classroom.computers.filter(c => c.status === 'activa').length;
-                const maintenanceComputers = classroom.computers.filter(c => c.status === 'mantenimiento').length;
-                const unknownComputers = classroom.computers.filter(c => c.status === 'desconocido').length;
-                const activePercentage = ((activeComputers / totalComputers) * 100).toFixed(1);
+        <div className="p-4 md:p-8 flex-grow">
+          <div className="w-full max-w-7xl mx-auto space-y-6">
+            {/* Campus Navigator Card */}
+            <Card className="overflow-hidden border-0 shadow-md bg-white">
+              <div className="bg-[#F2A900] h-2 w-full"></div>
+              <CardContent className="flex flex-col md:flex-row justify-between items-center p-4 gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-full bg-[#006341]/10">
+                    <School className="h-6 w-6 text-[#006341]" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-800">Campus Tijuana</h2>
+                    <p className="text-sm text-gray-600">Monitoreo de Salas de Cómputo</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleRetry}
+                  className="bg-[#006341] hover:bg-[#00843D] text-white"
+                >
+                  <RefreshCcw className="h-4 w-4 mr-2" />
+                  Actualizar
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Stats Overview Row */}
+            <div className="relative">
+              {/* Decorative element */}
+              <div className="hidden md:block absolute -top-3 -left-6 w-12 h-12 rounded-full border-4 border-[#F2A900]/30"></div>
+              <div className="hidden md:block absolute -bottom-3 -right-6 w-8 h-8 rounded-full border-4 border-[#006341]/20"></div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card className="bg-white shadow-md border-0 overflow-hidden">
+                  <div className="bg-gradient-to-r from-[#006341] to-[#00843D] h-1"></div>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm text-slate-500">Total de Computadoras</p>
+                      <p className="text-2xl font-bold text-slate-800">{totalComputers}</p>
+                    </div>
+                    <div className="p-3 rounded-full bg-[#006341]/10">
+                      <Monitor className="h-5 w-5 text-[#006341]" />
+                    </div>
+                  </CardContent>
+                </Card>
                 
-                return (
-                  <Card key={classroom.id} className="overflow-hidden shadow-md border-0 bg-gradient-to-br from-white to-slate-50">
-                    <CardHeader className="border-b border-slate-100 bg-white pb-3">
-                      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                        <div className="space-y-1">
-                          <CardTitle className="text-xl font-medium flex items-center text-slate-800">
-                            <School className="mr-2 h-5 w-5 text-blue-500" />
-                            {classroom.name}
-                          </CardTitle>
-                          <div className="text-sm text-slate-500 flex items-center">
-                            <span className="font-medium">{totalComputers}</span> 
-                            <span className="mx-1">computadoras</span>
-                            {activeComputers > 0 && (
-                              <Badge variant="secondary" className="ml-2 text-xs font-normal bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                {activeComputers} activas
-                              </Badge>
-                            )}
-                            {maintenanceComputers > 0 && (
-                              <Badge variant="secondary" className="ml-2 text-xs font-normal bg-amber-50 text-amber-700 border border-amber-100">
-                                {maintenanceComputers} en mantenimiento
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="bg-slate-100 h-2 w-28 md:w-36 rounded-full overflow-hidden flex">
-                            <div className="bg-emerald-500 h-full" style={{ width: `${(activeComputers/totalComputers)*100}%` }}></div>
-                            <div className="bg-amber-500 h-full" style={{ width: `${(maintenanceComputers/totalComputers)*100}%` }}></div>
-                            <div className="bg-slate-300 h-full" style={{ width: `${(unknownComputers/totalComputers)*100}%` }}></div>
-                          </div>
-                          <span className="text-xs font-medium text-slate-700">{activePercentage}%</span>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2">
-                        {classroom.computers.map((computer) => {
-                          const status = statusConfig[computer.status];
-                          return (
-                            <Tooltip key={computer.id}>
-                              <TooltipTrigger asChild>
-                                <button
-                                  className={`p-3 rounded-md border ${status.borderColor} ${status.bgColor} hover:bg-opacity-80 transition-all duration-200 w-full h-20 flex flex-col items-center justify-center gap-1`}
-                                  onClick={() => setSelectedComputer(computer)}
-                                >
-                                  {osIcons[computer.os]}
-                                  <span className={`text-xs font-medium ${status.textColor} truncate w-full text-center`}>
-                                    {computer.name}
-                                  </span>
-                                  <div className={`w-2 h-2 rounded-full ${status.color}`}></div>
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="bg-slate-800 text-xs p-2">
-                                <p className="text-white font-medium">{computer.name}</p>
-                                <div className="flex items-center text-slate-300 gap-1 mt-1">
-                                  <div className={`w-2 h-2 rounded-full ${status.color}`}></div>
-                                  <span>{status.name}</span>
-                                </div>
-                                <div className="flex items-center text-slate-300 gap-1 mt-1">
-                                  <Clock className="h-3 w-3" />
-                                  <span>Último inicio: {computer.lastLogin || 'Desconocido'}</span>
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                <Card className="bg-white shadow-md border-0 overflow-hidden">
+                  <div className="bg-gradient-to-r from-[#00843D] to-[#00843D] h-1"></div>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm text-slate-500">Activas</p>
+                      <p className="text-2xl font-bold text-[#00843D]">{activeComputers}</p>
+                    </div>
+                    <div className="p-3 rounded-full bg-[#00843D]/10">
+                      <CheckCircle className="h-5 w-5 text-[#00843D]" />
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-white shadow-md border-0 overflow-hidden">
+                  <div className="bg-gradient-to-r from-[#F2A900] to-amber-500 h-1"></div>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm text-slate-500">En Mantenimiento</p>
+                      <p className="text-2xl font-bold text-[#F2A900]">{maintenanceComputers}</p>
+                    </div>
+                    <div className="p-3 rounded-full bg-[#F2A900]/10">
+                      <Clock className="h-5 w-5 text-[#F2A900]" />
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-white shadow-md border-0 overflow-hidden">
+                  <div className="bg-gradient-to-r from-slate-300 to-slate-200 h-1"></div>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm text-slate-500">Desconocido</p>
+                      <p className="text-2xl font-bold text-slate-600">{unknownComputers}</p>
+                    </div>
+                    <div className="p-3 rounded-full bg-slate-100">
+                      <HelpCircle className="h-5 w-5 text-slate-500" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          )}
+
+            {/* Search and Filters */}
+            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-white p-4 rounded-lg shadow-md border-0 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#006341] via-[#F2A900] to-[#006341]"></div>
+              <div className="relative w-full md:w-80">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Buscar por nombre o IP..."
+                  className="pl-9 border-slate-200"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                <Button 
+                  onClick={() => setActiveFilter('all')}
+                  variant={activeFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  className={activeFilter === 'all' ? 
+                    "bg-[#006341] hover:bg-[#00843D]" : 
+                    "border-slate-200"}
+                >
+                  Todos
+                </Button>
+                <Button 
+                  onClick={() => setActiveFilter('activa')}
+                  variant={activeFilter === 'activa' ? 'default' : 'outline'}
+                  size="sm"
+                  className={activeFilter !== 'activa' ? 
+                    "text-[#00843D] border-[#00843D]/20 hover:bg-[#00843D]/10" : 
+                    "bg-[#00843D]"}
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Activas
+                </Button>
+                <Button 
+                  onClick={() => setActiveFilter('mantenimiento')}
+                  variant={activeFilter === 'mantenimiento' ? 'default' : 'outline'}
+                  size="sm"
+                  className={activeFilter !== 'mantenimiento' ? 
+                    "text-amber-700 border-[#F2A900]/20 hover:bg-[#F2A900]/10" : 
+                    "bg-[#F2A900]"}
+                >
+                  <Clock className="h-4 w-4 mr-1" />
+                  Mantenimiento
+                </Button>
+                <Button 
+                  onClick={() => setActiveFilter('desconocido')}
+                  variant={activeFilter === 'desconocido' ? 'default' : 'outline'}
+                  size="sm"
+                  className={activeFilter !== 'desconocido' ? 
+                    "text-slate-700 border-slate-200 hover:bg-slate-50" : 
+                    "bg-slate-500"}
+                >
+                  <HelpCircle className="h-4 w-4 mr-1" />
+                  Desconocido
+                </Button>
+              </div>
+            </div>
+
+            {/* Classroom Cards */}
+            {filteredClassrooms.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-md p-8 text-center border-0 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#F2A900]"></div>
+                <HelpCircle className="h-12 w-12 mx-auto text-slate-300 mb-3" />
+                <h3 className="text-lg font-medium text-slate-700 mb-1">No se encontraron resultados</h3>
+                <p className="text-slate-500 mb-4">No hay computadoras que coincidan con tus criterios de búsqueda.</p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {setSearchTerm(''); setActiveFilter('all');}}
+                  className="border-[#006341] text-[#006341] hover:bg-[#006341]/10"
+                >
+                  Limpiar filtros
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {filteredClassrooms.map((classroom) => {
+                  const totalComputers = classroom.computers.length;
+                  const activeComputers = classroom.computers.filter(c => c.status === 'activa').length;
+                  const maintenanceComputers = classroom.computers.filter(c => c.status === 'mantenimiento').length;
+                  const unknownComputers = classroom.computers.filter(c => c.status === 'desconocido').length;
+                  const activePercentage = ((activeComputers / totalComputers) * 100).toFixed(1);
+                  
+                  return (
+                    <Card key={classroom.id} className="overflow-hidden shadow-md border-0 bg-white relative">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-[#006341]"></div>
+                      <CardHeader className="border-b border-slate-100 pb-3">
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                          <div className="space-y-1">
+                            <CardTitle className="text-xl font-medium flex items-center text-slate-800">
+                              <div className="p-1.5 rounded-md bg-[#006341]/10 mr-2">
+                                <School className="h-5 w-5 text-[#006341]" />
+                              </div>
+                              {classroom.name}
+                            </CardTitle>
+                            <div className="text-sm text-slate-500 flex flex-wrap items-center gap-2">
+                              <span className="font-medium">{totalComputers}</span> 
+                              <span>computadoras</span>
+                              {activeComputers > 0 && (
+                                <Badge className="text-xs font-normal bg-[#00843D]/10 text-[#00843D] border border-[#00843D]/20">
+                                  {activeComputers} activas
+                                </Badge>
+                              )}
+                              {maintenanceComputers > 0 && (
+                                <Badge className="text-xs font-normal bg-[#F2A900]/10 text-amber-700 border border-[#F2A900]/20">
+                                  {maintenanceComputers} en mantenimiento
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="text-sm font-semibold text-[#00843D]">{activePercentage}% Disponibles</span>
+                            <div className="w-full md:w-36 h-2.5 rounded-full overflow-hidden bg-slate-100 flex mt-1 border border-slate-100">
+                              <div className="bg-[#00843D] h-full" style={{ width: `${(activeComputers/totalComputers)*100}%` }}></div>
+                              <div className="bg-[#F2A900] h-full" style={{ width: `${(maintenanceComputers/totalComputers)*100}%` }}></div>
+                              <div className="bg-slate-300 h-full" style={{ width: `${(unknownComputers/totalComputers)*100}%` }}></div>
+                            </div>
+                            <div className="flex items-center justify-end mt-1.5 text-xs gap-3">
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 bg-[#00843D] rounded-full mr-1.5"></div>
+                                <span>Activa</span>
+                              </div>
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 bg-[#F2A900] rounded-full mr-1.5"></div>
+                                <span>Mantenimiento</span>
+                              </div>
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 bg-slate-300 rounded-full mr-1.5"></div>
+                                <span>Desconocido</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2">
+                          {classroom.computers.map((computer) => {
+                            const status = statusConfig[computer.status];
+                            return (
+                              <Tooltip key={computer.id}>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    className={`p-3 rounded-md border ${status.borderColor} ${status.bgColor} hover:bg-opacity-80 transition-all duration-200 w-full h-20 flex flex-col items-center justify-center gap-1`}
+                                    onClick={() => setSelectedComputer(computer)}
+                                  >
+                                    {osIcons[computer.os]}
+                                    <span className={`text-xs font-medium ${status.textColor} truncate w-full text-center`}>
+                                      {computer.name}
+                                    </span>
+                                    <div className={`w-2 h-2 rounded-full ${status.color}`}></div>
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="bg-slate-800 text-xs p-2">
+                                  <p className="text-white font-medium">{computer.name}</p>
+                                  <div className="flex items-center text-slate-300 gap-1 mt-1">
+                                    <div className={`w-2 h-2 rounded-full ${status.color}`}></div>
+                                    <span>{status.name}</span>
+                                  </div>
+                                  <div className="flex items-center text-slate-300 gap-1 mt-1">
+                                    <Clock className="h-3 w-3" />
+                                    <span>Último inicio: {computer.lastLogin || 'Desconocido'}</span>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+            
+            {/* UABC Branded Footer */}
+            <div className="mt-8 border-t border-[#006341]/10 pt-4 text-center">
+              <div className="flex items-center justify-center gap-2 text-sm text-[#006341]">
+                <span>© {new Date().getFullYear()} Universidad Autónoma de Baja California</span>
+                <div className="h-4 w-px bg-[#006341]/20"></div>
+                <span>Sistema de Gestión de Laboratorios</span>
+              </div>
+              <div className="text-xs text-slate-500 mt-1">
+                Facultad de Ingeniería y Negocios, Campus Tijuana
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Computer Details Dialog */}
         {selectedComputer && (
           <Dialog open={!!selectedComputer} onOpenChange={() => setSelectedComputer(null)}>
-            <DialogContent className="bg-white rounded-xl shadow-2xl max-w-md">
+            <DialogContent className="bg-white rounded-xl shadow-2xl max-w-md overflow-hidden">
+              <div className="h-1.5 bg-gradient-to-r from-[#006341] to-[#00843D] -mx-6 -mt-6 mb-3"></div>
               <DialogHeader className="border-b pb-4">
                 <DialogTitle className="flex items-center text-slate-800">
-                  <div className="p-2 rounded-full bg-blue-50 mr-3">
+                  <div className="p-2 rounded-full bg-[#006341]/10 mr-3">
                     {osIcons[selectedComputer.os]}
                   </div>
                   {selectedComputer.name}
@@ -429,7 +524,7 @@ export default function ComputerManagement() {
                   variant="outline" 
                   size="sm" 
                   onClick={() => setSelectedComputer(null)}
-                  className="text-slate-600 border-slate-200"
+                  className="text-[#006341] border-[#006341]/20 hover:bg-[#006341]/10"
                 >
                   Cerrar
                 </Button>

@@ -9,7 +9,7 @@ import { FileDown } from 'lucide-react'
 export default function FAQPage() {
 
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6">
       <h1 className="text-4xl font-bold text-center mb-8 ">FAQ</h1>
       
       <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
