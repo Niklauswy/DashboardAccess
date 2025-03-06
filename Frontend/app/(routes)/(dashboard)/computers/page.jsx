@@ -154,7 +154,7 @@ export default function ComputerManagement() {
               variant="outline"
               size="sm"
               onClick={handleRetry}
-              className="flex items-center gap-1 text-slate-600 border-slate-200 hover:bg-slate-100"
+              className="flex items-end gap-1 text-slate-600 border-slate-200 hover:bg-slate-100"
             >
               <RefreshCcw className="h-4 w-4" />
               Actualizar
