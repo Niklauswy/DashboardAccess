@@ -7,7 +7,6 @@ import { useToast } from "@/components/hooks/use-toast";
 import { useUserTableFilters } from "@/components/users/hooks/useUserTableFilters";
 import { useUserTableState } from "@/components/users/hooks/useUserTableState";
 import { useUsers } from "@/hooks/useUsers"; // Cambiado a useUsers
-import TableHeader from "@/components/users/TableHeader";
 import UserTableFilters from "@/components/users/UserTableFilters";
 import UserTableActions from "@/components/users/UserTableActions";
 import UserTableContent from "@/components/users/UserTableContent";
