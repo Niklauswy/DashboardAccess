@@ -142,17 +142,24 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
               </Label>
               <Select value={newUser.ou} onValueChange={(value) => setNewUser({ ...newUser, ou: value })} required >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una carrera" />
+                  <SelectValue placeholder={isLoading ? "Cargando..." : "Seleccione una carrera"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {ous.map((ou) => (
-                    <SelectItem key={ou} value={ou}>
-                      {ou}
-                    </SelectItem>
-                  ))}
+                  {isLoading ? (
+                    <SelectItem value="" disabled>Cargando...</SelectItem>
+                  ) : ous && ous.length > 0 ? (
+                    ous.map((ou) => (
+                      <SelectItem key={ou} value={ou}>
+                        {ou}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>No hay carreras disponibles</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
+
             {/* Grupos */}
             <div className="space-y-2">
               <Label>
@@ -165,8 +172,10 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                     role="combobox"
                     aria-expanded={openGroups}
                     className="w-full justify-between"
+                    disabled={isLoading}
                   >
-                    {newUser.groups.length > 0 ? `${newUser.groups.length} grupos seleccionados` : "Seleccione grupos"}
+                    {isLoading ? "Cargando..." : 
+                      newUser.groups.length > 0 ? `${newUser.groups.length} grupos seleccionados` : "Seleccione grupos"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -176,27 +185,33 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                     <CommandList>
                       <CommandEmpty>No se encontraron grupos.</CommandEmpty>
                       <CommandGroup className="max-h-64 overflow-auto">
-                        {groups.map((group) => (
-                          <CommandItem
-                            key={group}
-                            onSelect={() => {
-                              setNewUser({
-                                ...newUser,
-                                groups: newUser.groups.includes(group)
-                                  ? newUser.groups.filter((g) => g !== group)
-                                  : [...newUser.groups, group],
-                              })
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                newUser.groups.includes(group) ? "opacity-100" : "opacity-0",
-                              )}
-                            />
-                            {group}
-                          </CommandItem>
-                        ))}
+                        {isLoading ? (
+                          <CommandItem disabled>Cargando grupos...</CommandItem>
+                        ) : groups && groups.length > 0 ? (
+                          groups.map((group) => (
+                            <CommandItem
+                              key={group}
+                              onSelect={() => {
+                                setNewUser({
+                                  ...newUser,
+                                  groups: newUser.groups.includes(group)
+                                    ? newUser.groups.filter((g) => g !== group)
+                                    : [...newUser.groups, group],
+                                })
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  newUser.groups.includes(group) ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                              {group}
+                            </CommandItem>
+                          ))
+                        ) : (
+                          <CommandItem disabled>No hay grupos disponibles</CommandItem>
+                        )}
                       </CommandGroup>
                     </CommandList>
                   </Command>
