@@ -1,4 +1,3 @@
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,8 +11,6 @@ import {
 import { Filter, ChevronDown, X } from "lucide-react";
 
 export default function UserTableFilters({
-    filter,
-    setFilter,
     selectedCarreras,
     selectedGroups,
     toggleCarrera,
@@ -27,13 +24,6 @@ export default function UserTableFilters({
 }) {
     return (
         <div className="flex-grow flex flex-wrap items-center gap-3">
-            <Input
-                placeholder="Filtrar usuarios..."
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="w-full sm:w-auto max-w-sm flex-shrink-0"
-            />
-            
             {/* Carreras dropdown */}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -101,7 +91,10 @@ export default function UserTableFilters({
                         const count = Array.isArray(users) ? users.filter(
                             (user) =>
                                 user.groups?.includes(group) &&
-                                (selectedCarreras.length === 0 || selectedCarreras.includes(user.ou))
+                                (selectedCarreras.length === 0 || selectedCarreras.includes(user.ou)) &&
+                                Object.values(user).some((value) =>
+                                    value && value.toString().toLowerCase().includes(filter.toLowerCase())
+                                )
                         ).length : 0;
                         return (
                             <DropdownMenuItem key={group} onSelect={() => toggleGroup(group)}>
