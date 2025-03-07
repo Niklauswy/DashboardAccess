@@ -18,4 +18,5 @@ export const columns = [
     { key: "lastLogon", label: "Último Inicio", sortable: true },
     { key: "groups", label: "Grupos", sortable: false }, 
     { key: "accion", label: "", fixed: true },
+    { key: "email", label: "Correo", fixed: true },
 ];
