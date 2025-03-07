@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUp, ArrowDown, ChevronDown } from "lucide-react";
 
-export default function TableHeader({
+export default function TableHeaderr({
     columns,
     visibleColumns,
     sortColumn,
