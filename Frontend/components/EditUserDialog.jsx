@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -11,7 +10,8 @@ import { Check, ChevronsUpDown, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useOusAndGroups } from "@/hooks/useSharedData";
+import { useOusAndGroups } from "@/hooks/useOusAndGroups";
+import { useUsers } from "@/hooks/useUsers";
 
 // Schema de validación
 const userSchema = z.object({
@@ -23,6 +23,7 @@ const userSchema = z.object({
 
 export default function EditUserDialog({ open, onOpenChange, currentUser, onUpdate }) {
   const { ous, groups: allGroups, isLoading } = useOusAndGroups();
+  const { updateUser } = useUsers();
   const [openGroups, setOpenGroups] = useState(false);
 
   const form = useForm({
@@ -46,13 +47,17 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
     }
   }, [currentUser, form]);
 
-  const onSubmit = (data) => {
-    onUpdate({
-      ...currentUser,
-      ...data,
-      ...(data.password ? { password: data.password } : {})
-    });
-    onOpenChange(false);
+  const onSubmit = async (data) => {
+    try {
+      await updateUser(currentUser.username, {
+        ...data,
+        ...(data.password ? { password: data.password } : {})
+      });
+      
+      onUpdate();
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
   };
 
   return (

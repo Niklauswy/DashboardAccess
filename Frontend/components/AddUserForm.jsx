@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,11 +13,14 @@ import { Badge } from "@/components/ui/badge"
 import { Check, ChevronsUpDown, X } from "lucide-react"
 import { cn } from "@/components/lib/utils"
 import { PasswordInput } from "@/components/PasswordInput"
-import { useOusAndGroups } from "@/hooks/useSharedData";
+import { useOusAndGroups } from "@/hooks/useOusAndGroups";
+import { useUsers } from "@/hooks/useUsers";
 
 export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
-  const { toast } = useToast()
+  const { toast } = useToast();
   const { ous, groups, isLoading } = useOusAndGroups();
+  const { createUser } = useUsers();
+  
   const [newUser, setNewUser] = useState({
     samAccountName: "",
     givenName: "",
@@ -25,52 +28,34 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
     password: "",
     ou: "",
     groups: [],
-  })
-  const [openGroups, setOpenGroups] = useState(false)
+  });
+  const [openGroups, setOpenGroups] = useState(false);
 
   async function handleAddUser(e) {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUser),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        onOpenChange(false)
-        setNewUser({
-          samAccountName: "",
-          givenName: "",
-          sn: "",
-          password: "",
-          ou: "",
-          groups: [],
-        })
-        await refreshUsers()
-        toast({
-          title: "Usuario creado",
-          description: `El usuario ${newUser.samAccountName} ha sido creado exitosamente.`,
-        })
-      } else {
-        let fullErrorMessage = data.details || "Error desconocido al agregar el usuario."
-
- 
-        console.error("Server error:", data)
-        toast({
-          title: "Error",
-          description: fullErrorMessage,
-          variant: "destructive",
-        })
-
-      }
-    } catch (error) {
-      console.error("Unexpected error:", error)
+      await createUser(newUser);
+      onOpenChange(false);
+      setNewUser({
+        samAccountName: "",
+        givenName: "",
+        sn: "",
+        password: "",
+        ou: "",
+        groups: [],
+      });
+      await refreshUsers();
       toast({
-        title: "Error inesperado",
-        description: error.message || "Ocurrió un error inesperado.",
+        title: "Usuario creado",
+        description: `El usuario ${newUser.samAccountName} ha sido creado exitosamente.`,
+      });
+    } catch (error) {
+      console.error("Error al crear usuario:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Error desconocido al agregar el usuario.",
         variant: "destructive",
-      })
+      });
     }
   }
 

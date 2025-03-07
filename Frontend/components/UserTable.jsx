@@ -6,6 +6,7 @@ import { RefreshCw } from "lucide-react";
 import { useToast } from "@/components/hooks/use-toast";
 import { useUserTableFilters } from "@/components/users/hooks/useUserTableFilters";
 import { useUserTableState } from "@/components/users/hooks/useUserTableState";
+import { useUsers } from "@/hooks/useUsers"; // Cambiado a useUsers
 import TableHeader from "@/components/users/TableHeader";
 import UserTableFilters from "@/components/users/UserTableFilters";
 import UserTableActions from "@/components/users/UserTableActions";
@@ -19,10 +20,10 @@ import AddUserForm from "@/components/AddUserForm";
 
 // Constants moved to a separate file and imported here
 import { columns, careerIcons } from "@/components/users/userTableConstants";
-import { batchDeleteUsers, batchUpdatePasswords } from "@/services/userService";
 
 export default function UserTable({ users, refreshUsers, isRefreshing }) {
     const { toast } = useToast();
+    const { batchActions } = useUsers(); // Ahora usando el hook simplificado
     const [open, setOpen] = useState(false); // Add user dialog
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -105,15 +106,13 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
         
         try {
             if (batchActionType === "delete") {
-                // Use the service to delete multiple users
-                await batchDeleteUsers(selectedRows);
+                await batchActions.deleteUsers(selectedRows);
                 toast({ 
                     title: "Usuarios eliminados", 
                     description: `Se han eliminado ${selectedRows.length} usuarios.` 
                 });
             } else {
-                // Use the service to update passwords
-                await batchUpdatePasswords(selectedRows, newPassword);
+                await batchActions.updatePasswords(selectedRows, newPassword);
                 toast({ 
                     title: "Contraseñas actualizadas", 
                     description: `Se ha actualizado la contraseña de ${selectedRows.length} usuarios.` 

@@ -1,11 +1,12 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { deleteUser } from "@/services/userService";
+import { useUsers } from "@/hooks/useUsers"; // Cambio a useUsers
 
 export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDelete }) {
+    const { deleteUser } = useUsers(); // Usando el hook simplificado
+    
     const handleDelete = async () => {
         try {
-            // Usar el servicio para eliminar el usuario
             if (currentUser?.username) {
                 await deleteUser(currentUser.username);
                 onDelete();

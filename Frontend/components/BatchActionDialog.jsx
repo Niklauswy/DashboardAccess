@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/PasswordInput";
+import { useUsers } from "@/hooks/useUsers"; // Añadir si es necesario
 
 export default function BatchActionDialog({ open, onClose, actionType, selectedUsers, onConfirm }) {
   const [newPassword, setNewPassword] = useState("");
