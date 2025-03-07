@@ -13,9 +13,11 @@ import { Badge } from "@/components/ui/badge"
 import { Check, ChevronsUpDown, X } from "lucide-react"
 import { cn } from "@/components/lib/utils"
 import { PasswordInput } from "@/components/PasswordInput"
+import { useOusAndGroups } from "@/hooks/useSharedData";
 
 export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
   const { toast } = useToast()
+  const { ous, groups, isLoading } = useOusAndGroups();
   const [newUser, setNewUser] = useState({
     samAccountName: "",
     givenName: "",
@@ -24,21 +26,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
     ou: "",
     groups: [],
   })
-  const [ous, setOus] = useState([])
-  const [groups, setGroups] = useState([])
   const [openGroups, setOpenGroups] = useState(false)
-
-  useEffect(() => {
-    async function fetchData() {
-      const ouRes = await fetch("/api/ous")
-      const ouData = await ouRes.json()
-      setOus(ouData)
-      const groupRes = await fetch("/api/groups")
-      const groupData = await groupRes.json()
-      setGroups(groupData)
-    }
-    fetchData()
-  }, [])
 
   async function handleAddUser(e) {
     e.preventDefault()

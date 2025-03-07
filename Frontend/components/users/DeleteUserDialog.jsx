@@ -1,16 +1,15 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { deleteUser } from "@/services/userService";
 
 export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDelete }) {
     const handleDelete = async () => {
         try {
-            // Here you would call the API to delete the user
-            // const response = await fetch(`/api/users/${currentUser.username}`, {
-            //     method: 'DELETE',
-            // });
-            // if (!response.ok) throw new Error('Failed to delete user');
-            
-            onDelete();
+            // Usar el servicio para eliminar el usuario
+            if (currentUser?.username) {
+                await deleteUser(currentUser.username);
+                onDelete();
+            }
         } catch (error) {
             console.error('Error deleting user:', error);
         }

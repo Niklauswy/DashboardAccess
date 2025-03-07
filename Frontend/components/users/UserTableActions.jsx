@@ -49,10 +49,7 @@ export default function UserTableActions({
             <Button onClick={() => setOpen(true)}>
                 Agregar Usuario
             </Button>
-                {/* Add user button */}
-                <Button onClick={() => setOpen(true)}>
-                Agregar Usuario
-            </Button>
+            
         </div>
     );
 }

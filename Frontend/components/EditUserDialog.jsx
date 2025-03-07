@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { updateUser } from "@/services/userService";
+import { useOusAndGroups } from "@/hooks/useSharedData";
 
 export default function EditUserDialog({ open, onOpenChange, currentUser, onUpdate }) {
-  // Estados para OU y grupos disponibles
-  const [ous, setOus] = useState([]);
-  const [allGroups, setAllGroups] = useState([]);
+  // Usar el hook compartido para OUs y grupos
+  const { ous, groups, isLoading } = useOusAndGroups();
   // Estados locales para editar
   const [editUser, setEditUser] = useState({
     name: "",
@@ -32,19 +32,6 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
       });
     }
   }, [currentUser]);
-
-  // Fetch de Ous y Grupos
-  useEffect(() => {
-    async function fetchData() {
-      const ouRes = await fetch("/api/ous");
-      const ouData = await ouRes.json();
-      setOus(ouData);
-      const groupRes = await fetch("/api/groups");
-      const groupData = await groupRes.json();
-      setAllGroups(groupData);
-    }
-    fetchData();
-  }, []);
 
   function handleSubmit(e) {
     e.preventDefault();
