@@ -52,9 +52,8 @@ export default function UsersPage() {
     }
 
     return (
-        <div className="space-y-4">
+        <div className="p-4 md:p-6 lg:p-8 space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Gestión de Usuarios</h1>
                 <Button 
                     variant="outline" 
                     onClick={fetchUsersData} 
