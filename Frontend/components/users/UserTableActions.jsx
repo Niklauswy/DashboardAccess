@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Eye, Check, X, RefreshCw } from "lucide-react";
+import { Eye, Check, X } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -13,9 +13,7 @@ export default function UserTableActions({
     visibleColumns,
     toggleColumn,
     sortedUsers,
-    setOpen,
-    refreshUsers,
-    isRefreshing
+    setOpen
 }) {
     return (
         <div className="flex items-center gap-4">
@@ -50,17 +48,6 @@ export default function UserTableActions({
             {/* Add user button */}
             <Button onClick={() => setOpen(true)}>
                 Agregar Usuario
-            </Button>
-            
-            {/* Refresh button */}
-            <Button 
-                variant="outline" 
-                onClick={refreshUsers} 
-                disabled={isRefreshing}
-                className="gap-2"
-            >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                {isRefreshing ? 'Actualizando...' : 'Actualizar'}
             </Button>
         </div>
     );

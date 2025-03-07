@@ -48,10 +48,7 @@ export default function UserTableFilters({
                         const count = Array.isArray(users) ? users.filter(
                             (user) =>
                                 user.ou === carrera &&
-                                (selectedGroups.length === 0 || user.groups?.some(group => selectedGroups.includes(group))) &&
-                                Object.values(user).some((value) =>
-                                    value && value.toString().toLowerCase().includes(filter.toLowerCase())
-                                )
+                                (selectedGroups.length === 0 || user.groups?.some(group => selectedGroups.includes(group)))
                         ).length : 0;
                         return (
                             <DropdownMenuItem key={carrera} onSelect={() => toggleCarrera(carrera)}>
@@ -104,10 +101,7 @@ export default function UserTableFilters({
                         const count = Array.isArray(users) ? users.filter(
                             (user) =>
                                 user.groups?.includes(group) &&
-                                (selectedCarreras.length === 0 || selectedCarreras.includes(user.ou)) &&
-                                Object.values(user).some((value) =>
-                                    value && value.toString().toLowerCase().includes(filter.toLowerCase())
-                                )
+                                (selectedCarreras.length === 0 || selectedCarreras.includes(user.ou))
                         ).length : 0;
                         return (
                             <DropdownMenuItem key={group} onSelect={() => toggleGroup(group)}>

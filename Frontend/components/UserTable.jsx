@@ -13,6 +13,8 @@ import EditUserDialog from "@/components/EditUserDialog";
 import DeleteUserDialog from "@/components/users/DeleteUserDialog";
 import BatchActionDialog from "@/components/BatchActionDialog";
 import AddUserForm from "@/components/AddUserForm";
+import { Input } from "@/components/ui/input";
+import { RefreshCw } from "lucide-react";
 
 // Constants moved to a separate file and imported here
 import { columns, careerIcons } from "@/components/users/userTableConstants";
@@ -131,36 +133,36 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
     const selectedUsers = users.filter(user => selectedRows.includes(user.username));
 
     return (
-        <div className="flex flex-col space-y-4">
+        <div className="flex flex-col space-y-4">between items-center gap-4">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0 gap-4">
-                {/* Filter components */}
+                {/* Filter components */}ltrar usuarios..."
                 <UserTableFilters
-                    filter={filter}
-                    setFilter={setFilter}
+                    filter={filter}.value)}
+                    setFilter={setFilter}-0"
                     selectedCarreras={selectedCarreras}
                     selectedGroups={selectedGroups}
                     toggleCarrera={toggleCarrera}
                     toggleGroup={toggleGroup}
                     clearCarreraFilter={clearCarreraFilter}
                     clearGroupFilter={clearGroupFilter}
-                    availableCarreras={availableCarreras}
+                    availableCarreras={availableCarreras}p-2 ml-auto"
                     availableGroups={availableGroups}
-                    users={users}
-                    careerIcons={careerIcons}
+                    users={users}  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    careerIcons={careerIcons}    {isRefreshing ? 'Actualizando...' : 'Actualizar'}
                 />
                 
                 {/* Action buttons */}
-                <UserTableActions 
-                    columns={columns}
+                <UserTableActions ow md:justify-between md:items-center space-y-4 md:space-y-0 gap-4">
+                    columns={columns}*/}
                     visibleColumns={visibleColumns}
-                    toggleColumn={toggleColumn}
-                    sortedUsers={sortedUsers}
-                    setOpen={setOpen}
-                    refreshUsers={refreshUsers}
-                    isRefreshing={isRefreshing}
-                />
-            </div>
-
+                    toggleColumn={toggleColumn}{selectedCarreras}
+                    sortedUsers={sortedUsers}ups}
+                    setOpen={setOpen}a}
+                    refreshUsers={refreshUsers}  toggleGroup={toggleGroup}
+                    isRefreshing={isRefreshing}  clearCarreraFilter={clearCarreraFilter}
+                />                    clearGroupFilter={clearGroupFilter}
+            </div>eras={availableCarreras}
+Groups={availableGroups}
             {/* Table content */}
             <UserTableContent
                 columns={columns}
@@ -168,49 +170,49 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                 paginatedUsers={paginatedUsers}
                 selectedRows={selectedRows}
                 toggleAllRows={toggleAllRows}
-                toggleRow={toggleRow}
-                handleSort={handleSort}
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                handleAction={handleAction}
+                toggleRow={toggleRow}ibleColumns}
+                handleSort={handleSort}n}
+                sortColumn={sortColumn}s}
+                sortDirection={sortDirection}      setOpen={setOpen}
+                handleAction={handleAction}    />
             />
             
             {/* Pagination */}
             <UserTablePagination
-                selectedRows={selectedRows}
-                sortedUsers={sortedUsers}
-                page={page}
+                selectedRows={selectedRows}lumns}
+                sortedUsers={sortedUsers}isibleColumns}
+                page={page}Users}
                 setPage={setPage}
-                rowsPerPage={rowsPerPage}
-                setRowsPerPage={setRowsPerPage}
-                totalPages={totalPages}
-            />
-
-            {/* Batch action bar */}
+                rowsPerPage={rowsPerPage}lRows}
+                setRowsPerPage={setRowsPerPage}  toggleRow={toggleRow}
+                totalPages={totalPages}                handleSort={handleSort}
+            />mn}
+ion}
+            {/* Batch action bar */}ndleAction}
             {selectedRows.length > 1 && (
                 <BatchActionsBar
                     selectedCount={selectedRows.length}
-                    onChangePassword={() => handleBatchAction("changePassword")}
-                    onDelete={() => handleBatchAction("delete")}
-                />
+                    onChangePassword={() => handleBatchAction("changePassword")}ablePagination
+                    onDelete={() => handleBatchAction("delete")}  selectedRows={selectedRows}
+                />                sortedUsers={sortedUsers}
             )}
-
-            {/* Dialogs */}
-            <AddUserForm 
+setPage}
+            {/* Dialogs */}{rowsPerPage}
+            <AddUserForm PerPage}
                 open={open} 
                 onOpenChange={setOpen} 
                 refreshUsers={refreshUsers} 
-            />
-            
+            />n bar */}
+            && (
             <EditUserDialog
-                open={editDialogOpen}
-                onOpenChange={setEditDialogOpen}
-                currentUser={currentUser}
+                open={editDialogOpen}edRows.length}
+                onOpenChange={setEditDialogOpen}ord={() => handleBatchAction("changePassword")}
+                currentUser={currentUser}chAction("delete")}
                 onUpdate={() => {
                     setEditDialogOpen(false);
                     toast({ title: "Usuario actualizado" });
-                    refreshUsers();
-                }}
+                    refreshUsers();* Dialogs */}
+                }}<AddUserForm 
             />
             
             <DeleteUserDialog
@@ -218,9 +220,25 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                 onOpenChange={setDeleteDialogOpen}
                 currentUser={currentUser}
                 onDelete={() => {
-                    setDeleteDialogOpen(false);
-                    toast({ title: "Usuario eliminado" });
+                    setDeleteDialogOpen(false);itDialogOpen}
+                    toast({ title: "Usuario eliminado" });rrentUser={currentUser}
+                    refreshUsers();  onUpdate={() => {
+                }}        setEditDialogOpen(false);
+            />tle: "Usuario actualizado" });
+            
+            <BatchActionDialog
+                open={batchDialogOpen}
+                onClose={() => setBatchDialogOpen(false)}
+                actionType={batchActionType}
+                selectedUsers={selectedUsers}  open={deleteDialogOpen}
+                onConfirm={handleBatchConfirm}  onOpenChange={setDeleteDialogOpen}
+            />          currentUser={currentUser}
+        </div>               onDelete={() => {
+    );                    setDeleteDialogOpen(false);
+}                    toast({ title: "Usuario eliminado" });
                     refreshUsers();
+
+
                 }}
             />
             
