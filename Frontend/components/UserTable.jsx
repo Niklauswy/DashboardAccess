@@ -157,8 +157,9 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
 
             {/* Segunda fila: Filtros y acciones */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0 gap-4">
-                {/* Filtros de carrera y grupo */}
+                {/* Filtros de carrera y grupo - Añadimos filter como prop */}
                 <UserTableFilters
+                    filter={filter}
                     selectedCarreras={selectedCarreras}
                     selectedGroups={selectedGroups}
                     toggleCarrera={toggleCarrera}

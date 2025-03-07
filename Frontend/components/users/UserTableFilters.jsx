@@ -11,6 +11,7 @@ import {
 import { Filter, ChevronDown, X } from "lucide-react";
 
 export default function UserTableFilters({
+    filter, // Añadimos filter nuevamente como prop
     selectedCarreras,
     selectedGroups,
     toggleCarrera,
@@ -38,7 +39,10 @@ export default function UserTableFilters({
                         const count = Array.isArray(users) ? users.filter(
                             (user) =>
                                 user.ou === carrera &&
-                                (selectedGroups.length === 0 || user.groups?.some(group => selectedGroups.includes(group)))
+                                (selectedGroups.length === 0 || user.groups?.some(group => selectedGroups.includes(group))) &&
+                                Object.values(user).some((value) =>
+                                    value && value.toString().toLowerCase().includes(filter.toLowerCase())
+                                )
                         ).length : 0;
                         return (
                             <DropdownMenuItem key={carrera} onSelect={() => toggleCarrera(carrera)}>
