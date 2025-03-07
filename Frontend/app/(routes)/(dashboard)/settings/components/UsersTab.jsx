@@ -202,7 +202,6 @@ export default function UsersTab() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">Manejo de Usuarios</h2>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

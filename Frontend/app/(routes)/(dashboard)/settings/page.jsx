@@ -110,7 +110,7 @@ export default function Settings() {
           className="absolute bottom-[-6px] h-[2px] bg-green-600 dark:bg-white transition-all duration-300 ease-out z-0"
           style={activeStyle}
         />
-        <div className="flex space-x-2 justify-center relative z-10">
+        <div className="flex space-x-2 justify-center relative z-10 ">
           {tabs.map((tab, i) => (
             <div
               key={tab}
@@ -119,7 +119,7 @@ export default function Settings() {
                 setActiveTab(tab)
                 setActiveIndex(i)
               }}
-              className={`px-3 py-2 cursor-pointer transition-colors duration-300 ${
+              className={`px-3 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-md  py-2 cursor-pointer transition-colors duration-300 ${
                 activeTab === tab ? "text-black dark:text-white" : "text-gray-500 dark:text-gray-400"
               }`}
             >
@@ -162,7 +162,6 @@ export default function Settings() {
         )}
         {activeTab === "Grupos" && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-semibold">Manejo de Grupos</h2>
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
@@ -186,7 +185,6 @@ export default function Settings() {
         )}
         {activeTab === "Unidades" && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-semibold">Unidades Organizacionales</h2>
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
