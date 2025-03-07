@@ -3,160 +3,183 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { updateUser } from "@/services/userService";
 import { useOusAndGroups } from "@/hooks/useSharedData";
 
+// Schema de validación
+const userSchema = z.object({
+  name: z.string().min(1, "El nombre es requerido"),
+  ou: z.string().min(1, "La carrera es requerida"),
+  groups: z.array(z.string()),
+  password: z.string().optional()
+});
+
 export default function EditUserDialog({ open, onOpenChange, currentUser, onUpdate }) {
-  // Usar el hook compartido para OUs y grupos
-  const { ous, groups, isLoading } = useOusAndGroups();
-  // Estados locales para editar
-  const [editUser, setEditUser] = useState({
-    name: "",
-    ou: "",
-    groups: [],
-    password: "",
-  });
+  const { ous, groups: allGroups, isLoading } = useOusAndGroups();
   const [openGroups, setOpenGroups] = useState(false);
 
-  // Cuando currentUser cambia, inicializa el estado de edición
+  const form = useForm({
+    resolver: zodResolver(userSchema),
+    defaultValues: {
+      name: "",
+      ou: "",
+      groups: [],
+      password: ""
+    }
+  });
+
   useEffect(() => {
     if (currentUser) {
-      setEditUser({
+      form.reset({
         name: currentUser.name || "",
         ou: currentUser.ou || "",
         groups: currentUser.groups || [],
         password: ""
       });
     }
-  }, [currentUser]);
+  }, [currentUser, form]);
 
-  function handleSubmit(e) {
-    e.preventDefault();
+  const onSubmit = (data) => {
     onUpdate({
       ...currentUser,
-      name: editUser.name,
-      ou: editUser.ou,
-      groups: editUser.groups,
-      // Solo se envía nueva contraseña si se ingresó
-      ...(editUser.password ? { password: editUser.password } : {})
+      ...data,
+      ...(data.password ? { password: data.password } : {})
     });
-  }
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Editando {currentUser?.username} </DialogTitle>
+          <DialogTitle className="text-2xl">Editando {currentUser?.username}</DialogTitle>
         </DialogHeader>
-        <form className="space-y-6 mt-4" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      
-            {/* Nombre */}
-            <div className="space-y-2">
-              <Label htmlFor="editName">Nombre</Label>
-              <Input 
-                id="editName"
-                defaultValue={editUser.name}
-                onChange={(e) => setEditUser({...editUser, name: e.target.value})}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            {/* Carrera con Select */}
-            <div className="space-y-2">
-              <Label htmlFor="editOu">Carrera</Label>
-              <Select 
-                value={editUser.ou} 
-                onValueChange={(value) => setEditUser({...editUser, ou: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una carrera" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ous.map((ou) => (
-                    <SelectItem key={ou} value={ou}>{ou}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-                 {/* Contraseña */}
-                 <div className="space-y-2">
-              <Label htmlFor="editPassword">Contraseña</Label>
-              <Input 
-                id="editPassword" 
-                type="password" 
-                placeholder="Nueva contraseña"
-                onChange={(e) => setEditUser({...editUser, password: e.target.value})}
-              />
-            </div>
-
-            {/* Grupos con Popover y Command */}
-            <div className="space-y-2">
-              <Label>Grupos</Label>
-              <Popover open={openGroups} onOpenChange={setOpenGroups}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" role="combobox" className="w-full justify-between">
-                    {editUser.groups.length > 0 ? `${editUser.groups.length} grupos seleccionados` : "Seleccione grupos"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Buscar grupos..." />
-                    <CommandList>
-                      <CommandEmpty>No se encontraron grupos.</CommandEmpty>
-                      <CommandGroup>
-                        {allGroups.map((group) => (
-                          <CommandItem
-                            key={group}
-                            onSelect={() => {
-                              if(editUser.groups.includes(group)){
-                                setEditUser({
-                                  ...editUser,
-                                  groups: editUser.groups.filter(g => g !== group)
-                                })
-                              } else {
-                                setEditUser({
-                                  ...editUser,
-                                  groups: [...editUser.groups, group]
-                                })
-                              }
-                            }}
-                          >
-                            <Check className={`mr-2 h-4 w-4 ${editUser.groups.includes(group) ? "opacity-100" : "opacity-0"}`} />
-                            {group}
-                          </CommandItem>
+              <FormField
+                control={form.control}
+                name="ou"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Carrera</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccione una carrera" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {ous.map((ou) => (
+                          <SelectItem key={ou} value={ou}>{ou}</SelectItem>
                         ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              {editUser.groups.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {editUser.groups.map((group) => (
-                    <div key={group} className="inline-flex items-center gap-1 rounded bg-gray-200 px-2 py-1">
-                      <span>{group}</span>
-                      <X 
-                        className="h-3 w-3 cursor-pointer" 
-                        onClick={() => setEditUser({...editUser, groups: editUser.groups.filter(g => g !== group)})}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contraseña</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Nueva contraseña" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="groups"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Grupos</FormLabel>
+                    <Popover open={openGroups} onOpenChange={setOpenGroups}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" role="combobox" className="w-full justify-between">
+                          {field.value.length > 0 ? `${field.value.length} grupos seleccionados` : "Seleccione grupos"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar grupos..." />
+                          <CommandList>
+                            <CommandEmpty>No se encontraron grupos.</CommandEmpty>
+                            <CommandGroup>
+                              {allGroups?.map((group) => (
+                                <CommandItem
+                                  key={group}
+                                  onSelect={() => {
+                                    const newGroups = field.value.includes(group)
+                                      ? field.value.filter(g => g !== group)
+                                      : [...field.value, group];
+                                    field.onChange(newGroups);
+                                  }}
+                                >
+                                  <Check className={`mr-2 h-4 w-4 ${field.value.includes(group) ? "opacity-100" : "opacity-0"}`} />
+                                  {group}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    {field.value.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {field.value.map((group) => (
+                          <div key={group} className="inline-flex items-center gap-1 rounded bg-gray-200 px-2 py-1">
+                            <span>{group}</span>
+                            <X
+                              className="h-3 w-3 cursor-pointer"
+                              onClick={() => field.onChange(field.value.filter(g => g !== group))}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-       
-          </div>
-          <div className="flex justify-end gap-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit">Actualizar</Button>
-          </div>
-        </form>
+
+            <div className="flex justify-end gap-4">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">Actualizar</Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
