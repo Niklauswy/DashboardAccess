@@ -4,8 +4,6 @@ import useSWR from 'swr';
 import UserTable from '@/components/UserTable';
 import UserTableSkeleton from '@/components/skeletons/UserTableSkeleton';
 import ErrorServer from '@/components/ErrorServer';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
 
 export default function UsersPage() {
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -53,18 +51,11 @@ export default function UsersPage() {
 
     return (
         <div className="p-4 md:p-6 lg:p-8 space-y-6">
-            <div className="flex justify-between items-center">
-                <Button 
-                    variant="outline" 
-                    onClick={fetchUsersData} 
-                    disabled={isRefreshing}
-                    className="gap-2"
-                >
-                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    {isRefreshing ? 'Actualizando...' : 'Actualizar'}
-                </Button>
-            </div>
-            <UserTable users={users} refreshUsers={fetchUsersData} />
+            <UserTable 
+                users={users} 
+                refreshUsers={fetchUsersData} 
+                isRefreshing={isRefreshing} 
+            />
         </div>
     );
 }

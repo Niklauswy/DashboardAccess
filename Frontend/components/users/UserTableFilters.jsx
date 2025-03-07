@@ -26,12 +26,12 @@ export default function UserTableFilters({
     careerIcons
 }) {
     return (
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex-grow flex flex-wrap items-center gap-3">
             <Input
                 placeholder="Filtrar usuarios..."
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="max-w-sm flex-shrink-0"
+                className="w-full sm:w-auto max-w-sm flex-shrink-0"
             />
             
             {/* Carreras dropdown */}

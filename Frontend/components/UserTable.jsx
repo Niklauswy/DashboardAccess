@@ -18,7 +18,7 @@ import AddUserForm from "@/components/AddUserForm";
 import { columns, careerIcons } from "@/components/users/userTableConstants";
 import { batchDeleteUsers, batchUpdatePasswords } from "@/services/userService";
 
-export default function UserTable({ users, refreshUsers }) {
+export default function UserTable({ users, refreshUsers, isRefreshing }) {
     const { toast } = useToast();
     const [open, setOpen] = useState(false); // Add user dialog
     const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -156,6 +156,8 @@ export default function UserTable({ users, refreshUsers }) {
                     toggleColumn={toggleColumn}
                     sortedUsers={sortedUsers}
                     setOpen={setOpen}
+                    refreshUsers={refreshUsers}
+                    isRefreshing={isRefreshing}
                 />
             </div>
 
