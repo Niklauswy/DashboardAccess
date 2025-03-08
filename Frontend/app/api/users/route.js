@@ -67,9 +67,9 @@ export async function DELETE(request) {
 
         console.log(`Sending delete request for user: ${username}`);
 
-        // Call the backend API endpoint for deleting
+        // Use POST instead of DELETE to avoid method compatibility issues
         const response = await fetch('http://localhost:5000/api/users/delete', {
-            method: 'DELETE',
+            method: 'POST', // Changed from DELETE to POST
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username }),
         });
