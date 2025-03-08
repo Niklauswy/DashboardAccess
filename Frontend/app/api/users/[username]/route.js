@@ -41,19 +41,25 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Nombre de usuario requerido' }, { status: 400 });
     }
 
-    // Execute the Perl script to delete the user
-    const scriptPath = '/home/klaus/repos/DashboardAccess/Backend/scripts/deleteUser.pl';
-    const { stdout, stderr } = await execPromise(`perl ${scriptPath} ${username}`);
+    // Call the backend API endpoint instead of executing the script directly
+    const response = await fetch(`http://localhost:5000/api/users/${encodeURIComponent(username)}`, {
+      method: 'DELETE',
+    });
     
-    if (stderr) {
-      console.error('Error executing delete script:', stderr);
-      return NextResponse.json({ error: stderr }, { status: 500 });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error from backend:', errorText);
+      return NextResponse.json(
+        { error: 'Error al eliminar usuario', details: errorText },
+        { status: response.status }
+      );
     }
-
-    return NextResponse.json({ 
-      success: true, 
+    
+    const data = await response.json();
+    return NextResponse.json({
+      success: true,
       message: `Usuario '${username}' eliminado correctamente`,
-      details: stdout
+      details: data
     });
   } catch (error) {
     console.error('Error in DELETE /api/users/[username]:', error);

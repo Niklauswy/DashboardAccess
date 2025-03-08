@@ -87,6 +87,16 @@ app.post('/api/users/create', (req, res) => {
   executeScriptWithInput('perl addUser.pl', userData, res);
 });
 
+// Add route for deleting users
+app.delete('/api/users/:username', (req, res) => {
+  const { username } = req.params;
+  if (!username) {
+    return res.status(400).json({ error: 'Username is required' });
+  }
+  
+  executeScript(`perl deleteUser.pl ${username}`, res);
+});
+
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server running at http://0.0.0.0:${port}/`);
 });
