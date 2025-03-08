@@ -94,16 +94,25 @@ export function useUsers() {
     setError(null);
     
     try {
-      const response = await fetch(`/api/users/${username}`, {
+      const response = await fetch('/api/users', {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
       });
       
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.error || 'Error deleting user');
+        const errorText = await response.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {
+          // If response is not JSON, use the text as error message
+          throw new Error(errorText || 'Error deleting user');
+        }
+        throw new Error(errorData.error || 'Error deleting user');
       }
       
+      const data = await response.json();
       setLoading(false);
       await mutate(); // Actualiza la caché de usuarios
       return data;
@@ -112,7 +121,7 @@ export function useUsers() {
       setLoading(false);
       throw err;
     }
-  }, []);
+  }, [mutate]);
 
   // Operaciones por lotes
   const batchActions = {

@@ -96,8 +96,9 @@ app.delete('/api/users/delete', async (req, res) => {
       return res.status(400).json({ error: 'Nombre de usuario requerido' });
     }
     
+    console.log(`Backend received delete request for user: ${username}`);
+    
     // Execute the Perl script to delete the user
-    const { exec } = require('child_process');
     exec(`perl ${__dirname}/scripts/deleteUser.pl "${username}"`, (error, stdout, stderr) => {
       if (error) {
         console.error(`Error executing script: ${error.message}`);
@@ -109,8 +110,14 @@ app.delete('/api/users/delete', async (req, res) => {
         return res.status(400).json({ error: stderr });
       }
       
-      console.log(`Script output: ${stdout}`);
-      return res.status(200).json({ message: `Usuario '${username}' eliminado exitosamente` });
+      // Clean stdout output and ensure it's valid JSON
+      const cleanOutput = stdout.trim();
+      console.log(`Script output: ${cleanOutput}`);
+      
+      return res.status(200).json({ 
+        message: `Usuario '${username}' eliminado exitosamente`,
+        details: cleanOutput
+      });
     });
   } catch (error) {
     console.error('Error in delete user endpoint:', error);

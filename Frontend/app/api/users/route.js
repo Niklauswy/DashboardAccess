@@ -65,6 +65,8 @@ export async function DELETE(request) {
             return NextResponse.json({ error: 'Nombre de usuario requerido' }, { status: 400 });
         }
 
+        console.log(`Sending delete request for user: ${username}`);
+
         // Call the backend API endpoint for deleting
         const response = await fetch('http://localhost:5000/api/users/delete', {
             method: 'DELETE',
@@ -72,16 +74,31 @@ export async function DELETE(request) {
             body: JSON.stringify({ username }),
         });
 
-        const data = await response.json();
+        // First try to get the response as text
+        const responseText = await response.text();
+        console.log(`Backend response: ${responseText}`);
+        
+        let data;
+        try {
+            // Try to parse as JSON
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('Failed to parse response as JSON:', parseError);
+            // If not JSON, return the text with appropriate status
+            return NextResponse.json({ 
+                error: 'Invalid response from server', 
+                details: responseText 
+            }, { status: 500 });
+        }
 
         if (response.ok) {
             return NextResponse.json(data, { status: 200 });
         } else {
-            console.error('Backend error deleting user:', data.error);
+            console.error('Backend error deleting user:', data.error || data);
             return NextResponse.json(data, { status: response.status || 500 });
         }
     } catch (error) {
         console.error('Error in DELETE /api/users:', error);
-        return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+        return NextResponse.json({ error: 'Error interno del servidor', details: error.message }, { status: 500 });
     }
 }

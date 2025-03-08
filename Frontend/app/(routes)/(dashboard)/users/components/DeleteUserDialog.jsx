@@ -1,18 +1,30 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useUsers } from "@/hooks/useUsers"; // Cambio a useUsers
+import { useUsers } from "@/hooks/useUsers";
+import { useState } from "react";
 
 export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDelete }) {
-    const { deleteUser } = useUsers(); // Usando el hook simplificado
+    const { deleteUser } = useUsers();
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [error, setError] = useState(null);
     
     const handleDelete = async () => {
+        if (!currentUser?.username) {
+            return;
+        }
+        
+        setIsDeleting(true);
+        setError(null);
+        
         try {
-            if (currentUser?.username) {
-                await deleteUser(currentUser.username);
-                onDelete();
-            }
+            await deleteUser(currentUser.username);
+            onDelete();
+            onOpenChange(false);
         } catch (error) {
             console.error('Error deleting user:', error);
+            setError(error.message || 'Error al eliminar el usuario');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -26,12 +38,29 @@ export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDe
                     <p>
                         ¿Está seguro de eliminar el usuario <strong>{currentUser?.username}</strong>?
                     </p>
+                    
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded">
+                            {error}
+                        </div>
+                    )}
+                    
                     <div className="flex justify-end gap-4">
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                        <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => onOpenChange(false)}
+                            disabled={isDeleting}
+                        >
                             Cancelar
                         </Button>
-                        <Button type="button" variant="destructive" onClick={handleDelete}>
-                            Eliminar
+                        <Button 
+                            type="button" 
+                            variant="destructive" 
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? 'Eliminando...' : 'Eliminar'}
                         </Button>
                     </div>
                 </div>
