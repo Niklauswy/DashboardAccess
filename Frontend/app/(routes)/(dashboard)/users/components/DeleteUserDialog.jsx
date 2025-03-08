@@ -1,13 +1,21 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useUsers } from "@/hooks/useUsers";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/components/hooks/use-toast";
 
 export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDelete }) {
     const { deleteUser } = useUsers();
     const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState(null);
+    
+    // Reset state when dialog opens/closes
+    useEffect(() => {
+        if (!open) {
+            setIsDeleting(false);
+            setError(null);
+        }
+    }, [open]);
     
     const handleDelete = async () => {
         if (!currentUser?.username) return;
@@ -18,8 +26,12 @@ export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDe
         try {
             await deleteUser(currentUser.username);
             
+            // Important: First call the callback, then close the dialog
+            if (typeof onDelete === 'function') {
+                onDelete();
+            }
+            
             onOpenChange(false);
-            onDelete();
             
             if (typeof toast === 'function') {
                 toast({
@@ -43,9 +55,24 @@ export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDe
         }
     };
 
+    // Handle close with a dedicated function
+    const handleClose = () => {
+        if (isDeleting) return; // Prevent closing while operation is in progress
+        onOpenChange(false);
+    };
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px]">
+        <Dialog 
+            open={open} 
+            onOpenChange={handleClose}
+            // Ensure proper focus management
+            modal={true}
+        >
+            <DialogContent 
+                className="sm:max-w-[600px]"
+                // Prevent click events from propagating outside
+                onClick={(e) => e.stopPropagation()}
+            >
                 <DialogHeader>
                     <DialogTitle className="text-2xl">Eliminar Usuario</DialogTitle>
                 </DialogHeader>
@@ -65,7 +92,7 @@ export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDe
                         <Button 
                             type="button" 
                             variant="outline" 
-                            onClick={() => onOpenChange(false)}
+                            onClick={handleClose}
                             disabled={isDeleting}
                         >
                             Cancelar
@@ -75,7 +102,7 @@ export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDe
                             variant="destructive" 
                             onClick={handleDelete}
                             disabled={isDeleting}
-                        >
+                        ></Button>
                             {isDeleting ? "Eliminando..." : "Eliminar"}
                         </Button>
                     </div>
