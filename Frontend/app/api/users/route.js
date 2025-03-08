@@ -58,48 +58,4 @@ export async function PUT(request) {
     }
 }
 
-export async function DELETE(request) {
-    try {
-        const { username } = await request.json();
-        if (!username) {
-            return NextResponse.json({ error: 'Nombre de usuario requerido' }, { status: 400 });
-        }
-
-        console.log(`Sending delete request for user: ${username}`);
-
-        // Use POST method with clear error handling
-        const response = await fetch('http://localhost:5000/api/users/delete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username }),
-        });
-
-        // Improved error handling
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
-            
-            try {
-                const errorData = JSON.parse(errorText);
-                return NextResponse.json({ 
-                    error: errorData.error || 'Error deleting user' 
-                }, { status: response.status });
-            } catch (e) {
-                return NextResponse.json({ 
-                    error: 'Error deleting user', 
-                    details: errorText 
-                }, { status: response.status });
-            }
-        }
-        
-        // If successful, parse the JSON
-        const data = await response.json();
-        return NextResponse.json(data, { status: 200 });
-    } catch (error) {
-        console.error('Error in DELETE /api/users:', error);
-        return NextResponse.json({ 
-            error: 'Error interno del servidor', 
-            details: error.message 
-        }, { status: 500 });
-    }
-}
+// DELETE method removed since it's now handled by the dynamic route

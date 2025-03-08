@@ -1,16 +1,14 @@
 import useSWR from 'swr';
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 
 /**
  * Hook centralizado para todas las operaciones relacionadas con usuarios
  */
 export function useUsers() {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   
   // Función principal para obtener usuarios con caché
-  const { data: users, error: swrError, mutate } = useSWR(
+  const { data: users, error, mutate } = useSWR(
     '/api/users',
     async (url) => {
       const res = await fetch(url, { cache: 'no-store' });
@@ -35,97 +33,51 @@ export function useUsers() {
   };
   
   // CRUD básico para usuarios
-  const createUser = useCallback(async (userData) => {
-    setLoading(true);
-    setError(null);
+  const createUser = async (userData) => {
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
     
-    try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Error creating user');
-      }
-      
-      setLoading(false);
-      await mutate(); // Actualiza la caché de usuarios
-      return data;
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-      throw err;
+    if (!res.ok) {
+      const error = await res.text();
+      throw new Error(error || 'Error al crear usuario');
     }
-  }, []);
+    
+    await mutate(); // Actualiza la caché de usuarios
+    return res.json();
+  };
 
-  const updateUser = useCallback(async (username, userData) => {
-    setLoading(true);
-    setError(null);
+  const updateUser = async (username, userData) => {
+    const res = await fetch(`/api/users/${username}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
     
-    try {
-      const response = await fetch(`/api/users/${username}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Error updating user');
-      }
-      
-      setLoading(false);
-      await mutate(); // Actualiza la caché de usuarios
-      return data;
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-      throw err;
+    if (!res.ok) {
+      const error = await res.text();
+      throw new Error(error || 'Error al actualizar usuario');
     }
-  }, []);
+    
+    await mutate(); // Actualiza la caché de usuarios
+    return res.json();
+  };
 
-  const deleteUser = useCallback(async (username) => {
-    setLoading(true);
-    setError(null);
+  const deleteUser = async (username) => {
+    const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
+      method: 'DELETE',
+    });
     
-    try {
-      console.log(`Deleting user: ${username}`);
-      
-      const response = await fetch('/api/users', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
-      });
-      
-      // Always try to get text first, then parse as JSON if possible
-      const responseText = await response.text();
-      
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        throw new Error(`Server response: ${responseText}`);
-      }
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Error deleting user');
-      }
-      
-      setLoading(false);
-      await mutate(); // Actualiza la caché de usuarios
-      return data;
-    } catch (err) {
-      console.error("Error in deleteUser hook:", err);
-      setError(err.message);
-      setLoading(false);
-      throw err;
+    if (!res.ok) {
+      const error = await res.text();
+      throw new Error(error || 'Error al eliminar usuario');
     }
-  }, [mutate]);
+    
+    await mutate(); // Actualiza la caché de usuarios
+    return await res.json();
+  };
 
   // Operaciones por lotes
   const batchActions = {
@@ -146,29 +98,28 @@ export function useUsers() {
     },
     
     deleteUsers: async (usernames) => {
-      const res = await fetch('/api/users/batch/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usernames }),
-      });
-      
-      if (!res.ok) {
-        const error = await res.text();
-        throw new Error(error || 'Error al eliminar usuarios');
+      // Ejecutar múltiples eliminaciones en secuencia
+      const results = [];
+      for (const username of usernames) {
+        try {
+          const result = await deleteUser(username);
+          results.push({ username, success: true, result });
+        } catch (error) {
+          results.push({ username, success: false, error: error.message });
+        }
       }
       
       await mutate(); // Actualiza la caché de usuarios
-      return res.json();
+      return results;
     }
   };
 
   return {
     // Datos y estado
     users,
-    error: error || swrError,
+    error,
     isLoading: !users && !error,
     isRefreshing,
-    loading,
     
     // Funciones
     refreshUsers,
