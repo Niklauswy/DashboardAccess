@@ -94,29 +94,33 @@ export function useUsers() {
     setError(null);
     
     try {
+      console.log(`Deleting user: ${username}`);
+      
       const response = await fetch('/api/users', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username })
       });
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch (e) {
-          // If response is not JSON, use the text as error message
-          throw new Error(errorText || 'Error deleting user');
-        }
-        throw new Error(errorData.error || 'Error deleting user');
+      // Always try to get text first, then parse as JSON if possible
+      const responseText = await response.text();
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        throw new Error(`Server response: ${responseText}`);
       }
       
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Error deleting user');
+      }
+      
       setLoading(false);
       await mutate(); // Actualiza la caché de usuarios
       return data;
     } catch (err) {
+      console.error("Error in deleteUser hook:", err);
       setError(err.message);
       setLoading(false);
       throw err;

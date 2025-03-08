@@ -67,38 +67,39 @@ export async function DELETE(request) {
 
         console.log(`Sending delete request for user: ${username}`);
 
-        // Use POST instead of DELETE to avoid method compatibility issues
+        // Use POST method with clear error handling
         const response = await fetch('http://localhost:5000/api/users/delete', {
-            method: 'POST', // Changed from DELETE to POST
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username }),
         });
 
-        // First try to get the response as text
-        const responseText = await response.text();
-        console.log(`Backend response: ${responseText}`);
+        // Improved error handling
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            
+            try {
+                const errorData = JSON.parse(errorText);
+                return NextResponse.json({ 
+                    error: errorData.error || 'Error deleting user' 
+                }, { status: response.status });
+            } catch (e) {
+                return NextResponse.json({ 
+                    error: 'Error deleting user', 
+                    details: errorText 
+                }, { status: response.status });
+            }
+        }
         
-        let data;
-        try {
-            // Try to parse as JSON
-            data = JSON.parse(responseText);
-        } catch (parseError) {
-            console.error('Failed to parse response as JSON:', parseError);
-            // If not JSON, return the text with appropriate status
-            return NextResponse.json({ 
-                error: 'Invalid response from server', 
-                details: responseText 
-            }, { status: 500 });
-        }
-
-        if (response.ok) {
-            return NextResponse.json(data, { status: 200 });
-        } else {
-            console.error('Backend error deleting user:', data.error || data);
-            return NextResponse.json(data, { status: response.status || 500 });
-        }
+        // If successful, parse the JSON
+        const data = await response.json();
+        return NextResponse.json(data, { status: 200 });
     } catch (error) {
         console.error('Error in DELETE /api/users:', error);
-        return NextResponse.json({ error: 'Error interno del servidor', details: error.message }, { status: 500 });
+        return NextResponse.json({ 
+            error: 'Error interno del servidor', 
+            details: error.message 
+        }, { status: 500 });
     }
 }
