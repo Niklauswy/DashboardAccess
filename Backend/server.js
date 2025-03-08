@@ -61,6 +61,33 @@ const executeScriptWithInput = (script, inputData, res) => {
   child.stdin.end();
 };
 
+// Function to execute Perl scripts with special handling for non-JSON responses
+const executeScriptRaw = (script, res) => {
+  // Agrega el prefijo "scripts/" después de "perl "
+  const command = script.replace('perl ', 'perl scripts/');
+  console.log(`Executing command: ${command}`);
+  
+  exec(command, { shell: '/bin/bash' }, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return res.status(500).json({ error: 'Server Error', details: error.message });
+    }
+    
+    try {
+      // Try to parse JSON, but if it fails, send raw output
+      const jsonData = JSON.parse(stdout);
+      res.status(200).json(jsonData);
+    } catch (parseError) {
+      // If not valid JSON, just return the raw output
+      console.log(`Script output (not JSON): ${stdout}`);
+      res.status(200).json({ 
+        success: true, 
+        message: stdout.trim()
+      });
+    }
+  });
+};
+
 // API routes
 app.get('/api/users', (req, res) => {
   executeScript('perl getUsers.pl', res);
@@ -87,14 +114,17 @@ app.post('/api/users/create', (req, res) => {
   executeScriptWithInput('perl addUser.pl', userData, res);
 });
 
-// Add route for deleting users
+// Fix route for deleting users - ensure this is properly defined
 app.delete('/api/users/:username', (req, res) => {
   const { username } = req.params;
+  console.log(`Received DELETE request for user: ${username}`);
+  
   if (!username) {
     return res.status(400).json({ error: 'Username is required' });
   }
   
-  executeScript(`perl deleteUser.pl ${username}`, res);
+  // Use executeScriptRaw for the delete script since it might not return JSON
+  executeScriptRaw(`perl deleteUser.pl ${username}`, res);
 });
 
 app.listen(port, '0.0.0.0', () => {
