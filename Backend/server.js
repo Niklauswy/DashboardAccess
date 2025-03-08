@@ -9,12 +9,12 @@ const cache = new NodeCache({ stdTTL: 60 });
 const app = express();
 const port = 5000;
 
-// Security: Add rateapiLimiter limiting to prevent brute force attacks
+// Security: Add rate limiting to prevent brute force attacks
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
   standardHeaders: true,
-  legacyHeaders: false,apiLimiter
+  legacyHeaders: false // Fixed: Removed incorrect apiLimiter reference
 });
 
 app.use(cors());
