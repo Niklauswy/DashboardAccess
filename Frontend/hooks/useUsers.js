@@ -34,6 +34,10 @@ export function useUsers() {
   
   // CRUD básico para usuarios
   const createUser = async (userData) => {
+    if (!userData || typeof userData !== 'object') {
+      throw new Error('Datos de usuario inválidos');
+    }
+    
     const res = await fetch('/api/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -50,7 +54,11 @@ export function useUsers() {
   };
 
   const updateUser = async (username, userData) => {
-    const res = await fetch(`/api/users/${username}`, {
+    if (!username || typeof username !== 'string') {
+      throw new Error('Nombre de usuario inválido');
+    }
+    
+    const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData),
@@ -66,41 +74,32 @@ export function useUsers() {
   };
 
   const deleteUser = async (username) => {
-    console.log(`Attempting to delete user: ${username}`);
-    
-    try {
-      const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
-        method: 'DELETE',
-      });
-      
-      // First check if we got a JSON response
-      const contentType = res.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await res.text();
-        console.error(`Non-JSON response from API: ${text}`);
-        throw new Error(`Error al eliminar usuario: respuesta no válida`);
-      }
-      
-      // Try to parse the JSON
-      const data = await res.json();
-      
-      if (!res.ok || data.error) {
-        const errorMessage = data.error || 'Error desconocido';
-        console.error(`API error: ${errorMessage}`, data);
-        throw new Error(errorMessage);
-      }
-      
-      await mutate(); // Actualiza la caché de usuarios
-      return data;
-    } catch (error) {
-      console.error(`Exception in deleteUser:`, error);
-      throw error;
+    if (!username || typeof username !== 'string') {
+      throw new Error('Nombre de usuario inválido');
     }
+    
+    const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
+      method: 'DELETE',
+    });
+    
+    const contentType = res.headers.get('content-type');
+    const data = contentType?.includes('application/json') ? await res.json() : null;
+    
+    if (!res.ok || (data && data.error)) {
+      throw new Error(data?.error || 'Error al eliminar usuario');
+    }
+    
+    await mutate(); // Actualiza la caché de usuarios
+    return data || { success: true };
   };
 
   // Operaciones por lotes
   const batchActions = {
     updatePasswords: async (usernames, newPassword) => {
+      if (!Array.isArray(usernames) || !usernames.length || !newPassword) {
+        throw new Error('Parámetros inválidos');
+      }
+      
       const res = await fetch('/api/users/batch/password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -117,6 +116,10 @@ export function useUsers() {
     },
     
     deleteUsers: async (usernames) => {
+      if (!Array.isArray(usernames) || !usernames.length) {
+        throw new Error('Lista de usuarios inválida');
+      }
+      
       // Ejecutar múltiples eliminaciones en secuencia
       const results = [];
       for (const username of usernames) {

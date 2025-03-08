@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { useUsers } from "@/hooks/useUsers";
 import { useState } from "react";
-import { toast } from "@/components/hooks/use-toast"; // Add toast if available, or use an alternative notification system
+import { toast } from "@/components/hooks/use-toast";
 
 export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDelete }) {
     const { deleteUser } = useUsers();
@@ -16,15 +16,11 @@ export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDe
         setError(null);
         
         try {
-            console.log(`Deleting user: ${currentUser.username}`);
             await deleteUser(currentUser.username);
-            console.log(`User deleted successfully`);
             
-            // Close dialog and notify parent
             onOpenChange(false);
             onDelete();
             
-            // Show success notification if toast is available
             if (typeof toast === 'function') {
                 toast({
                     title: "Usuario eliminado",
@@ -33,10 +29,8 @@ export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDe
                 });
             }
         } catch (error) {
-            console.error('Error deleting user:', error);
             setError(error.message || 'Error al eliminar usuario');
             
-            // Show error notification if toast is available
             if (typeof toast === 'function') {
                 toast({
                     title: "Error",
