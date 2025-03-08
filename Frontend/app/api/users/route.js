@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
@@ -78,6 +77,7 @@ export async function DELETE(request) {
         if (response.ok) {
             return NextResponse.json(data, { status: 200 });
         } else {
+            console.error('Backend error deleting user:', data.error);
             return NextResponse.json(data, { status: response.status || 500 });
         }
     } catch (error) {

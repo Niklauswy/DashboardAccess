@@ -87,6 +87,37 @@ app.post('/api/users/create', (req, res) => {
   executeScriptWithInput('perl addUser.pl', userData, res);
 });
 
+// User deletion endpoint
+app.delete('/api/users/delete', async (req, res) => {
+  try {
+    const { username } = req.body;
+    
+    if (!username) {
+      return res.status(400).json({ error: 'Nombre de usuario requerido' });
+    }
+    
+    // Execute the Perl script to delete the user
+    const { exec } = require('child_process');
+    exec(`perl ${__dirname}/scripts/deleteUser.pl "${username}"`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error executing script: ${error.message}`);
+        return res.status(500).json({ error: `Error al eliminar usuario: ${error.message}` });
+      }
+      
+      if (stderr) {
+        console.error(`Script stderr: ${stderr}`);
+        return res.status(400).json({ error: stderr });
+      }
+      
+      console.log(`Script output: ${stdout}`);
+      return res.status(200).json({ message: `Usuario '${username}' eliminado exitosamente` });
+    });
+  } catch (error) {
+    console.error('Error in delete user endpoint:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server running at http://0.0.0.0:${port}/`);
 });

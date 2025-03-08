@@ -1,14 +1,16 @@
 import useSWR from 'swr';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 /**
  * Hook centralizado para todas las operaciones relacionadas con usuarios
  */
 export function useUsers() {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   
   // Función principal para obtener usuarios con caché
-  const { data: users, error, mutate } = useSWR(
+  const { data: users, error: swrError, mutate } = useSWR(
     '/api/users',
     async (url) => {
       const res = await fetch(url, { cache: 'no-store' });
@@ -33,51 +35,84 @@ export function useUsers() {
   };
   
   // CRUD básico para usuarios
-  const createUser = async (userData) => {
-    const res = await fetch('/api/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-    });
+  const createUser = useCallback(async (userData) => {
+    setLoading(true);
+    setError(null);
     
-    if (!res.ok) {
-      const error = await res.text();
-      throw new Error(error || 'Error al crear usuario');
+    try {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Error creating user');
+      }
+      
+      setLoading(false);
+      await mutate(); // Actualiza la caché de usuarios
+      return data;
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+      throw err;
     }
-    
-    await mutate(); // Actualiza la caché de usuarios
-    return res.json();
-  };
+  }, []);
 
-  const updateUser = async (username, userData) => {
-    const res = await fetch(`/api/users/${username}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-    });
+  const updateUser = useCallback(async (username, userData) => {
+    setLoading(true);
+    setError(null);
     
-    if (!res.ok) {
-      const error = await res.text();
-      throw new Error(error || 'Error al actualizar usuario');
+    try {
+      const response = await fetch(`/api/users/${username}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Error updating user');
+      }
+      
+      setLoading(false);
+      await mutate(); // Actualiza la caché de usuarios
+      return data;
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+      throw err;
     }
-    
-    await mutate(); // Actualiza la caché de usuarios
-    return res.json();
-  };
+  }, []);
 
-  const deleteUser = async (username) => {
-    const res = await fetch(`/api/users/${username}`, {
-      method: 'DELETE',
-    });
+  const deleteUser = useCallback(async (username) => {
+    setLoading(true);
+    setError(null);
     
-    if (!res.ok) {
-      const error = await res.text();
-      throw new Error(error || 'Error al eliminar usuario');
+    try {
+      const response = await fetch(`/api/users/${username}`, {
+        method: 'DELETE',
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Error deleting user');
+      }
+      
+      setLoading(false);
+      await mutate(); // Actualiza la caché de usuarios
+      return data;
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+      throw err;
     }
-    
-    await mutate(); // Actualiza la caché de usuarios
-    return true;
-  };
+  }, []);
 
   // Operaciones por lotes
   const batchActions = {
@@ -117,9 +152,10 @@ export function useUsers() {
   return {
     // Datos y estado
     users,
-    error,
+    error: error || swrError,
     isLoading: !users && !error,
     isRefreshing,
+    loading,
     
     // Funciones
     refreshUsers,

@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator"
 import { Users, FileSpreadsheet, HardDrive, AlertCircle, RotateCcw, Clock, Server, Info, Database, Home } from "lucide-react"
 import { useToast } from "@/components/hooks/use-toast";
 import UsersTab from "./components/UsersTab"
+import ErrorServer from "@/components/ErrorServer";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("General")
@@ -171,7 +172,7 @@ export default function Settings() {
               </CardHeader>
               <CardContent>
                 {groupsError ? (
-                  <p className="text-red-500">Error al cargar grupos</p>
+                  <ErrorServer message="Error al cargar Grupos" />
                 ) : (
                   <ul className="list-disc pl-5">
                     {groups && groups.map((group, index) => (
@@ -194,7 +195,7 @@ export default function Settings() {
               </CardHeader>
               <CardContent>
                 {ousError ? (
-                  <p className="text-red-500">Error al cargar Unidades Organizacionales</p>
+                  <ErrorServer message="Error al cargar las Unidades Organizacionales" />
                 ) : (
                   <ul className="list-disc pl-5">
                     {ous && ous.map((ou, index) => (
