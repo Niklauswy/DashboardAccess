@@ -43,24 +43,50 @@ export async function DELETE(request, { params }) {
 
     console.log(`Frontend: Deleting user ${username}`);
     
-    // Call the backend API endpoint
-    const response = await fetch(`http://localhost:5000/api/users/${encodeURIComponent(username)}`, {
+    // Call the backend API endpoint with better error handling
+    const backendUrl = `http://localhost:5000/api/users/${encodeURIComponent(username)}`;
+    console.log(`Making DELETE request to: ${backendUrl}`);
+    
+    const response = await fetch(backendUrl, {
       method: 'DELETE',
       headers: { 'Accept': 'application/json' }
     });
     
-    // Handle non-JSON responses from backend
+    // Log the status to help debug
+    console.log(`Backend response status: ${response.status}`);
+    
+    let data;
     const contentType = response.headers.get('content-type');
+    
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
-      console.error(`Non-JSON response: ${text}`);
+      console.error(`Non-JSON response (${response.status}): ${text}`);
+      
+      // Try to extract error message from HTML if that's what we got
+      let errorMsg = text;
+      if (text.includes('<pre>')) {
+        const match = text.match(/<pre>([^<]+)<\/pre>/);
+        if (match) errorMsg = match[1];
+      }
+      
       return NextResponse.json(
-        { error: 'Respuesta no válida del servidor', details: text }, 
+        { 
+          error: 'Error al eliminar usuario', 
+          message: `El servidor devolvió: ${errorMsg}`,
+          status: response.status 
+        }, 
         { status: 500 }
       );
     }
     
-    const data = await response.json();
+    try {
+      data = await response.json();
+    } catch (err) {
+      console.error('Error parsing JSON response:', err);
+      return NextResponse.json({ 
+        error: 'Error al procesar la respuesta del servidor' 
+      }, { status: 500 });
+    }
     
     if (!response.ok || data.error) {
       console.error('Error from backend:', data);

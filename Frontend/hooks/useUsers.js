@@ -66,17 +66,36 @@ export function useUsers() {
   };
 
   const deleteUser = async (username) => {
-    const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
-      method: 'DELETE',
-    });
+    console.log(`Attempting to delete user: ${username}`);
     
-    if (!res.ok) {
-      const error = await res.text();
-      throw new Error(error || 'Error al eliminar usuario');
+    try {
+      const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
+        method: 'DELETE',
+      });
+      
+      // First check if we got a JSON response
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await res.text();
+        console.error(`Non-JSON response from API: ${text}`);
+        throw new Error(`Error al eliminar usuario: respuesta no válida`);
+      }
+      
+      // Try to parse the JSON
+      const data = await res.json();
+      
+      if (!res.ok || data.error) {
+        const errorMessage = data.error || 'Error desconocido';
+        console.error(`API error: ${errorMessage}`, data);
+        throw new Error(errorMessage);
+      }
+      
+      await mutate(); // Actualiza la caché de usuarios
+      return data;
+    } catch (error) {
+      console.error(`Exception in deleteUser:`, error);
+      throw error;
     }
-    
-    await mutate(); // Actualiza la caché de usuarios
-    return await res.json();
   };
 
   // Operaciones por lotes
