@@ -1,10 +1,17 @@
 const express = require('express');
 const { exec } = require('child_process');
 const cors = require('cors');
-const rateLimit = require('express-rate-limit'); // You may need to install this
+const rateLimit = require('express-rate-limit');
 
 const NodeCache = require('node-cache');
 const cache = new NodeCache({ stdTTL: 60 });
+
+// Función para invalidar la caché
+const invalidateCache = (keyPattern) => {
+  const keys = cache.keys();
+  const keysToDelete = keys.filter(key => key.includes(keyPattern));
+  keysToDelete.forEach(key => cache.del(key));
+};
 
 const app = express();
 const port = 5000;
@@ -24,7 +31,6 @@ app.use('/api/', apiLimiter);
 // Security: Helper function to sanitize command inputs
 const sanitizeInput = (input) => {
   if (typeof input !== 'string') return '';
-  // Remove potentially dangerous characters
   return input.replace(/[;&|`$()<>]/g, '');
 };
 
@@ -110,8 +116,17 @@ app.delete('/api/users/:username', (req, res) => {
     
     try {
       const jsonData = JSON.parse(stdout);
+      
+      // Invalidar la caché después de eliminar un usuario
+      if (!jsonData.error) {
+        invalidateCache('getUsers');
+      }
+      
       return res.status(jsonData.error ? 400 : 200).json(jsonData);
     } catch (parseError) {
+      // Invalidar la caché incluso si hay error de parseo pero la operación fue exitosa
+      invalidateCache('getUsers');
+      
       return res.status(200).json({ 
         success: true, 
         message: stdout.trim() || 'Usuario eliminado exitosamente'

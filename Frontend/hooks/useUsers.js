@@ -11,14 +11,21 @@ export function useUsers() {
   const { data: users, error, mutate } = useSWR(
     '/api/users',
     async (url) => {
-      const res = await fetch(url, { cache: 'no-store' });
+      const res = await fetch(url, { 
+        cache: 'no-store',
+        headers: {
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache'
+        }
+      });
       if (!res.ok) throw new Error('Error cargando usuarios');
       return res.json();
     },
     {
-      refreshInterval: 0,
-      revalidateOnFocus: false,
-      dedupingInterval: 10000,
+      refreshInterval: 30000, // Revalidar cada 30 segundos
+      revalidateOnFocus: true, // Revalidar cuando la ventana obtiene foco
+      dedupingInterval: 5000, // Reducido a 5 segundos
+      revalidateOnReconnect: true, // Revalidar cuando el navegador se reconecta
     }
   );
 
@@ -78,19 +85,35 @@ export function useUsers() {
       throw new Error('Nombre de usuario inválido');
     }
     
-    const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
-      method: 'DELETE',
-    });
+    // Actualización optimista: Eliminar usuario de la UI inmediatamente
+    const currentUsers = users || [];
+    const optimisticData = currentUsers.filter(user => 
+      user.username !== username && user.samAccountName !== username
+    );
     
-    const contentType = res.headers.get('content-type');
-    const data = contentType?.includes('application/json') ? await res.json() : null;
-    
-    if (!res.ok || (data && data.error)) {
-      throw new Error(data?.error || 'Error al eliminar usuario');
+    try {
+      // Actualiza la UI inmediatamente y luego hace la petición
+      await mutate(optimisticData, false);
+      
+      const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
+        method: 'DELETE',
+      });
+      
+      const contentType = res.headers.get('content-type');
+      const data = contentType?.includes('application/json') ? await res.json() : null;
+      
+      if (!res.ok || (data && data.error)) {
+        throw new Error(data?.error || 'Error al eliminar usuario');
+      }
+      
+      // Revalidar los datos después de la eliminación exitosa
+      await mutate();
+      return data || { success: true };
+    } catch (error) {
+      // Si falla, revertir la actualización optimista
+      await mutate();
+      throw error;
     }
-    
-    await mutate(); // Actualiza la caché de usuarios
-    return data || { success: true };
   };
 
   // Operaciones por lotes
