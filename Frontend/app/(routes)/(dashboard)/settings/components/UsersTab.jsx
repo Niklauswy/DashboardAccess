@@ -42,169 +42,182 @@ export default function UsersTab() {
                 const records = csvResults.data
 
                 // Validar el CSV
-                const aggregatedErrors = validateCsvRecords(records)
+                const aggregatedErrors = validateCsvRecords(records)d).{8,}$/;
                 if (aggregatedErrors.length > 0) {
-                    displayErrors(aggregatedErrors)
-                    setIsCsvProcessing(false)
-                    setIsReviewing(false)
+                    displayErrors(aggregatedErrors) aplica a todos los usuarios
+                    setIsCsvProcessing(false)ltPassword)) {
+                    setIsReviewing(false)ntraseña debe contener al menos una letra mayúscula, una minúscula y un número, y tener al menos 8 caracteres."]);
+                    returnsvProcessing(false)
+                }   setIsReviewing(false)
                     return
-                }
-
                 // Procesar registros
                 const results = {
-                    success: [],
-                    errors: []
-                }
-                
-                // Procesar los registros
+                    success: [],sto de los campos
+                    errors: []edErrors = validateCsvRecords(records)
+                }f (aggregatedErrors.length > 0) {
+                    displayErrors(aggregatedErrors)
+                // Procesar los registroslse)
                 for (let i = 0; i < records.length; i++) {
                     const row = records[i]
                     const padded = [...row]
                     while (padded.length < 5) {
                         padded.push("")
-                    }
-                    
+                    } results = {
+                    success: [],
                     const userData = {
                         samAccountName: padded[0].trim(),
                         givenName: padded[1].trim(),
                         sn: padded[2].trim(),
-                        password: defaultPassword,
+                        password: defaultPassword,; i++) {
                         ou: padded[3].trim(),
                         groups: padded[4].trim() ? [padded[4].trim()] : []
-                    }
-                    
+                    }hile (padded.length < 5) {
+                        padded.push("")
                     try {
                         await createUser(userData)
-                        
-                        results.success.push({
+                        t userData = {
+                        results.success.push({[0].trim(),
                             username: userData.samAccountName,
                             fullName: `${userData.givenName} ${userData.sn}`,
-                            ou: userData.ou,
+                            ou: userData.ou,sword,
                             groups: userData.groups
-                        })
+                        })oups: padded[4].trim() ? [padded[4].trim()] : []
                         
                         // Eliminamos el toast por usuario creado
                     } catch (error) {
-                        results.errors.push({
+                        results.errors.push({Data)
                             username: userData.samAccountName,
                             fullName: `${userData.givenName} ${userData.sn}`,
                             errorMessage: error.message || "Error desconocido"
-                        })
-                    }
-                    
+                        })  fullName: `${userData.givenName} ${userData.sn}`,
+                    }       ou: userData.ou,
+                            groups: userData.groups
                     // Actualizar progreso
                     setProgress(Math.round(((i + 1) / records.length) * 100))
-                }
-                
-                // Finalizar procesamiento
-                setIsCsvProcessing(false)
-                setIsReviewing(false)
-                await refreshUsers()
-                
+                }       // Eliminamos el toast por usuario creado
+                    } catch (error) {
+                // Finalizar procesamientoh({
+                setIsCsvProcessing(false)rData.samAccountName,
+                setIsReviewing(false) `${userData.givenName} ${userData.sn}`,
+                await refreshUsers()sage: error.message || "Error desconocido"
+                        })
                 // Mostrar resultados solo al final
                 setBatchResults(results)
                 setShowResultsDialog(true)
-                
+                    setProgress(Math.round(((i + 1) / records.length) * 100))
                 // Notificar el resultado final una sola vez
                 if (results.success.length > 0) {
-                    toast({
+                    toast({r procesamiento
                         title: "Proceso completado",
                         description: `Se crearon ${results.success.length} usuarios${results.errors.length > 0 ? ` (con ${results.errors.length} errores)` : ''}.`,
                         variant: results.errors.length === 0 ? "success" : "default",
                     });
-                }
-                
-            } catch (error) {
+                }/ Mostrar resultados solo al final
+                setBatchResults(results)
+            } catch (error) {sDialog(true)
                 handleProcessingError(error, "Error en CSV")
-            }
-        }
+            }   // Notificar el resultado final una sola vez
+        }       if (results.success.length > 0) {
         reader.readAsText(csvFile)
-    }
-
-    // Validar registros CSV
+    }                   title: "Proceso completado",
+                        description: `Se crearon ${results.success.length} usuarios${results.errors.length > 0 ? ` (con ${results.errors.length} errores)` : ''}.`,
+    // Validar registros CSVant: results.errors.length === 0 ? "success" : "default",
     const validateCsvRecords = (records) => {
         const errors = []
-        records.forEach((row, index) => {
-            if (row.length < 3 || row.length > 5) {
-                errors.push(`Fila ${index + 1}: Se esperaban entre 3 y 5 campos pero se recibieron ${row.length}.`)
-            } else {
-                if (!row[0].trim() || !row[1].trim() || !row[2].trim()) {
-                    errors.push(`Fila ${index + 1}: Los primeros 3 campos son obligatorios y no deben estar vacíos.`)
-                }
-
-                if (row[3]?.trim() && ous && !ous.includes(row[3].trim())) {
-                    errors.push(`Fila ${index + 1}: La OU '${row[3].trim()}' no existe.`)
-                }
-
-                if (row[4]?.trim() && groups && !groups.includes(row[4].trim())) {
-                    errors.push(`Fila ${index + 1}: El grupo '${row[4].trim()}' no existe.`)
-                }
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+            } catch (error) {
+        records.forEach((row, index) => {or, "Error en CSV")
+            // Ahora requiere exactamente 5 campos (todos los atributos son obligatorios)
+            if (row.length !== 5) {
+                errors.push(`Fila ${index + 1}: Se esperan exactamente 5 campos pero se recibieron ${row.length}.`);
+                return;
             }
-        })
-        return errors
-    }
+            ar registros CSV
+            // Validar que todos los campos tienen datos
+            for (let i = 0; i < 5; i++) {
+                if (!row[i].trim()) {[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+                    const fieldName = ["Usuario", "Nombre", "Apellido", "Carrera (OU)", "Grupo"][i];
+                    errors.push(`Fila ${index + 1}: El campo '${fieldName}' es obligatorio.`);
+                }ora requiere exactamente 5 campos (todos los atributos son obligatorios)
+            }f (row.length !== 5) {
+                errors.push(`Fila ${index + 1}: Se esperan exactamente 5 campos pero se recibieron ${row.length}.`);
+            // Validar que la OU existe
+            if (!ous || !ous.includes(row[3].trim())) {
+                errors.push(`Fila ${index + 1}: La carrera (OU) '${row[3].trim()}' no existe.`);
+            }/ Validar que todos los campos tienen datos
+            for (let i = 0; i < 5; i++) {
+            // Validar que el grupo existe
+            if (!groups || !groups.includes(row[4].trim())) {Apellido", "Carrera (OU)", "Grupo"][i];
+                errors.push(`Fila ${index + 1}: El grupo '${row[4].trim()}' no existe.`);o.`);
+            }   }
+            }
+            // No podemos validar la contraseña aquí ya que es proporcionada por el usuario en la interfaz
+        }); // Validar que la OU existe
+            if (!ous || !ous.includes(row[3].trim())) {
+        // Validar la contraseña global para todos los usuarios '${row[3].trim()}' no existe.`);
+        if (defaultPassword && !passwordRegex.test(defaultPassword)) {
+            errors.push("La contraseña debe contener al menos una letra mayúscula, una minúscula y un número, y tener al menos 8 caracteres.");
+        }   // Validar que el grupo existe
+            if (!groups || !groups.includes(row[4].trim())) {
+        return errors;.push(`Fila ${index + 1}: El grupo '${row[4].trim()}' no existe.`);
+    }       }
 
-    // Mostrar errores en el diálogo
+    // Mostrar errores en el diálogo contraseña aquí ya que es proporcionada por el usuario en la interfaz
     const displayErrors = (errors) => {
         const maxDisplay = 10
-        let displayedErrors = errors.slice(0, maxDisplay)
-        const extraCount = errors.length - maxDisplay
-        if (extraCount > 0) {
+        let displayedErrors = errors.slice(0, maxDisplay)uarios
+        const extraCount = errors.length - maxDisplayfaultPassword)) {
+        if (extraCount > 0) {ontraseña debe contener al menos una letra mayúscula, una minúscula y un número, y tener al menos 8 caracteres.");
             displayedErrors.push(`... y ${extraCount} fila${extraCount > 1 ? 's' : ''} más tienen errores.`)
         }
         setErrorMessages(displayedErrors)
         setErrorDialogOpen(true)
     }
-
-    // Procesar registros del CSV
+    // Mostrar errores en el diálogo
+    // Procesar registros del CSV) => {
     const processCsvRecords = async (records, defaultPassword) => {
-        const results = {
-            success: [],
-            errors: []
+        const results = {rs = errors.slice(0, maxDisplay)
+            success: [], = errors.length - maxDisplay
+            errors: [] > 0) {
+        }   displayedErrors.push(`... y ${extraCount} fila${extraCount > 1 ? 's' : ''} más tienen errores.`)
         }
-        
-        for (const row of records) {
-            const padded = [...row]
-            while (padded.length < 5) {
-                padded.push("")
-            }
-            
-            const userData = {
-                samAccountName: padded[0].trim(),
-                givenName: padded[1].trim(),
-                sn: padded[2].trim(),
-                password: defaultPassword,
-                ou: padded[3].trim(),
-                groups: padded[4].trim() ? [padded[4].trim()] : []
-            }
+        for (const row of records) {rors)
+            const userData = {e)
+                samAccountName: row[0].trim(),
+                givenName: row[1].trim(),
+                sn: row[2].trim(),
+                password: defaultPassword,ds, defaultPassword) => {
+                ou: row[3].trim(),
+                groups: [row[4].trim()] // Ahora es obligatorio un grupo
+            }rrors: []
             
             try {
                 await createUser(userData)
-                
-                results.success.push({
+                t userData = {
+                results.success.push({.trim(),
                     username: userData.samAccountName,
                     fullName: `${userData.givenName} ${userData.sn}`,
-                    ou: userData.ou,
+                    ou: userData.ou,sword,
                     groups: userData.groups
-                })
+                })oups: [row[4].trim()] // Ahora es obligatorio un grupo
                 
                 // Eliminamos el toast por usuario creado
             } catch (error) {
-                results.errors.push({
+                results.errors.push({Data)
                     username: userData.samAccountName,
                     fullName: `${userData.givenName} ${userData.sn}`,
                     errorMessage: error.message || "Error desconocido"
+                })  fullName: `${userData.givenName} ${userData.sn}`,
+            }       ou: userData.ou,
+        }           groups: userData.groups
                 })
-            }
-        }
-        
         return results
-    }
-
+    }           // Eliminamos el toast por usuario creado
+            } catch (error) {
     // Manejar errores de procesamiento
-    const handleProcessingError = (error, title) => {
-        setIsCsvProcessing(false)
-        setIsSerialProcessing(false)
+    const handleProcessingError = (error, title) => {,
+        setIsCsvProcessing(false)userData.givenName} ${userData.sn}`,
+        setIsSerialProcessing(false)ror.message || "Error desconocido"
         setIsReviewing(false)
         toast({
             title,
@@ -212,44 +225,67 @@ export default function UsersTab() {
             variant: "destructive",
         })
     }
-
-    // Crear usuarios en serie
+    // Manejar errores de procesamiento
+    // Crear usuarios en serier = (error, title) => {
     const handleCreateSerialUsers = async (options) => {
-        setIsSerialProcessing(true)
-        setProgress(0)
+        setIsSerialProcessing(true))
+        setProgress(0)(false)
+        toast({
+        // Validar que la opción de OU no sea "none" (que no tenemos en AddUser.pl)
+        if (options.ou === "none") { error.message || "Error durante el procesamiento.",
+            toast({destructive",
+                title: "Error de validación",)
+                description: "Debe seleccionar una carrera válida",
+                variant: "destructive",
+            });
+            setIsSerialProcessing(false);
+            return;true)
+        }
         
+        // Validar que haya al menos un grupo seleccionado
+        if (!options.groups || options.groups.length === 0) {
+            toast({
+                title: "Error de validación",
+                description: "Debe seleccionar al menos un grupo",
+                variant: "destructive",(let i = 1; i <= options.quantity; i++) {
+            }); number = String(i).padStart(2, "0")
+            setIsSerialProcessing(false);efix}${number}`
+            return;t userData = {
+        }me,
+        ername,
+        // Resto del código para crear los usuarios...
         const results = {
-            success: [],
-            errors: []
+            success: [],: options.ou,
+            errors: []groups: options.groups
         }
         
         for (let i = 1; i <= options.quantity; i++) {
-            const number = String(i).padStart(2, "0")
+            const number = String(i).padStart(2, "0")ser(userData)
             const username = `${options.prefix}${number}`
-            const userData = {
-                samAccountName: username,
-                givenName: username,
-                sn: "FC",
+            const userData = {sults.success.push({
+                samAccountName: username,       username,
+                givenName: username,        ou: userData.ou,
+                sn: "FC",ta.groups
                 password: options.password,
-                ou: options.ou,
-                groups: options.groups
+                ou: options.ou,       
+                groups: options.groups        // Eliminamos el toast por usuario creado
             }
-            
-            try {
-                await createUser(userData)
+            rs.push({
+            try {            username,
+                await createUser(userData)age || "Error desconocido"
                 
                 results.success.push({
-                    username,
-                    ou: userData.ou,
-                    groups: userData.groups
+                    username,            
+                    ou: userData.ou,       // Actualizar progreso
+                    groups: userData.groups            setProgress(Math.round((i / options.quantity) * 100))
                 })
                 
                 // Eliminamos el toast por usuario creado
-            } catch (error) {
+            } catch (error) {s()
                 results.errors.push({
                     username,
                     errorMessage: error.message || "Error desconocido"
-                })
+                })ue)
             }
             
             // Actualizar progreso
@@ -257,9 +293,9 @@ export default function UsersTab() {
         }
         
         setIsSerialProcessing(false)
-        await refreshUsers()
-        
-        // Mostrar resumen completo al final
+        await refreshUsers()eCsvUpload}
+          isUploading={isCsvProcessing}
+        // Mostrar resumen completo al final                groups={groups || []}
         setBatchResults(results)
         setShowResultsDialog(true)
 
@@ -267,45 +303,56 @@ export default function UsersTab() {
 
     return (
         <div className="space-y-6">
-            {/* Componente para subir CSVs */}
+            {/* Componente para subir CSVs */} || []}
             <CsvUploader 
                 onUpload={handleCsvUpload}
                 isUploading={isCsvProcessing}
-                groups={groups || []}
-                ous={ous || []}
-            />
-            
-            {/* Componente para crear usuarios en serie */}
-            <SerialUserCreator 
-                onCreateUsers={handleCreateSerialUsers}
+                groups={groups || []}{/* Diálogo de revisión CSV */}
+                ous={ous || []} && (
+            />true} onOpenChange={() => {}}>
+            x]">
+            {/* Componente para crear usuarios en serie */}ame="space-y-4">
+            <SerialUserCreator               <h3 className="text-lg font-semibold">Revisando CSV...</h3>
+                onCreateUsers={handleCreateSerialUsers}                <p className="text-sm">Validando el archivo, por favor espere.</p>
                 isCreating={isSerialProcessing}
-                groups={groups || []}
+                groups={groups || []}ent>
                 ous={ous || []}
             />
 
-            {/* Diálogo de revisión CSV */}
-            {isReviewing && !isCsvProcessing && (
-                <Dialog open={true} onOpenChange={() => {}}>
+            {/* Diálogo de revisión CSV */}* Diálogo de procesamiento */}
+            {isReviewing && !isCsvProcessing && (            <ProcessingDialog 
+                <Dialog open={true} onOpenChange={() => {}}>svProcessing || isSerialProcessing}
                     <DialogContent className="sm:max-w-[600px]">
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold">Revisando CSV...</h3>
-                            <p className="text-sm">Validando el archivo, por favor espere.</p>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            )}
-            
-            {/* Diálogo de procesamiento */}
-            <ProcessingDialog 
-                open={isCsvProcessing || isSerialProcessing}
-                progress={progress}
-            />
-            
-            {/* Diálogos para resultados y errores */}
-            <BatchResultsDialog 
-                open={showResultsDialog}
-                onOpenChange={setShowResultsDialog}
-                results={batchResults}
+                            <p className="text-sm">Validando el archivo, por favor espere.</p>* Diálogos para resultados y errores */}
+                        </div>atchResultsDialog 
+                    </DialogContent>           open={showResultsDialog}
+                </Dialog>               onOpenChange={setShowResultsDialog}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}    )        </div>            />                messages={errorMessages}                onOpenChange={setErrorDialogOpen}                open={errorDialogOpen}            <ErrorDialog             />                results={batchResults}                onOpenChange={setShowResultsDialog}                open={showResultsDialog}            <BatchResultsDialog             {/* Diálogos para resultados y errores */}                        />                progress={progress}                open={isCsvProcessing || isSerialProcessing}            <ProcessingDialog             {/* Diálogo de procesamiento */}                        )}                results={batchResults}
             />
 
             <ErrorDialog 

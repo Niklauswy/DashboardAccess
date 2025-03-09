@@ -63,17 +63,17 @@ export default function CsvUploader({
               <DialogHeader>
                 <DialogTitle>Formato CSV</DialogTitle>
                 <DialogDescription>
-                  El archivo CSV debe seguir este formato [Sin encabezados]:
+                  El archivo CSV debe seguir este formato [Sin encabezados], todos los campos son obligatorios:
                 </DialogDescription>
               </DialogHeader>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Usuario</TableHead>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Apelllidos</TableHead>
-                    <TableHead>OU (Carrera)</TableHead>
-                    <TableHead>Grupo (Rol)</TableHead>
+                    <TableHead>Usuario*</TableHead>
+                    <TableHead>Nombre*</TableHead>
+                    <TableHead>Apellidos*</TableHead>
+                    <TableHead>OU (Carrera)*</TableHead>
+                    <TableHead>Grupo (Rol)*</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -91,16 +91,14 @@ export default function CsvUploader({
                     <TableCell>BIO</TableCell>
                     <TableCell>Estudiante</TableCell>
                   </TableRow>
-                  <TableRow>
-                    <TableCell>Invitado</TableCell>
-                    <TableCell>Invitado01</TableCell>
-                    <TableCell>FC</TableCell>
-                  </TableRow>
                 </TableBody>
               </Table>
               <div className="mt-4 p-4 bg-gray-50 border-l-4 border-blue-500 rounded">
                 <p className="text-sm text-gray-700">
-                  Se puede omitir la OU y el Grupo si no es necesario asignarlos.
+                  <span className="font-bold">Importante:</span> Todos los campos son obligatorios. La carrera (OU) y el grupo deben existir en el sistema.
+                </p>
+                <p className="text-sm text-gray-700 mt-2">
+                  La contraseña global debe cumplir los requisitos de complejidad: al menos 8 caracteres, una letra mayúscula, una minúscula y un número.
                 </p>
               </div>
               <div className="mt-4 p-4 bg-gray-100 rounded">

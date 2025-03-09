@@ -24,31 +24,47 @@ export default function SerialUserCreator({
   const [newUserDefaultPassword, setNewUserDefaultPassword] = useState("")
   const [serieOU, setSerieOU] = useState("")
   const [serieGroups, setSerieGroups] = useState([])
-  const [seriePasswordError, setSeriePasswordError] = useState("")
+  const [formErrors, setFormErrors] = useState({})
   const [openSeriesGroups, setOpenSeriesGroups] = useState(false)
 
-  const handleCreateUsers = () => {
-    if (!newUserPrefix) {
-      return;
+  // Función para validar el formulario
+  const validateSerialForm = () => {
+    const errors = {};
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    
+    if (!newUserPrefix.trim()) {
+      errors.prefix = "El prefijo es obligatorio";
     }
     
     if (!newUserDefaultPassword) {
-      setSeriePasswordError("Ingrese una contraseña válida.")
-      return
+      errors.password = "La contraseña es obligatoria";
+    } else if (!passwordRegex.test(newUserDefaultPassword)) {
+      errors.password = "La contraseña debe tener al menos 8 caracteres, una letra mayúscula, una minúscula y un número";
     }
     
-    if (newUserDefaultPassword.length < 8) {
-      setSeriePasswordError("La contraseña debe tener al menos 8 caracteres.")
-      return
+    if (!serieOU) {
+      errors.ou = "Debe seleccionar una carrera";
     }
     
-    setSeriePasswordError("")
+    if (!serieGroups.length) {
+      errors.groups = "Debe seleccionar al menos un grupo";
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleCreateUsers = () => {
+    // Validar el formulario antes de enviarlo
+    if (!validateSerialForm()) {
+      return;
+    }
     
     onCreateUsers({
       prefix: newUserPrefix,
       quantity: newUserQuantity,
       password: newUserDefaultPassword,
-      ou: serieOU === "none" ? "" : serieOU,
+      ou: serieOU,
       groups: serieGroups
     });
   }
@@ -61,14 +77,19 @@ export default function SerialUserCreator({
       <CardContent>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="user-prefix">Prefijo</Label>
+            <Label htmlFor="user-prefix">Prefijo <span className="text-destructive">*</span></Label>
             <Input
               id="user-prefix"
               value={newUserPrefix}
               onChange={(e) => setNewUserPrefix(e.target.value)}
               placeholder="Ej: Invitado"
+              className={formErrors.prefix ? "border-destructive" : ""}
             />
+            {formErrors.prefix && (
+              <p className="text-sm text-destructive">{formErrors.prefix}</p>
+            )}
           </div>
+          
           <div>
             <Label htmlFor="user-quantity">Cantidad de Usuarios: {newUserQuantity}</Label>
             <Slider
@@ -81,26 +102,32 @@ export default function SerialUserCreator({
             />
             <span className="w-12 text-right">{newUserQuantity}</span>
           </div>
+          
           <div>
-            <Label htmlFor="user-default-password">Contraseña por defecto</Label>
+            <Label htmlFor="user-default-password">Contraseña por defecto <span className="text-destructive">*</span></Label>
             <PasswordInput
               id="user-default-password"
               value={newUserDefaultPassword}
               onChange={(e) => setNewUserDefaultPassword(e.target.value)}
               placeholder="Ingrese la contraseña"
+              className={formErrors.password ? "border-destructive" : ""}
             />
-            {seriePasswordError && <p className="text-sm text-destructive">{seriePasswordError}</p>}
+            {formErrors.password && (
+              <p className="text-sm text-destructive">{formErrors.password}</p>
+            )}
           </div>
+          
           <div>
-            <Label htmlFor="serie-ou">Carrera</Label>
-            <Select value={serieOU} onValueChange={setSerieOU} id="serie-ou">
-              <SelectTrigger>
+            <Label htmlFor="serie-ou">Carrera <span className="text-destructive">*</span></Label>
+            <Select 
+              value={serieOU} 
+              onValueChange={setSerieOU} 
+              id="serie-ou"
+            >
+              <SelectTrigger className={formErrors.ou ? "border-destructive" : ""}>
                 <SelectValue placeholder="Seleccione una carrera" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem key="empty" value="none">
-                  Ninguna
-                </SelectItem>
                 {ous.map((ou) => (
                   <SelectItem key={ou} value={ou}>
                     {ou}
@@ -108,12 +135,21 @@ export default function SerialUserCreator({
                 ))}
               </SelectContent>
             </Select>
+            {formErrors.ou && (
+              <p className="text-sm text-destructive">{formErrors.ou}</p>
+            )}
           </div>
+          
           <div>
-            <Label>Grupos</Label>
+            <Label>Grupos <span className="text-destructive">*</span></Label>
             <Popover open={openSeriesGroups} onOpenChange={setOpenSeriesGroups}>
               <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" aria-expanded={openSeriesGroups} className="w-full justify-between">
+                <Button 
+                  variant="outline" 
+                  role="combobox" 
+                  aria-expanded={openSeriesGroups} 
+                  className={cn("w-full justify-between", formErrors.groups ? "border-destructive" : "")}
+                >
                   {serieGroups.length > 0 ? `${serieGroups.length} grupos seleccionados` : "Seleccione grupos"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -124,9 +160,6 @@ export default function SerialUserCreator({
                   <CommandList>
                     <CommandEmpty>No se encontraron grupos.</CommandEmpty>
                     <CommandGroup className="max-h-64 overflow-auto">
-                      <CommandItem key="empty-groups" onSelect={() => setSerieGroups([])}>
-                        Ninguno
-                      </CommandItem>
                       {groups.map((group) => (
                         <CommandItem
                           key={group}
@@ -145,6 +178,9 @@ export default function SerialUserCreator({
                 </Command>
               </PopoverContent>
             </Popover>
+            {formErrors.groups && (
+              <p className="text-sm text-destructive">{formErrors.groups}</p>
+            )}
             {serieGroups.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {serieGroups.map((group) => (
@@ -158,10 +194,16 @@ export default function SerialUserCreator({
           </div>
           <Button 
             onClick={handleCreateUsers}
-            disabled={isCreating || !newUserPrefix || !newUserDefaultPassword}
+            disabled={isCreating}
           >
             {isCreating ? 'Procesando...' : 'Crear Usuarios'}
           </Button>
+          
+          {/* Información sobre requisitos */}
+          <div className="text-xs text-gray-500 mt-2">
+            <p>Todos los campos marcados con <span className="text-destructive">*</span> son obligatorios.</p>
+            <p>La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.</p>
+          </div>
         </div>
       </CardContent>
     </Card>

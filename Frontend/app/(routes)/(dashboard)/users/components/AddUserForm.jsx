@@ -29,10 +29,58 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
     ou: "",
     groups: [],
   });
+  const [errors, setErrors] = useState({});
   const [openGroups, setOpenGroups] = useState(false);
+
+  // Función para validar el formulario
+  const validateForm = () => {
+    const newErrors = {};
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+    // Validar usuario
+    if (!newUser.samAccountName.trim()) {
+      newErrors.samAccountName = "El nombre de usuario es obligatorio";
+    }
+
+    // Validar nombre
+    if (!newUser.givenName.trim()) {
+      newErrors.givenName = "El nombre es obligatorio";
+    }
+
+    // Validar apellido
+    if (!newUser.sn.trim()) {
+      newErrors.sn = "El apellido es obligatorio";
+    }
+
+    // Validar contraseña
+    if (!newUser.password) {
+      newErrors.password = "La contraseña es obligatoria";
+    } else if (!passwordRegex.test(newUser.password)) {
+      newErrors.password = "La contraseña debe tener al menos 8 caracteres, una letra mayúscula, una minúscula y un número";
+    }
+
+    // Validar carrera (OU)
+    if (!newUser.ou) {
+      newErrors.ou = "Debe seleccionar una carrera";
+    }
+
+    // Validar grupos
+    if (!newUser.groups.length) {
+      newErrors.groups = "Debe seleccionar al menos un grupo";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   async function handleAddUser(e) {
     e.preventDefault();
+    
+    // Validar el formulario antes de enviarlo
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       await createUser(newUser);
       onOpenChange(false);
@@ -44,6 +92,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
         ou: "",
         groups: [],
       });
+      setErrors({});
       await refreshUsers();
       toast({
         title: "Usuario creado",
@@ -51,7 +100,6 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
         variant: "success",
       });
     } catch (error) {
-
       if (error.details) {
         console.error("Detalles:", error.details);
       }
@@ -82,9 +130,13 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                 placeholder="Ingrese el usuario"
                 value={newUser.samAccountName}
                 onChange={(e) => setNewUser({ ...newUser, samAccountName: e.target.value })}
-                required
+                className={errors.samAccountName ? "border-destructive" : ""}
               />
+              {errors.samAccountName && (
+                <p className="text-sm text-destructive">{errors.samAccountName}</p>
+              )}
             </div>
+            
             {/* Nombre */}
             <div className="space-y-2">
               <Label htmlFor="givenName">
@@ -95,9 +147,13 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                 placeholder="Ingrese el nombre"
                 value={newUser.givenName}
                 onChange={(e) => setNewUser({ ...newUser, givenName: e.target.value })}
-                required
+                className={errors.givenName ? "border-destructive" : ""}
               />
+              {errors.givenName && (
+                <p className="text-sm text-destructive">{errors.givenName}</p>
+              )}
             </div>
+            
             {/* Apellido */}
             <div className="space-y-2">
               <Label htmlFor="sn">
@@ -108,30 +164,42 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                 placeholder="Ingrese el apellido"
                 value={newUser.sn}
                 onChange={(e) => setNewUser({ ...newUser, sn: e.target.value })}
-                required
+                className={errors.sn ? "border-destructive" : ""}
               />
+              {errors.sn && (
+                <p className="text-sm text-destructive">{errors.sn}</p>
+              )}
             </div>
+            
             {/* Contraseña */}
             <div className="space-y-2">
               <Label htmlFor="password">
                 Contraseña <span className="text-destructive">*</span>
               </Label>
-          
-                <PasswordInput
-                            id="password"
-                            value={newUser.password}
-                            onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                            placeholder="Ingrese la contraseña"
-                            required
-                          />
+              <PasswordInput
+                id="password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                placeholder="Ingrese la contraseña"
+                className={errors.password ? "border-destructive" : ""}
+                required
+              />
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password}</p>
+              )}
             </div>
+            
             {/* Unidad Organizativa (Carrera) */}
             <div className="space-y-2">
               <Label htmlFor="ou">
                 Carrera <span className="text-destructive">*</span>
               </Label>
-              <Select value={newUser.ou} onValueChange={(value) => setNewUser({ ...newUser, ou: value })} required >
-                <SelectTrigger>
+              <Select 
+                value={newUser.ou} 
+                onValueChange={(value) => setNewUser({ ...newUser, ou: value })}
+                disabled={isLoading}
+              >
+                <SelectTrigger className={errors.ou ? "border-destructive" : ""}>
                   <SelectValue placeholder={isLoading ? "Cargando..." : "Seleccione una carrera"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -139,15 +207,16 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                     <SelectItem value="" disabled>Cargando...</SelectItem>
                   ) : ous && ous.length > 0 ? (
                     ous.map((ou) => (
-                      <SelectItem key={ou} value={ou}>
-                        {ou}
-                      </SelectItem>
+                      <SelectItem key={ou} value={ou}>{ou}</SelectItem>
                     ))
                   ) : (
                     <SelectItem value="" disabled>No hay carreras disponibles</SelectItem>
                   )}
                 </SelectContent>
               </Select>
+              {errors.ou && (
+                <p className="text-sm text-destructive">{errors.ou}</p>
+              )}
             </div>
 
             {/* Grupos */}
@@ -161,7 +230,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                     variant="outline"
                     role="combobox"
                     aria-expanded={openGroups}
-                    className="w-full justify-between"
+                    className={cn("w-full justify-between", errors.groups ? "border-destructive" : "")}
                     disabled={isLoading}
                   >
                     {isLoading ? "Cargando..." : 
@@ -207,6 +276,9 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                   </Command>
                 </PopoverContent>
               </Popover>
+              {errors.groups && (
+                <p className="text-sm text-destructive">{errors.groups}</p>
+              )}
               {newUser.groups.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {newUser.groups.map((group) => (
