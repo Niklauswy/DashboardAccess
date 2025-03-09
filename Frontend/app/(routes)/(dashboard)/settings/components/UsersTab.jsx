@@ -23,6 +23,7 @@ export default function UsersTab() {
     const [batchResults, setBatchResults] = useState(null)
     const [showResultsDialog, setShowResultsDialog] = useState(false)
     const [progress, setProgress] = useState(0)
+    const [cancelProcessing, setCancelProcessing] = useState(false);
     const { toast } = useToast()
     const { createUser, refreshUsers } = useUsers();
     const { data: groups } = useSWR('/api/groups', fetcher)
@@ -33,6 +34,7 @@ export default function UsersTab() {
         setIsReviewing(true)
         setIsCsvProcessing(true)
         setProgress(0)
+        setCancelProcessing(false)
         
         const reader = new FileReader()
         reader.onload = async (e) => {
@@ -58,6 +60,16 @@ export default function UsersTab() {
                 
                 // Procesar los registros
                 for (let i = 0; i < records.length; i++) {
+                    // Verificar si se ha solicitado cancelar el proceso
+                    if (cancelProcessing) {
+                        toast({
+                            title: "Proceso detenido",
+                            description: `Se detuvo la creación de usuarios. Se crearon ${results.success.length} usuarios.`,
+                            variant: "warning",
+                        });
+                        break;
+                    }
+                    
                     const row = records[i]
                     const padded = [...row]
                     while (padded.length < 5) {
@@ -83,22 +95,12 @@ export default function UsersTab() {
                             groups: userData.groups
                         })
                         
-                        toast({
-                            title: `Usuario creado`,
-                            description: `El usuario ${userData.samAccountName} se creó correctamente.`,
-                            variant: "success",
-                        })
+                        // Eliminamos el toast por usuario creado
                     } catch (error) {
                         results.errors.push({
                             username: userData.samAccountName,
                             fullName: `${userData.givenName} ${userData.sn}`,
                             errorMessage: error.message || "Error desconocido"
-                        })
-                        
-                        toast({
-                            title: `Error creando ${userData.samAccountName}`,
-                            description: error.message,
-                            variant: "destructive",
                         })
                     }
                     
@@ -109,11 +111,21 @@ export default function UsersTab() {
                 // Finalizar procesamiento
                 setIsCsvProcessing(false)
                 setIsReviewing(false)
+                setCancelProcessing(false)
                 await refreshUsers()
                 
-                // Mostrar resultados
+                // Mostrar resultados solo al final
                 setBatchResults(results)
                 setShowResultsDialog(true)
+                
+                // Notificar el resultado final una sola vez
+                if (results.success.length > 0) {
+                    toast({
+                        title: "Proceso completado",
+                        description: `Se crearon ${results.success.length} usuarios${results.errors.length > 0 ? ` (con ${results.errors.length} errores)` : ''}.`,
+                        variant: results.errors.length === 0 ? "success" : "default",
+                    });
+                }
                 
             } catch (error) {
                 handleProcessingError(error, "Error en CSV")
@@ -189,22 +201,12 @@ export default function UsersTab() {
                     groups: userData.groups
                 })
                 
-                toast({
-                    title: `Usuario creado`,
-                    description: `El usuario ${userData.samAccountName} se creó correctamente.`,
-                    variant: "success",
-                })
+                // Eliminamos el toast por usuario creado
             } catch (error) {
                 results.errors.push({
                     username: userData.samAccountName,
                     fullName: `${userData.givenName} ${userData.sn}`,
                     errorMessage: error.message || "Error desconocido"
-                })
-                
-                toast({
-                    title: `Error creando ${userData.samAccountName}`,
-                    description: error.message,
-                    variant: "destructive",
                 })
             }
         }
@@ -228,6 +230,7 @@ export default function UsersTab() {
     const handleCreateSerialUsers = async (options) => {
         setIsSerialProcessing(true)
         setProgress(0)
+        setCancelProcessing(false)
         
         const results = {
             success: [],
@@ -235,6 +238,16 @@ export default function UsersTab() {
         }
         
         for (let i = 1; i <= options.quantity; i++) {
+            // Verificar si se ha solicitado cancelar el proceso
+            if (cancelProcessing) {
+                toast({
+                    title: "Proceso detenido",
+                    description: `Se detuvo la creación de usuarios. Se crearon ${results.success.length} usuarios.`,
+                    variant: "warning",
+                });
+                break;
+            }
+            
             const number = String(i).padStart(2, "0")
             const username = `${options.prefix}${number}`
             const userData = {
@@ -255,21 +268,11 @@ export default function UsersTab() {
                     groups: userData.groups
                 })
                 
-                toast({
-                    title: `Usuario creado`,
-                    description: `El usuario ${username} se creó correctamente.`,
-                    variant: "success",
-                })
+                // Eliminamos el toast por usuario creado
             } catch (error) {
                 results.errors.push({
                     username,
                     errorMessage: error.message || "Error desconocido"
-                })
-                
-                toast({
-                    title: `Error creando ${username}`,
-                    description: error.message,
-                    variant: "destructive",
                 })
             }
             
@@ -278,10 +281,32 @@ export default function UsersTab() {
         }
         
         setIsSerialProcessing(false)
+        setCancelProcessing(false)
         await refreshUsers()
+        
+        // Mostrar resumen completo al final
         setBatchResults(results)
         setShowResultsDialog(true)
+        
+        // Notificar el resultado final una sola vez
+        if (results.success.length > 0) {
+            toast({
+                title: "Proceso completado",
+                description: `Se crearon ${results.success.length} usuarios${results.errors.length > 0 ? ` (con ${results.errors.length} errores)` : ''}.`,
+                variant: results.errors.length === 0 ? "success" : "default",
+            });
+        }
     }
+
+    // Manejar la cancelación del procesamiento
+    const handleCancelProcessing = () => {
+        setCancelProcessing(true);
+        toast({
+            title: "Deteniendo proceso",
+            description: "El proceso se detendrá después de completar la operación actual...",
+            variant: "warning",
+        });
+    };
 
     return (
         <div className="space-y-6">
@@ -317,6 +342,7 @@ export default function UsersTab() {
             <ProcessingDialog 
                 open={isCsvProcessing || isSerialProcessing}
                 progress={progress}
+                onCancel={handleCancelProcessing}
             />
             
             {/* Diálogos para resultados y errores */}
