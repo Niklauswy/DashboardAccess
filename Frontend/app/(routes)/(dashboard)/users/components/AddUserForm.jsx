@@ -34,8 +34,6 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
   async function handleAddUser(e) {
     e.preventDefault();
     try {
-
-
       await createUser(newUser);
       onOpenChange(false);
       setNewUser({
@@ -53,13 +51,18 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
         variant: "success",
       });
     } catch (error) {
-      console.error(error.details);
-      let errorMessage = error.message || "Error desconocido al agregar el usuario.";
-  
+      // Ahora podemos acceder directamente a las propiedades del error
+      console.error("Error al crear usuario:", error);
       
+      // Si hay detalles adicionales disponibles, los mostramos en consola
+      if (error.details) {
+        console.error("Detalles:", error.details);
+      }
+      
+      // Mostrar mensaje de error principal
       toast({
         title: "Error al crear usuario",
-        description: errorMessage,
+        description: error.message || "Error desconocido al agregar el usuario",
         variant: "destructive",
       });
     }
