@@ -262,15 +262,7 @@ export default function UsersTab() {
         // Mostrar resumen completo al final
         setBatchResults(results)
         setShowResultsDialog(true)
-        
-        // Notificar el resultado final una sola vez
-        if (results.success.length > 0) {
-            toast({
-                title: "Proceso completado",
-                description: `Se crearon ${results.success.length} usuarios${results.errors.length > 0 ? ` (con ${results.errors.length} errores)` : ''}.`,
-                variant: results.errors.length === 0 ? "success" : "default",
-            });
-        }
+
     }
 
     return (
