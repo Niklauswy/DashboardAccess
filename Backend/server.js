@@ -38,15 +38,27 @@ const executeScript = (script, res) => {
   }
 
   exec(command, { shell: '/bin/bash' }, (error, stdout, stderr) => {
-    if (error) {
-      return res.status(500).json({ error: 'Error ejecutando comando' });
-    }
     try {
+      // Intentamos parsear la salida como JSON incluso con error
       const jsonData = JSON.parse(stdout);
+      
+      // Si hay un error en la ejecución o el script devolvió un error en JSON
+      if (error || (jsonData && jsonData.error)) {
+        // No guardamos en caché respuestas de error
+        return res.status(jsonData.error ? 400 : 500).json({
+          error: jsonData.error || 'Error ejecutando comando',
+          details: jsonData.details || stderr
+        });
+      }
+      
+      // Todo bien, guardamos en caché
       cache.set(cacheKey, jsonData);
       res.status(200).json(jsonData);
     } catch (parseError) {
-      res.status(500).json({ error: 'Error en formato de respuesta' });
+      res.status(500).json({ 
+        error: 'Error en formato de respuesta', 
+        details: stderr || parseError.message 
+      });
     }
   });
 };
@@ -54,14 +66,27 @@ const executeScript = (script, res) => {
 const executeScriptWithInput = (script, inputData, res) => {
   const command = script.replace('perl ', 'perl scripts/');
   const child = exec(command, { shell: '/bin/bash' }, (error, stdout, stderr) => {
-    if (error) {
-      return res.status(500).json({ error: 'Error ejecutando comandooo' });
-    }
     try {
+      // Intentamos parsear la salida como JSON incluso si hay error
       const jsonData = JSON.parse(stdout);
+      
+      // Si hay un error en la ejecución O si el script devolvió un error en formato JSON
+      if (error || (jsonData && jsonData.error)) {
+        // Si el script devolvió un mensaje de error específico, lo usamos
+        const errorMessage = jsonData.error || 'Error ejecutando comando';
+        const statusCode = jsonData.error ? 400 : 500;
+        return res.status(statusCode).json({ error: errorMessage, details: jsonData.details || stderr });
+      }
+      
+      // Todo salió bien, devolvemos la respuesta
       res.status(200).json(jsonData);
     } catch (parseError) {
-      res.status(500).json({ error: 'Error en formato de respuesta' });
+      // Error al parsear la salida como JSON
+      console.error('Error parseando salida como JSON:', parseError);
+      res.status(500).json({ 
+        error: 'Error en formato de respuesta',
+        details: `${stderr || parseError.message}`
+      });
     }
   });
 
