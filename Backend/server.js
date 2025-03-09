@@ -55,7 +55,7 @@ const executeScriptWithInput = (script, inputData, res) => {
   const command = script.replace('perl ', 'perl scripts/');
   const child = exec(command, { shell: '/bin/bash' }, (error, stdout, stderr) => {
     if (error) {
-      return res.status(500).json({ error: 'Error ejecutando comando' });
+      return res.status(500).json({ error: 'Error ejecutando comandooo' });
     }
     try {
       const jsonData = JSON.parse(stdout);
