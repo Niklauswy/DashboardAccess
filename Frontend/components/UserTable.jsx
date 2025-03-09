@@ -101,7 +101,8 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
     };
 
     const handleBatchConfirm = async (newPassword) => {
-        // Dialog is already closed by the dialog component
+        setBatchDialogOpen(false);
+        
         try {
             if (batchActionType === "delete") {
                 await batchActions.deleteUsers(selectedRows);
@@ -118,7 +119,6 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
             }
             refreshUsers();
             setSelectedRows([]);
-            setBatchActionType("");
         } catch (error) {
             console.error('Batch operation error:', error);
             toast({ 

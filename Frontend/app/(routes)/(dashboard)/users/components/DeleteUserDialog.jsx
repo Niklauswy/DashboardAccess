@@ -1,32 +1,13 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useUsers } from "@/hooks/useUsers";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "@/components/hooks/use-toast";
 
 export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDelete }) {
     const { deleteUser } = useUsers();
     const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState(null);
-    const previousFocusRef = useRef(null);
-    
-    // Store element with focus when dialog opens
-    useEffect(() => {
-        if (open) {
-            previousFocusRef.current = document.activeElement;
-        } else {
-            // Reset state when dialog closes
-            setError(null);
-            setIsDeleting(false);
-            
-            // Force focus back to previous element after dialog closes
-            if (previousFocusRef.current && typeof previousFocusRef.current.focus === 'function') {
-                setTimeout(() => {
-                    previousFocusRef.current.focus();
-                }, 0);
-            }
-        }
-    }, [open]);
     
     const handleDelete = async () => {
         if (!currentUser?.username) return;
@@ -37,7 +18,6 @@ export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDe
         try {
             await deleteUser(currentUser.username);
             
-            // Close dialog first, then notify
             onOpenChange(false);
             onDelete();
             
@@ -63,31 +43,11 @@ export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDe
         }
     };
 
-    // Close handler with cleanup
-    const handleClose = () => {
-        setError(null);
-        onOpenChange(false);
-    };
-
     return (
-        <Dialog 
-            open={open} 
-            onOpenChange={(isOpen) => {
-                if (!isOpen) {
-                    setError(null);
-                }
-                onOpenChange(isOpen);
-            }}
-        >
-            <DialogContent 
-                className="sm:max-w-[600px]"
-                aria-describedby="delete-user-description"
-            >
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                     <DialogTitle className="text-2xl">Eliminar Usuario</DialogTitle>
-                    <DialogDescription id="delete-user-description">
-                        Esta acción eliminará permanentemente el usuario del sistema.
-                    </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-6 mt-4">
                     <p>
@@ -105,7 +65,7 @@ export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDe
                         <Button 
                             type="button" 
                             variant="outline" 
-                            onClick={handleClose}
+                            onClick={() => onOpenChange(false)}
                             disabled={isDeleting}
                         >
                             Cancelar
