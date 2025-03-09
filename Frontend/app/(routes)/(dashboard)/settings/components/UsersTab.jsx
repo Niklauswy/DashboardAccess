@@ -137,14 +137,28 @@ export default function UsersTab() {
                         })
                     } catch (error) {
                         encounteredError = true
-                        // Manejo de errores más descriptivos
+                        
+                        // Extraer el mensaje de error amigable del posible JSON
                         let errorMessage = error.message;
                         
-                        // Detectar errores específicos 
-                        if (errorMessage.toLowerCase().includes("ya existe")) {
-                            errorMessage = `El usuario ${userData.samAccountName} ya existe.`;
-                        } else if (errorMessage.toLowerCase().includes("contraseña") && errorMessage.toLowerCase().includes("complejidad")) {
-                            errorMessage = "La contraseña no cumple con los requisitos de complejidad.";
+                        try {
+                            // Verificar si el mensaje de error contiene un JSON
+                            if (errorMessage.includes('{') && errorMessage.includes('}')) {
+                                // Extraer la cadena JSON del mensaje de error
+                                const jsonStr = errorMessage.substring(
+                                    errorMessage.indexOf('{'), 
+                                    errorMessage.lastIndexOf('}') + 1
+                                );
+                                const errorData = JSON.parse(jsonStr);
+                                
+                                // Usar el mensaje amigable del JSON si existe
+                                if (errorData && errorData.error) {
+                                    errorMessage = errorData.error;
+                                }
+                            }
+                        } catch (parseError) {
+                            console.error("Error al parsear mensaje de error:", parseError);
+                            // Si hay un error al parsear, mantener el mensaje original
                         }
                         
                         toast({
@@ -219,11 +233,28 @@ export default function UsersTab() {
                 })
             } catch (error) {
                 errorCount++;
-                // Manejo de errores más descriptivos
+                
+                // Extraer el mensaje de error amigable del posible JSON
                 let errorMessage = error.message;
                 
-                if (errorMessage.toLowerCase().includes("ya existe")) {
-                    errorMessage = `El usuario ${username} ya existe.`;
+                try {
+                    // Verificar si el mensaje de error contiene un JSON
+                    if (errorMessage.includes('{') && errorMessage.includes('}')) {
+                        // Extraer la cadena JSON del mensaje de error
+                        const jsonStr = errorMessage.substring(
+                            errorMessage.indexOf('{'), 
+                            errorMessage.lastIndexOf('}') + 1
+                        );
+                        const errorData = JSON.parse(jsonStr);
+                        
+                        // Usar el mensaje amigable del JSON si existe
+                        if (errorData && errorData.error) {
+                            errorMessage = errorData.error;
+                        }
+                    }
+                } catch (parseError) {
+                    console.error("Error al parsear mensaje de error:", parseError);
+                    // Si hay un error al parsear, mantener el mensaje original
                 }
                 
                 toast({
