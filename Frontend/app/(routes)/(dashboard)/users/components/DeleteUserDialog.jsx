@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useUsers } from "@/hooks/useUsers";
 import { useState } from "react";
@@ -45,9 +45,15 @@ export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDe
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent 
+                className="sm:max-w-[600px]"
+                aria-describedby="delete-user-description"
+            >
                 <DialogHeader>
                     <DialogTitle className="text-2xl">Eliminar Usuario</DialogTitle>
+                    <DialogDescription id="delete-user-description">
+                        Esta acción no se puede deshacer. El usuario será eliminado permanentemente.
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-6 mt-4">
                     <p>
