@@ -12,7 +12,7 @@ const port = 5000;
 // Security: Add rate limiting to prevent brute force attacks
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 1000, // limit each IP to 100 requests per windowMs
   standardHeaders: true,
   legacyHeaders: false // Fixed: Removed incorrect apiLimiter reference
 });
@@ -21,10 +21,9 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/', apiLimiter);
 
-// Security: Helper function to sanitize command inputs
+// Helper  pa limpiar command inputs
 const sanitizeInput = (input) => {
   if (typeof input !== 'string') return '';
-  // Remove potentially dangerous characters
   return input.replace(/[;&|`$()<>]/g, '');
 };
 
