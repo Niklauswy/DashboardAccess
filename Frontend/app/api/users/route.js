@@ -26,25 +26,27 @@ export async function POST(request) {
         let data;
         try {
             data = await response.json();
-        } catch (jsonError) {
+        } catch (e) {
             // Si no es JSON, obtenemos el texto
             const text = await response.text();
-            data = { error: text || 'Error en formato de respuesta' };
+            data = { error: text };
         }
 
-        // Preservamos el estado de error y todos los campos
-        if (!response.ok || data.error) {
+        // Si es una respuesta exitosa
+        if (response.ok) {
+            return NextResponse.json(data, { status: 201 });
+        } 
+        // Si es un error, pero tenemos datos json
+        else {
+            // Mantener el mismo formato y status code del backend
             return NextResponse.json(data, { 
-                status: data.error ? 400 : response.status || 500 
+                status: response.status || 400 
             });
         }
-
-        return NextResponse.json(data, { status: 201 });
     } catch (error) {
         console.error('Error in POST /api/users:', error);
         return NextResponse.json({ 
-            error: error.message || 'Error interno del servidor',
-            details: error.stack
+            error: error.message || 'Error interno del servidor'
         }, { status: 500 });
     }
 }

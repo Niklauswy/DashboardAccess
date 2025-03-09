@@ -44,13 +44,24 @@ export function useUsers() {
       body: JSON.stringify(userData),
     });
     
-    if (!res.ok) {
-      const error = await res.text();
-      throw new Error(error || 'Error al crear usuario');
+    // Intentamos leer como JSON primero
+    const data = await res.json();
+    
+    // Si hay error en la respuesta
+    if (!res.ok || data.error) {
+      // Creamos un objeto Error con el mensaje de error específico
+      const error = new Error(data.error || 'Error al crear usuario');
+      
+      // Agregamos los detalles como propiedad del error para debugging
+      if (data.details) {
+        error.details = data.details;
+      }
+      
+      throw error;
     }
     
     await mutate(); // Actualiza la caché de usuarios
-    return res.json();
+    return data;
   };
 
   const updateUser = async (username, userData) => {
