@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/PasswordInput";
 import { useUsers } from "@/hooks/useUsers"; // Añadir si es necesario
@@ -16,11 +16,19 @@ export default function BatchActionDialog({ open, onClose, actionType, selectedU
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent 
+        className="sm:max-w-[600px]"
+        aria-describedby="batch-action-description"
+      >
         <DialogHeader>
-          <DialogTitle>
-            {actionType === "delete" ? "Confirmar Eliminación" : "Cambiar Contraseña"}
+          <DialogTitle className="text-2xl">
+            {actionType === "delete" ? "Eliminar Usuarios" : "Cambiar Contraseñas"}
           </DialogTitle>
+          <DialogDescription id="batch-action-description">
+            {actionType === "delete" 
+              ? "Esta acción eliminará permanentemente los usuarios seleccionados." 
+              : "Esta acción cambiará la contraseña de todos los usuarios seleccionados."}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 mt-4">
           <p>
@@ -37,16 +45,14 @@ export default function BatchActionDialog({ open, onClose, actionType, selectedU
             )}
           </ul>
           {actionType === "changePassword" && (
-
-                            <PasswordInput
-                                        id="password"
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        placeholder="Ingrese la nueva contraseña para todos los usuarios"
-                                        required
-                                        className="mt-2"
-
-                                      />
+            <PasswordInput
+              id="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Ingrese la nueva contraseña para todos los usuarios"
+              required
+              className="mt-2"
+            />
           )}
         </div>
         <DialogFooter className="flex justify-end gap-4 mt-4">
