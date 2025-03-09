@@ -101,6 +101,7 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
     };
 
     const handleBatchConfirm = async (newPassword) => {
+        // Close dialog first before any other operations
         setBatchDialogOpen(false);
         
         try {
@@ -245,7 +246,7 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
             
             <BatchActionDialog
                 open={batchDialogOpen}
-                onClose={() => setBatchDialogOpen(false)}
+                onClose={() => setBatchDialogOpen(false)} // Make sure this is properly called
                 actionType={batchActionType}
                 selectedUsers={selectedUsers}
                 onConfirm={handleBatchConfirm}
