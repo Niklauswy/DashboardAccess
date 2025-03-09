@@ -25,7 +25,7 @@ try {
     $user_data = decode_json($json_text);
     #debug("Datos JSON decodificados correctamente.");
 } catch {
-    print encode_json({ error => 'Datos JSON inválidos' });
+    print encode_json({ error => 'Datos JSON inválidos', details => "$_" });
     debug("Error al decodificar JSON: $_");
     exit(1);
 };
@@ -41,8 +41,22 @@ my $description    = $user_data->{description} || '';
 
 # Validate required fields (OU and groups are now optional)
 unless ($samAccountName && $givenName && $sn && $password) {
-    print encode_json({ error => 'Faltan campos requeridos' });
-    debug("Faltan campos requeridos en el JSON.");
+    my $missing = [];
+    push @$missing, "nombre de usuario" unless $samAccountName;
+    push @$missing, "nombre" unless $givenName;
+    push @$missing, "apellido" unless $sn;
+    push @$missing, "contraseña" unless $password;
+    
+    my $error_msg = "Faltan campos requeridos: " . join(", ", @$missing);
+    print encode_json({ error => $error_msg });
+    debug($error_msg);
+    exit(1);
+}
+
+# Validate password complexity
+if (length($password) < 8) {
+    print encode_json({ error => "La contraseña debe tener al menos 8 caracteres" });
+    debug("Contraseña demasiado corta");
     exit(1);
 }
 
@@ -67,7 +81,7 @@ sub user_exists {
 
 # Check if the user already exists
 if (user_exists($samAccountName)) {
-    print encode_json({ error => "Usuario $samAccountName ya existe. Saltando..." });
+    print encode_json({ error => "El usuario '$samAccountName' ya existe" });
     debug("Usuario $samAccountName ya existe.");
     exit(1);
 }
@@ -85,8 +99,22 @@ try {
     );
     debug("Usuario $samAccountName creado exitosamente.");
 } catch {
-    print encode_json({ error => "Error al crear el usuario: $_" });
-    debug("Error al crear el usuario: $_");
+    my $error_msg = $_;
+    my $user_friendly_error;
+    
+    # Capturar errores comunes y convertirlos a mensajes más amigables
+    if ($error_msg =~ /password validation failed/i) {
+        $user_friendly_error = "La contraseña no cumple con los requisitos de complejidad. Debe incluir mayúsculas, minúsculas, números y caracteres especiales.";
+    } elsif ($error_msg =~ /already exists/i) {
+        $user_friendly_error = "El usuario '$samAccountName' ya existe en el sistema.";
+    } elsif ($error_msg =~ /invalid characters/i) {
+        $user_friendly_error = "El nombre de usuario contiene caracteres no válidos.";
+    } else {
+        $user_friendly_error = "Error al crear el usuario: $_";
+    }
+    
+    print encode_json({ error => $user_friendly_error, details => "$error_msg" });
+    debug("Error al crear el usuario: $error_msg");
     exit(1);
 };
 
@@ -112,9 +140,9 @@ if ($ou ne $defaultDN) {
     if ($? != 0) {
         debug("Error al mover el usuario: $outputMove");
         if ($outputMove =~ /parent does not exist/i) {
-            print STDERR encode_json({ error => "El contenedor/OU '$ou' no existe." }), "\n";
+            print encode_json({ error => "El contenedor/OU '$ou' no existe.", details => $outputMove });
         } else {
-            print STDERR encode_json({ error => "Error al mover el usuario $samAccountName a la OU $ou: $outputMove" }), "\n";
+            print encode_json({ error => "Error al mover el usuario a la OU especificada", details => $outputMove });
         }
         exit(1);
     } else {
@@ -131,7 +159,11 @@ foreach my $groupName (@$groups) {
 
     if ($? != 0) {
         debug("Error al añadir al grupo: $outputAddGroup");
-        print encode_json({ error => "Error al añadir el usuario $samAccountName al grupo $groupName: $outputAddGroup" });
+        if ($outputAddGroup =~ /failed to find/i) {
+            print encode_json({ error => "El grupo '$groupName' no existe", details => $outputAddGroup });
+        } else {
+            print encode_json({ error => "Error al añadir el usuario al grupo '$groupName'", details => $outputAddGroup });
+        }
         exit(1);
     } else {
         debug("Usuario $samAccountName añadido exitosamente al grupo $groupName.");

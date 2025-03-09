@@ -18,6 +18,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from "@/components/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { PasswordInput } from "@/components/PasswordInput"
+import { useUsers } from "@/hooks/useUsers"
 
 const fetcher = (url) => fetch(url).then(res => res.json())
 
@@ -36,6 +37,9 @@ export default function UsersTab() {
     const [openSeriesGroups, setOpenSeriesGroups] = useState(false)
     const [csvPasswordError, setCsvPasswordError] = useState("")
     const { toast } = useToast()
+
+    // Usando el hook useUsers para operaciones de usuarios
+    const { createUser, refreshUsers } = useUsers();
 
     const { data: groups } = useSWR('/api/groups', fetcher)
     const { data: ous } = useSWR('/api/ous', fetcher)
@@ -57,6 +61,13 @@ export default function UsersTab() {
 
     const handleUpload = async () => {
         if (!csvFile) return
+        
+        if (!defaultPassword) {
+            setCsvPasswordError("Ingrese una contraseña válida.")
+            return
+        }
+        setCsvPasswordError("")
+        
         setIsReviewing(true)
         const reader = new FileReader()
         reader.onload = async (e) => {
@@ -115,36 +126,46 @@ export default function UsersTab() {
                         ou: row[3].trim(),
                         groups: row[4].trim() ? [row[4].trim()] : []
                     }
+                    
                     try {
-                        const res = await fetch("/api/users", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(userData)
-                        })
-                        const data = await res.json()
-                        console.log(data)
-                        if (!res.ok) {
-                            throw new Error(data.details || data.error || `Ocurrió un error al crear el usuario ${userData.samAccountName}.`)
-                        }
+                        // Usando el hook createUser en lugar de fetch directo
+                        await createUser(userData);
                         toast({
                             title: `Usuario ${userData.samAccountName} creado`,
                             description: `El usuario ${userData.samAccountName} se creó correctamente.`,
+                            variant: "success",
                         })
                     } catch (error) {
                         encounteredError = true
+                        // Manejo de errores más descriptivos
+                        let errorMessage = error.message;
+                        
+                        // Detectar errores específicos 
+                        if (errorMessage.toLowerCase().includes("ya existe")) {
+                            errorMessage = `El usuario ${userData.samAccountName} ya existe.`;
+                        } else if (errorMessage.toLowerCase().includes("contraseña") && errorMessage.toLowerCase().includes("complejidad")) {
+                            errorMessage = "La contraseña no cumple con los requisitos de complejidad.";
+                        }
+                        
                         toast({
                             title: `Error creando ${userData.samAccountName}`,
-                            description: error.message,
+                            description: errorMessage,
                             variant: "destructive",
                         })
                     }
                 }
+                
                 setIsReviewing(false)
                 setCsvFile(null)
+                
+                // Actualizar la lista después de procesar todos los usuarios
+                await refreshUsers();
+                
                 if (!encounteredError) {
                     toast({
                         title: "Procesamiento CSV",
                         description: "Todos los usuarios han sido procesados exitosamente.",
+                        variant: "success",
                     })
                 }
             } catch (error) {
@@ -164,7 +185,17 @@ export default function UsersTab() {
             setSeriePasswordError("Ingrese una contraseña válida.")
             return
         }
+        
+        if (newUserDefaultPassword.length < 8) {
+            setSeriePasswordError("La contraseña debe tener al menos 8 caracteres.")
+            return
+        }
+        
         setSeriePasswordError("")
+        
+        let successCount = 0;
+        let errorCount = 0;
+        
         for (let i = 1; i <= newUserQuantity; i++) {
             const number = String(i).padStart(2, "0")
             const username = `${newUserPrefix}${number}`
@@ -176,27 +207,43 @@ export default function UsersTab() {
                 ou: serieOU === "none" ? "" : serieOU,
                 groups: serieGroups
             }
+            
             try {
-                const res = await fetch("/api/users", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(userData)
-                })
-                const data = await res.json()
-                if (!res.ok) {
-                    throw new Error(data.details || data.error || `Error creando ${username}.`)
-                }
+                // Usando el hook createUser en lugar de fetch directo
+                await createUser(userData);
+                successCount++;
                 toast({
                     title: `Usuario ${username} creado`,
                     description: `El usuario ${username} se creó correctamente.`,
+                    variant: "success",
                 })
             } catch (error) {
+                errorCount++;
+                // Manejo de errores más descriptivos
+                let errorMessage = error.message;
+                
+                if (errorMessage.toLowerCase().includes("ya existe")) {
+                    errorMessage = `El usuario ${username} ya existe.`;
+                }
+                
                 toast({
                     title: `Error creando ${username}`,
-                    description: error.message,
+                    description: errorMessage,
                     variant: "destructive",
                 })
             }
+        }
+        
+        // Actualizar la lista después de procesar todos los usuarios
+        await refreshUsers();
+        
+        // Resumen final
+        if (successCount > 0) {
+            toast({
+                title: "Usuarios creados",
+                description: `Se crearon ${successCount} usuarios correctamente${errorCount > 0 ? ` (${errorCount} con errores)` : ''}`,
+                variant: successCount === newUserQuantity ? "success" : "default",
+            });
         }
     }
 

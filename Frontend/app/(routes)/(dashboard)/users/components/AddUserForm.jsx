@@ -34,14 +34,8 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
   async function handleAddUser(e) {
     e.preventDefault();
     try {
-      // Validaciones básicas en el cliente
-      if (!newUser.samAccountName.trim()) {
-        throw new Error("El nombre de usuario es obligatorio");
-      }
-      
-     
-      
-      // Proceder con la creación
+
+
       await createUser(newUser);
       onOpenChange(false);
       setNewUser({
@@ -61,13 +55,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
     } catch (error) {
       console.error("Error al crear usuario:", error);
       let errorMessage = error.message || "Error desconocido al agregar el usuario.";
-      
-      // Manejar errores específicos por mensaje
-      if (errorMessage.toLowerCase().includes("ya existe")) {
-        errorMessage = `El usuario ${newUser.samAccountName} ya existe. Por favor, utilice otro nombre de usuario.`;
-      } else if (errorMessage.toLowerCase().includes("contraseña") && errorMessage.toLowerCase().includes("compleja")) {
-        errorMessage = "La contraseña no cumple con los requisitos de complejidad. Debe incluir mayúsculas, minúsculas, números y caracteres especiales.";
-      }
+  
       
       toast({
         title: "Error al crear usuario",
