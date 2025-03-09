@@ -68,9 +68,25 @@ const executeScriptWithInput = (script, inputData, res) => {
   child.stdin.end();
 };
 
-// API routes
+// Desactivamos completamente la caché para la ruta de usuarios
 app.get('/api/users', (req, res) => {
-  executeScript('perl getUsers.pl', res);
+  // Configuramos headers para evitar cacheo
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  
+  // Siempre ejecutamos el script directamente sin usar caché
+  exec('perl scripts/getUsers.pl', { shell: '/bin/bash' }, (error, stdout, stderr) => {
+    if (error) {
+      return res.status(500).json({ error: 'Error ejecutando comando' });
+    }
+    try {
+      const jsonData = JSON.parse(stdout);
+      res.status(200).json(jsonData);
+    } catch (parseError) {
+      res.status(500).json({ error: 'Error en formato de respuesta' });
+    }
+  });
 });
 
 app.get('/api/logs', (req, res) => {
@@ -94,7 +110,7 @@ app.post('/api/users/create', (req, res) => {
   executeScriptWithInput('perl addUser.pl', userData, res);
 });
 
-// Security: Properly sanitize username input
+// Mejoramos el endpoint de borrado para asegurar actualización
 app.delete('/api/users/:username', (req, res) => {
   const username = sanitizeInput(req.params.username);
   
@@ -109,8 +125,15 @@ app.delete('/api/users/:username', (req, res) => {
     
     try {
       const jsonData = JSON.parse(stdout);
+      
+      // Aseguramos limpiar cualquier caché que pueda existir
+      cache.flushAll();
+      
       return res.status(jsonData.error ? 400 : 200).json(jsonData);
     } catch (parseError) {
+      // Limpiamos caché incluso en caso de error de parseo
+      cache.flushAll();
+      
       return res.status(200).json({ 
         success: true, 
         message: stdout.trim() || 'Usuario eliminado exitosamente'

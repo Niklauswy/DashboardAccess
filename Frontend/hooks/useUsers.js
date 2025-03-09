@@ -6,27 +6,44 @@ import { useState } from 'react';
  */
 export function useUsers() {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  // Usamos un timestamp para forzar refrescos completos
+  const [refreshTimestamp, setRefreshTimestamp] = useState(Date.now());
   
   // Función principal para obtener usuarios con caché
   const { data: users, error, mutate } = useSWR(
-    '/api/users',
-    async (url) => {
-      const res = await fetch(url, { cache: 'no-store' });
+    [`/api/users`, refreshTimestamp],
+    async ([url, timestamp]) => {
+      // Agregamos un parámetro de timestamp para evitar caché del navegador
+      const fetchUrl = `${url}?_t=${timestamp}`;
+      const res = await fetch(fetchUrl, { 
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        } 
+      });
       if (!res.ok) throw new Error('Error cargando usuarios');
       return res.json();
     },
     {
       refreshInterval: 0,
       revalidateOnFocus: false,
-      dedupingInterval: 10000,
+      dedupingInterval: 1000, // Reducido para permitir actualizaciones frecuentes
+      revalidateIfStale: false,
+      shouldRetryOnError: true,
+      errorRetryCount: 3
     }
   );
 
-  // Función para refrescar datos
+  // Función para refrescar datos de manera agresiva
   const refreshUsers = async () => {
     setIsRefreshing(true);
     try {
-      await mutate();
+      // Actualizamos el timestamp para forzar un fetch completo
+      setRefreshTimestamp(Date.now());
+      // Forzamos una revalidación completa sin usar caché
+      await mutate(undefined, { revalidate: true });
     } finally {
       setIsRefreshing(false);
     }
@@ -78,19 +95,30 @@ export function useUsers() {
       throw new Error('Nombre de usuario inválido');
     }
     
-    const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
-      method: 'DELETE',
-    });
-    
-    const contentType = res.headers.get('content-type');
-    const data = contentType?.includes('application/json') ? await res.json() : null;
-    
-    if (!res.ok || (data && data.error)) {
-      throw new Error(data?.error || 'Error al eliminar usuario');
+    try {
+      const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
+        method: 'DELETE',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+      
+      const contentType = res.headers.get('content-type');
+      const data = contentType?.includes('application/json') ? await res.json() : null;
+      
+      if (!res.ok || (data && data.error)) {
+        throw new Error(data?.error || 'Error al eliminar usuario');
+      }
+      
+      // Forzamos un refresco completo después de eliminar
+      await refreshUsers();
+      return data || { success: true };
+    } catch (error) {
+      await refreshUsers(); // Intentamos refrescar incluso en caso de error
+      throw error;
     }
-    
-    await mutate(); // Actualiza la caché de usuarios
-    return data || { success: true };
   };
 
   // Operaciones por lotes
