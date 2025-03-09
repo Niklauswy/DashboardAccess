@@ -22,10 +22,15 @@ export function useUsers() {
       return res.json();
     },
     {
-      refreshInterval: 30000, // Revalidar cada 30 segundos
-      revalidateOnFocus: true, // Revalidar cuando la ventana obtiene foco
-      dedupingInterval: 5000, // Reducido a 5 segundos
-      revalidateOnReconnect: true, // Revalidar cuando el navegador se reconecta
+      // Desactivamos la revalidación automática para evitar conflictos
+      // con nuestra actualización optimista
+      refreshInterval: 0, 
+      revalidateOnFocus: false,
+      dedupingInterval: 15000, // Aumentamos para evitar revalidaciones frecuentes
+      revalidateOnReconnect: false,
+      // Esto es crucial: SWR usa este valor para determinar si debe usar los datos optimistas
+      // o los datos de la revalidación
+      focusThrottleInterval: 10000,
     }
   );
 
@@ -92,11 +97,18 @@ export function useUsers() {
     );
     
     try {
-      // Actualiza la UI inmediatamente y luego hace la petición
+      // Importante: el uso de false en el segundo parámetro indica que no queremos
+      // revalidar automáticamente después de actualizar los datos optimistas
       await mutate(optimisticData, false);
       
       const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
         method: 'DELETE',
+        headers: {
+          // Agregamos headers para evitar que el navegador use caché
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       });
       
       const contentType = res.headers.get('content-type');
@@ -106,12 +118,12 @@ export function useUsers() {
         throw new Error(data?.error || 'Error al eliminar usuario');
       }
       
-      // Revalidar los datos después de la eliminación exitosa
-      await mutate();
+      // No revalidamos aquí, mantenemos los datos optimistas
+      // La actualización real vendrá cuando el usuario explícitamente refresque o navegue
       return data || { success: true };
     } catch (error) {
       // Si falla, revertir la actualización optimista
-      await mutate();
+      await mutate(); 
       throw error;
     }
   };

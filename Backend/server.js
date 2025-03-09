@@ -6,11 +6,27 @@ const rateLimit = require('express-rate-limit');
 const NodeCache = require('node-cache');
 const cache = new NodeCache({ stdTTL: 60 });
 
-// Función para invalidar la caché
+// Función para invalidar la caché de manera más agresiva
 const invalidateCache = (keyPattern) => {
+  console.log(`Invalidando caché para patrón: ${keyPattern}`);
   const keys = cache.keys();
-  const keysToDelete = keys.filter(key => key.includes(keyPattern));
-  keysToDelete.forEach(key => cache.del(key));
+  let deleted = 0;
+  
+  keys.forEach(key => {
+    if (key.includes(keyPattern)) {
+      console.log(`Eliminando clave de caché: ${key}`);
+      cache.del(key);
+      deleted++;
+    }
+  });
+  
+  console.log(`Se eliminaron ${deleted} entradas de caché`);
+  
+  // Si es la caché de usuarios, la limpiamos completamente para evitar problemas
+  if (keyPattern === 'getUsers') {
+    cache.flushAll();
+    console.log('Caché completamente limpiada');
+  }
 };
 
 const app = express();
