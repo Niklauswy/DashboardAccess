@@ -21,10 +21,11 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/', apiLimiter);
 
-// Helper  pa limpiar command inputs
+// Helper function para sanitizar entradas con mejor seguridad
 const sanitizeInput = (input) => {
   if (typeof input !== 'string') return '';
-  return input.replace(/[;&|`$()<>]/g, '');
+  // Expresión regular mejorada para remover caracteres potencialmente peligrosos
+  return input.replace(/[;&|`$()<>"'\[\]\{\}\\]/g, '');
 };
 
 const executeScript = (script, res) => {
@@ -70,7 +71,23 @@ const executeScriptWithInput = (script, inputData, res) => {
 
 // API routes
 app.get('/api/users', (req, res) => {
-  executeScript('perl getUsers.pl', res);
+  // Configuramos headers para evitar cacheo
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  
+  // Ejecutamos el script sin usar caché
+  exec('perl scripts/getUsers.pl', { shell: '/bin/bash' }, (error, stdout, stderr) => {
+    if (error) {
+      return res.status(500).json({ error: 'Error ejecutando comando' });
+    }
+    try {
+      const jsonData = JSON.parse(stdout);
+      res.status(200).json(jsonData);
+    } catch (parseError) {
+      res.status(500).json({ error: 'Error en formato de respuesta' });
+    }
+  });
 });
 
 app.get('/api/logs', (req, res) => {
@@ -102,6 +119,11 @@ app.delete('/api/users/:username', (req, res) => {
     return res.status(400).json({ error: 'Nombre de usuario inválido' });
   }
   
+  // Añadimos cabeceras para evitar cacheo
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  
   exec(`perl scripts/deleteUser.pl "${username}"`, { shell: '/bin/bash' }, (error, stdout, stderr) => {
     if (error) {
       return res.status(500).json({ error: 'Error al eliminar usuario' });
@@ -109,8 +131,14 @@ app.delete('/api/users/:username', (req, res) => {
     
     try {
       const jsonData = JSON.parse(stdout);
+      // Limpiamos la caché después de eliminar un usuario
+      cache.del('perl scripts/getUsers.pl');
+      
       return res.status(jsonData.error ? 400 : 200).json(jsonData);
     } catch (parseError) {
+      // Limpiamos la caché incluso en caso de error
+      cache.del('perl scripts/getUsers.pl');
+      
       return res.status(200).json({ 
         success: true, 
         message: stdout.trim() || 'Usuario eliminado exitosamente'
