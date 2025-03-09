@@ -1,167 +1,104 @@
 'use client'
 import { useState } from "react"
 import useSWR from "swr"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Slider } from "@/components/ui/slider"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Users, FileSpreadsheet, Info } from "lucide-react"
 import Papa from "papaparse"
 import { useToast } from "@/components/hooks/use-toast"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Check, ChevronsUpDown, X } from "lucide-react"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { cn } from "@/components/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { PasswordInput } from "@/components/PasswordInput"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { useUsers } from "@/hooks/useUsers"
+import CsvUploader from "./CsvUploader"
+import SerialUserCreator from "./SerialUserCreator"
+import BatchResultsDialog from "./BatchResultsDialog"
+import ErrorDialog from "./ErrorDialog"
+import ProcessingDialog from "./ProcessingDialog"
 
 const fetcher = (url) => fetch(url).then(res => res.json())
 
 export default function UsersTab() {
-    const [csvFile, setCsvFile] = useState(null)
-    const [defaultPassword, setDefaultPassword] = useState("")
-    const [newUserPrefix, setNewUserPrefix] = useState("")
-    const [newUserQuantity, setNewUserQuantity] = useState(1)
-    const [newUserDefaultPassword, setNewUserDefaultPassword] = useState("")
+    // Estados y hooks
     const [errorDialogOpen, setErrorDialogOpen] = useState(false)
     const [errorMessages, setErrorMessages] = useState([])
     const [isReviewing, setIsReviewing] = useState(false)
-    const [serieOU, setSerieOU] = useState("")
-    const [serieGroups, setSerieGroups] = useState([])
-    const [seriePasswordError, setSeriePasswordError] = useState("")
-    const [openSeriesGroups, setOpenSeriesGroups] = useState(false)
-    const [csvPasswordError, setCsvPasswordError] = useState("")
-    const { toast } = useToast()
-    const [isProcessing, setIsProcessing] = useState(false)
-    const [progress, setProgress] = useState(0)
+    const [isCsvProcessing, setIsCsvProcessing] = useState(false)
+    const [isSerialProcessing, setIsSerialProcessing] = useState(false)
     const [batchResults, setBatchResults] = useState(null)
     const [showResultsDialog, setShowResultsDialog] = useState(false)
-
-    // Usando el hook useUsers para operaciones de usuarios
+    const [progress, setProgress] = useState(0)
+    const { toast } = useToast()
     const { createUser, refreshUsers } = useUsers();
-
     const { data: groups } = useSWR('/api/groups', fetcher)
     const { data: ous } = useSWR('/api/ous', fetcher)
 
-    const handleCsvDrop = (e) => {
-        e.preventDefault()
-        const file = e.dataTransfer.files[0]
-        if (file && file.type === "text/csv") {
-            setCsvFile(file)
-        }
-    }
-
-    const handleCsvSelect = (e) => {
-        const file = e.target.files?.[0]
-        if (file && file.type === "text/csv") {
-            setCsvFile(file)
-        }
-    }
-
-    const handleUpload = async () => {
-        if (!csvFile) return
-        
-        if (!defaultPassword) {
-            setCsvPasswordError("Ingrese una contraseña válida.")
-            return
-        }
-        setCsvPasswordError("")
-        
+    // Manejar la subida y procesamiento del CSV
+    const handleCsvUpload = async (csvFile, defaultPassword) => {
         setIsReviewing(true)
+        setIsCsvProcessing(true)
+        setProgress(0)
+        
         const reader = new FileReader()
         reader.onload = async (e) => {
             try {
                 const csvText = e.target.result
-                const csvResults = Papa.parse(csvText, { header: false, skipEmptyLines: true }) // Renamed from 'results' to 'csvResults'
+                const csvResults = Papa.parse(csvText, { header: false, skipEmptyLines: true })
                 const records = csvResults.data
 
-                const aggregatedErrors = []
-                records.forEach((row, index) => {
-                    if (row.length < 3 || row.length > 5) {
-                        aggregatedErrors.push(`Fila ${index + 1}: Se esperaban entre 3 y 5 campos pero se recibieron ${row.length}.`)
-                    } else {
-
-                        while (row.length < 5) {
-                            row.push("")
-                        }
-
-                        if (!row[0].trim() || !row[1].trim() || !row[2].trim()) {
-                            aggregatedErrors.push(`Fila ${index + 1}: Los primeros 3 campos son obligatorios y no deben estar vacíos.`)
-                        }
-
-                        if (row[3].trim() && ous && !ous.includes(row[3].trim())) {
-                            aggregatedErrors.push(`Fila ${index + 1}: La OU '${row[3].trim()}' no existe.`)
-                        }
-
-                        if (row[4].trim() && groups && !groups.includes(row[4].trim())) {
-                            aggregatedErrors.push(`Fila ${index + 1}: El grupo '${row[4].trim()}' no existe.`)
-                        }
-                    }
-                })
-
+                // Validar el CSV
+                const aggregatedErrors = validateCsvRecords(records)
                 if (aggregatedErrors.length > 0) {
-                    const maxDisplay = 10
-                    let displayedErrors = aggregatedErrors.slice(0, maxDisplay)
-                    const extraCount = aggregatedErrors.length - maxDisplay
-                    if (extraCount > 0) {
-                        displayedErrors.push(`... y ${extraCount} fila${extraCount > 1 ? 's' : ''} más tienen errores.`)
-                    }
+                    displayErrors(aggregatedErrors)
+                    setIsCsvProcessing(false)
                     setIsReviewing(false)
-                    setErrorMessages(displayedErrors)
-                    setErrorDialogOpen(true)
                     return
                 }
 
-                // Variables para seguimiento
-                let encounteredError = false
-                const batchResults = { // Renamed from 'results' to 'batchResults'
+                // Procesar registros
+                const results = {
                     success: [],
                     errors: []
                 }
-                setIsProcessing(true)
-                setProgress(0)
-                setIsReviewing(false)
                 
                 // Procesar los registros
                 for (let i = 0; i < records.length; i++) {
                     const row = records[i]
-                    while (row.length < 5) {
-                        row.push("")
+                    const padded = [...row]
+                    while (padded.length < 5) {
+                        padded.push("")
                     }
                     
                     const userData = {
-                        samAccountName: row[0].trim(),
-                        givenName: row[1].trim(),
-                        sn: row[2].trim(),
+                        samAccountName: padded[0].trim(),
+                        givenName: padded[1].trim(),
+                        sn: padded[2].trim(),
                         password: defaultPassword,
-                        ou: row[3].trim(),
-                        groups: row[4].trim() ? [row[4].trim()] : []
+                        ou: padded[3].trim(),
+                        groups: padded[4].trim() ? [padded[4].trim()] : []
                     }
                     
                     try {
-                        // Usar el hook para crear usuario
                         await createUser(userData)
                         
-                        // Actualizar resultados exitosos
-                        batchResults.success.push({ // Use the renamed variable
+                        results.success.push({
                             username: userData.samAccountName,
                             fullName: `${userData.givenName} ${userData.sn}`,
                             ou: userData.ou,
                             groups: userData.groups
                         })
-                    } catch (error) {
-                        encounteredError = true
                         
-                        // Actualizar resultados con errores
-                        batchResults.errors.push({ // Use the renamed variable
+                        toast({
+                            title: `Usuario creado`,
+                            description: `El usuario ${userData.samAccountName} se creó correctamente.`,
+                            variant: "success",
+                        })
+                    } catch (error) {
+                        results.errors.push({
                             username: userData.samAccountName,
                             fullName: `${userData.givenName} ${userData.sn}`,
                             errorMessage: error.message || "Error desconocido"
+                        })
+                        
+                        toast({
+                            title: `Error creando ${userData.samAccountName}`,
+                            description: error.message,
+                            variant: "destructive",
                         })
                     }
                     
@@ -170,323 +107,202 @@ export default function UsersTab() {
                 }
                 
                 // Finalizar procesamiento
-                setIsProcessing(false)
-                setCsvFile(null)
+                setIsCsvProcessing(false)
+                setIsReviewing(false)
                 await refreshUsers()
                 
-                // Mostrar resumen de resultados
-                setBatchResults(batchResults) // Use the renamed variable
+                // Mostrar resultados
+                setBatchResults(results)
                 setShowResultsDialog(true)
                 
             } catch (error) {
-                setIsReviewing(false)
-                setIsProcessing(false)
-                toast({
-                    title: "Error en CSV",
-                    description: error.message || "Error al procesar el archivo CSV.",
-                    variant: "destructive",
-                })
+                handleProcessingError(error, "Error en CSV")
             }
         }
         reader.readAsText(csvFile)
     }
 
-    const handleCreateUsers = async () => {
-        if (!newUserPrefix) {
-            toast({
-                title: "Prefijo requerido",
-                description: "Ingrese un prefijo para los usuarios",
-                variant: "destructive"
-            })
-            return
+    // Validar registros CSV
+    const validateCsvRecords = (records) => {
+        const errors = []
+        records.forEach((row, index) => {
+            if (row.length < 3 || row.length > 5) {
+                errors.push(`Fila ${index + 1}: Se esperaban entre 3 y 5 campos pero se recibieron ${row.length}.`)
+            } else {
+                if (!row[0].trim() || !row[1].trim() || !row[2].trim()) {
+                    errors.push(`Fila ${index + 1}: Los primeros 3 campos son obligatorios y no deben estar vacíos.`)
+                }
+
+                if (row[3]?.trim() && ous && !ous.includes(row[3].trim())) {
+                    errors.push(`Fila ${index + 1}: La OU '${row[3].trim()}' no existe.`)
+                }
+
+                if (row[4]?.trim() && groups && !groups.includes(row[4].trim())) {
+                    errors.push(`Fila ${index + 1}: El grupo '${row[4].trim()}' no existe.`)
+                }
+            }
+        })
+        return errors
+    }
+
+    // Mostrar errores en el diálogo
+    const displayErrors = (errors) => {
+        const maxDisplay = 10
+        let displayedErrors = errors.slice(0, maxDisplay)
+        const extraCount = errors.length - maxDisplay
+        if (extraCount > 0) {
+            displayedErrors.push(`... y ${extraCount} fila${extraCount > 1 ? 's' : ''} más tienen errores.`)
         }
-        
-        if (!newUserDefaultPassword) {
-            setSeriePasswordError("Ingrese una contraseña válida.")
-            return
-        }
-        
-        if (newUserDefaultPassword.length < 8) {
-            setSeriePasswordError("La contraseña debe tener al menos 8 caracteres.")
-            return
-        }
-        
-        setSeriePasswordError("")
-        
-        // Variables para seguimiento
+        setErrorMessages(displayedErrors)
+        setErrorDialogOpen(true)
+    }
+
+    // Procesar registros del CSV
+    const processCsvRecords = async (records, defaultPassword) => {
         const results = {
             success: [],
             errors: []
         }
         
-        setIsProcessing(true)
+        for (const row of records) {
+            const padded = [...row]
+            while (padded.length < 5) {
+                padded.push("")
+            }
+            
+            const userData = {
+                samAccountName: padded[0].trim(),
+                givenName: padded[1].trim(),
+                sn: padded[2].trim(),
+                password: defaultPassword,
+                ou: padded[3].trim(),
+                groups: padded[4].trim() ? [padded[4].trim()] : []
+            }
+            
+            try {
+                await createUser(userData)
+                
+                results.success.push({
+                    username: userData.samAccountName,
+                    fullName: `${userData.givenName} ${userData.sn}`,
+                    ou: userData.ou,
+                    groups: userData.groups
+                })
+                
+                toast({
+                    title: `Usuario creado`,
+                    description: `El usuario ${userData.samAccountName} se creó correctamente.`,
+                    variant: "success",
+                })
+            } catch (error) {
+                results.errors.push({
+                    username: userData.samAccountName,
+                    fullName: `${userData.givenName} ${userData.sn}`,
+                    errorMessage: error.message || "Error desconocido"
+                })
+                
+                toast({
+                    title: `Error creando ${userData.samAccountName}`,
+                    description: error.message,
+                    variant: "destructive",
+                })
+            }
+        }
+        
+        return results
+    }
+
+    // Manejar errores de procesamiento
+    const handleProcessingError = (error, title) => {
+        setIsCsvProcessing(false)
+        setIsSerialProcessing(false)
+        setIsReviewing(false)
+        toast({
+            title,
+            description: error.message || "Error durante el procesamiento.",
+            variant: "destructive",
+        })
+    }
+
+    // Crear usuarios en serie
+    const handleCreateSerialUsers = async (options) => {
+        setIsSerialProcessing(true)
         setProgress(0)
         
-        for (let i = 1; i <= newUserQuantity; i++) {
+        const results = {
+            success: [],
+            errors: []
+        }
+        
+        for (let i = 1; i <= options.quantity; i++) {
             const number = String(i).padStart(2, "0")
-            const username = `${newUserPrefix}${number}`
+            const username = `${options.prefix}${number}`
             const userData = {
                 samAccountName: username,
                 givenName: username,
                 sn: "FC",
-                password: newUserDefaultPassword,
-                ou: serieOU === "none" ? "" : serieOU,
-                groups: serieGroups
+                password: options.password,
+                ou: options.ou,
+                groups: options.groups
             }
             
             try {
-                // Usar el hook para crear usuario
                 await createUser(userData)
                 
-                // Actualizar resultados exitosos
                 results.success.push({
-                    username: username,
+                    username,
                     ou: userData.ou,
                     groups: userData.groups
                 })
+                
+                toast({
+                    title: `Usuario creado`,
+                    description: `El usuario ${username} se creó correctamente.`,
+                    variant: "success",
+                })
             } catch (error) {
-                // Actualizar resultados con errores
                 results.errors.push({
-                    username: username,
+                    username,
                     errorMessage: error.message || "Error desconocido"
+                })
+                
+                toast({
+                    title: `Error creando ${username}`,
+                    description: error.message,
+                    variant: "destructive",
                 })
             }
             
             // Actualizar progreso
-            setProgress(Math.round((i / newUserQuantity) * 100))
+            setProgress(Math.round((i / options.quantity) * 100))
         }
         
-        // Finalizar procesamiento
-        setIsProcessing(false)
+        setIsSerialProcessing(false)
         await refreshUsers()
-        
-        // Mostrar resumen de resultados
         setBatchResults(results)
         setShowResultsDialog(true)
     }
 
     return (
         <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Users className="w-5 h-5" />
-                        Importar CSV
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Button variant="ghost" size="sm" className="ml-auto">
-                                    <Info className="w-4 h-4" />
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[800px]">
-                                <DialogHeader>
-                                    <DialogTitle>Formato CSV</DialogTitle>
-                                    <DialogDescription>
-                                        El archivo CSV debe seguir este formato [Sin encabezados]:
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Usuario</TableHead>
-                                            <TableHead>Nombre</TableHead>
-                                            <TableHead>Apelllidos</TableHead>
-                                            <TableHead>OU (Carrera)</TableHead>
-                                            <TableHead>Grupo (Rol)</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        <TableRow>
-                                            <TableCell>AL12345</TableCell>
-                                            <TableCell>Goku</TableCell>
-                                            <TableCell>Son</TableCell>
-                                            <TableCell>CC</TableCell>
-                                            <TableCell>Estudiante</TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>AL12346</TableCell>
-                                            <TableCell>Vegeta</TableCell>
-                                            <TableCell>Prince</TableCell>
-                                            <TableCell>BIO</TableCell>
-                                            <TableCell>Estudiante</TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>Invitado</TableCell>
-                                            <TableCell>Invitado01</TableCell>
-                                            <TableCell>FC</TableCell>
+            {/* Componente para subir CSVs */}
+            <CsvUploader 
+                onUpload={handleCsvUpload}
+                isUploading={isCsvProcessing}
+                groups={groups || []}
+                ous={ous || []}
+            />
+            
+            {/* Componente para crear usuarios en serie */}
+            <SerialUserCreator 
+                onCreateUsers={handleCreateSerialUsers}
+                isCreating={isSerialProcessing}
+                groups={groups || []}
+                ous={ous || []}
+            />
 
-                                        </TableRow>
-                                    </TableBody>
-                                </Table>
-                                <div className="mt-4 p-4 bg-gray-50 border-l-4 border-blue-500 rounded">
-                                    <p className="text-sm text-gray-700">
-                                        Se puede omitir la OU y el Grupo si no es necesario asignarlos.
-                                    </p>
-
-                                </div>
-                                <div className="mt-4 p-4 bg-gray-100 rounded">
-                                    <p className="text-sm text-gray-700">
-                                        Grupos permitidos: {groups ? groups.join(", ") : "Cargando..."}
-                                    </p>
-                                    <p className="text-sm text-gray-700">
-                                        Unidades Organizacionales: {ous ? ous.join(", ") : "Cargando..."}
-                                    </p>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div
-                        onDragOver={handleCsvDrop}
-                        onDrop={handleCsvDrop}
-                        className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary"
-                    >
-                        <FileSpreadsheet className="w-12 h-12 mx-auto text-gray-400" />
-                        {csvFile ? (
-                            <p className="mt-2 font-medium">{csvFile.name}</p>
-                        ) : (
-                            <p className="mt-2">Arrastre y suelte o seleccione un archivo CSV</p>
-                        )}
-                        <input
-                            id="csv-upload"
-                            type="file"
-                            accept=".csv"
-                            className="hidden"
-                            onChange={handleCsvSelect}
-                        />
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="mt-2"
-                            onClick={() => document.getElementById("csv-upload").click()}
-                        >
-                            Seleccione un archivo CSV
-                        </Button>
-                    </div>
-                    <div className="space-y-2 mt-4">
-                        <Label htmlFor="default-password">Contraseña por defecto</Label>
-                        <PasswordInput
-                            id="default-password"
-                            value={defaultPassword}
-                            onChange={(e) => setDefaultPassword(e.target.value)}
-                            placeholder="Ingrese la contraseña por defecto"
-                        />
-                        <Button className="mt-2" disabled={!defaultPassword} onClick={handleUpload}>
-                            Subir y Procesar Usuarios
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-xl">Crear Usuarios en Serie</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        <div>
-                            <Label htmlFor="user-prefix">Prefijo</Label>
-                            <Input
-                                id="user-prefix"
-                                value={newUserPrefix}
-                                onChange={(e) => setNewUserPrefix(e.target.value)}
-                                placeholder="Ej: Invitado"
-                            />
-                        </div>
-                        <div>
-                            <Label htmlFor="user-quantity">Cantidad de Usuarios: {newUserQuantity}</Label>
-                            <Slider
-                                id="user-quantity"
-                                min={1}
-                                max={50}
-                                step={1}
-                                value={[newUserQuantity]}
-                                onValueChange={(value) => setNewUserQuantity(value[0])}
-                            />
-                            <span className="w-12 text-right">{newUserQuantity}</span>
-                        </div>
-                        <div>
-                            <Label htmlFor="user-default-password">Contraseña por defecto</Label>
-                            <PasswordInput
-                                id="user-default-password"
-                                value={newUserDefaultPassword}
-                                onChange={(e) => setNewUserDefaultPassword(e.target.value)}
-                                placeholder="Ingrese la contraseña"
-                            />
-                            {seriePasswordError && <p className="text-sm text-destructive">{seriePasswordError}</p>}
-                        </div>
-                        <div>
-                            <Label htmlFor="serie-ou">Carrera</Label>
-                            <Select value={serieOU} onValueChange={setSerieOU} id="serie-ou">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Seleccione una carrera" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem key="empty" value="none">
-                                        Ninguna
-                                    </SelectItem>
-                                    {(ous || []).map((ou) => (
-                                        <SelectItem key={ou} value={ou}>
-                                            {ou}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div>
-                            <Label>Grupos</Label>
-                            <Popover open={openSeriesGroups} onOpenChange={setOpenSeriesGroups}>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" role="combobox" aria-expanded={openSeriesGroups} className="w-full justify-between">
-                                        {serieGroups.length > 0 ? `${serieGroups.length} grupos seleccionados` : "Seleccione grupos"}
-                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-full p-0" align="start">
-                                    <Command>
-                                        <CommandInput placeholder="Buscar grupos..." />
-                                        <CommandList>
-                                            <CommandEmpty>No se encontraron grupos.</CommandEmpty>
-                                            <CommandGroup className="max-h-64 overflow-auto">
-                                                <CommandItem key="empty-groups" onSelect={() => setSerieGroups([])}>
-                                                    Niguno
-                                                </CommandItem>
-                                                {(groups || []).map((group) => (
-                                                    <CommandItem
-                                                        key={group}
-                                                        onSelect={() => {
-                                                            setSerieGroups(serieGroups.includes(group)
-                                                                ? serieGroups.filter((g) => g !== group)
-                                                                : [...serieGroups, group])
-                                                        }}
-                                                    >
-                                                        <Check className={cn("mr-2 h-4 w-4", serieGroups.includes(group) ? "opacity-100" : "opacity-0")} />
-                                                        {group}
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                            {serieGroups.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                    {serieGroups.map((group) => (
-                                        <Badge key={group} variant="secondary" className="flex items-center gap-1">
-                                            {group}
-                                            <X className="h-3 w-3 cursor-pointer" onClick={() => setSerieGroups(serieGroups.filter((g) => g !== group))} />
-                                        </Badge>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                        <Button onClick={handleCreateUsers}>Crear Usuarios</Button>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Dialog to indicate CSV review process */}
-            {isReviewing && (
+            {/* Diálogo de revisión CSV */}
+            {isReviewing && !isCsvProcessing && (
                 <Dialog open={true} onOpenChange={() => {}}>
                     <DialogContent className="sm:max-w-[600px]">
                         <div className="space-y-4">
@@ -496,117 +312,25 @@ export default function UsersTab() {
                     </DialogContent>
                 </Dialog>
             )}
-
-            {/* Dialog para procesamiento */}
-            {isProcessing && (
-                <Dialog open={true} onOpenChange={() => {}}>
-                    <DialogContent className="sm:max-w-[600px]">
-                        <div className="space-y-6">
-                            <h3 className="text-lg font-semibold">Procesando usuarios...</h3>
-                            <div className="w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700">
-                                <div 
-                                    className="bg-blue-600 h-4 rounded-full transition-all duration-300" 
-                                    style={{ width: `${progress}%` }}
-                                ></div>
-                            </div>
-                            <p className="text-sm text-center">{progress}% completado</p>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            )}
             
-            {/* Dialog para resultados finales */}
-            <Dialog open={showResultsDialog} onOpenChange={setShowResultsDialog}>
-                <DialogContent className="sm:max-w-[700px]">
-                    <DialogHeader>
-                        <DialogTitle>Resultados de la operación</DialogTitle>
-                    </DialogHeader>
-                    {batchResults && (
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50">
-                                <div className="text-sm">
-                                    <span className="text-green-600 font-medium">{batchResults.success.length}</span> usuarios creados exitosamente
-                                </div>
-                                <div className="text-sm">
-                                    <span className="text-red-600 font-medium">{batchResults.errors.length}</span> errores
-                                </div>
-                            </div>
-                            
-                            {batchResults.errors.length > 0 && (
-                                <div className="space-y-4">
-                                    <h4 className="text-md font-medium text-red-600">Errores</h4>
-                                    <div className="max-h-56 overflow-y-auto border rounded-lg">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Usuario</TableHead>
-                                                    <TableHead>Error</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {batchResults.errors.map((error, index) => (
-                                                    <TableRow key={index}>
-                                                        <TableCell className="font-medium">{error.username}</TableCell>
-                                                        <TableCell className="text-red-600">{error.errorMessage}</TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </div>
-                            )}
-                            
-                            {batchResults.success.length > 0 && (
-                                <div className="space-y-4">
-                                    <h4 className="text-md font-medium text-green-600">Usuarios creados</h4>
-                                    <div className="max-h-60 overflow-y-auto border rounded-lg">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Usuario</TableHead>
-                                                    <TableHead>Nombre</TableHead>
-                                                    <TableHead>OU</TableHead>
-                                                    <TableHead>Grupos</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {batchResults.success.map((user, index) => (
-                                                    <TableRow key={index}>
-                                                        <TableCell className="font-medium">{user.username}</TableCell>
-                                                        <TableCell>{user.fullName || user.username}</TableCell>
-                                                        <TableCell>{user.ou || "-"}</TableCell>
-                                                        <TableCell>{user.groups?.join(", ") || "-"}</TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </div>
-                            )}
-                            
-                            <div className="flex justify-end">
-                                <Button onClick={() => setShowResultsDialog(false)}>Cerrar</Button>
-                            </div>
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
+            {/* Diálogo de procesamiento */}
+            <ProcessingDialog 
+                open={isCsvProcessing || isSerialProcessing}
+                progress={progress}
+            />
+            
+            {/* Diálogos para resultados y errores */}
+            <BatchResultsDialog 
+                open={showResultsDialog}
+                onOpenChange={setShowResultsDialog}
+                results={batchResults}
+            />
 
-            <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
-                <DialogContent className="sm:max-w-[600px]">
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-red-600">Errores en formato CSV</h3>
-                        <div className="space-y-2">
-                            {errorMessages.map((msg, idx) => (
-                                <p key={idx} className="text-sm text-gray-800">{msg}</p>
-                            ))}
-                        </div>
-                        <div className="flex justify-end">
-                            <Button onClick={() => setErrorDialogOpen(false)}>Cerrar</Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <ErrorDialog 
+                open={errorDialogOpen}
+                onOpenChange={setErrorDialogOpen}
+                messages={errorMessages}
+            />
         </div>
     )
 }
