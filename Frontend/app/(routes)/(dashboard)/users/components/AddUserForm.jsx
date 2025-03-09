@@ -52,7 +52,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
       });
     } catch (error) {
       // Ahora podemos acceder directamente a las propiedades del error
-      console.error("Error al crear usuario:", error);
+      console.error(error);
       
       // Si hay detalles adicionales disponibles, los mostramos en consola
       if (error.details) {
