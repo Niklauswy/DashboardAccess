@@ -53,7 +53,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
         variant: "success",
       });
     } catch (error) {
-      console.error(error);
+      console.error(error.details);
       let errorMessage = error.message || "Error desconocido al agregar el usuario.";
   
       
