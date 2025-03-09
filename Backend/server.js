@@ -12,7 +12,7 @@ const port = 5000;
 // Security: Add rate limiting to prevent brute force attacks
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 1000, // limit each IP to 100 requests per windowMs
   standardHeaders: true,
   legacyHeaders: false // Fixed: Removed incorrect apiLimiter reference
 });
@@ -21,7 +21,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/', apiLimiter);
 
-// Security: Helper function to sanitize command inputs
+// Helper  pa limpiar command inputs
 const sanitizeInput = (input) => {
   if (typeof input !== 'string') return '';
   return input.replace(/[;&|`$()<>]/g, '');
@@ -68,25 +68,9 @@ const executeScriptWithInput = (script, inputData, res) => {
   child.stdin.end();
 };
 
-// Desactivamos completamente la caché para la ruta de usuarios
+// API routes
 app.get('/api/users', (req, res) => {
-  // Configuramos headers para evitar cacheo
-  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
-  
-  // Siempre ejecutamos el script directamente sin usar caché
-  exec('perl scripts/getUsers.pl', { shell: '/bin/bash' }, (error, stdout, stderr) => {
-    if (error) {
-      return res.status(500).json({ error: 'Error ejecutando comando' });
-    }
-    try {
-      const jsonData = JSON.parse(stdout);
-      res.status(200).json(jsonData);
-    } catch (parseError) {
-      res.status(500).json({ error: 'Error en formato de respuesta' });
-    }
-  });
+  executeScript('perl getUsers.pl', res);
 });
 
 app.get('/api/logs', (req, res) => {
@@ -110,7 +94,7 @@ app.post('/api/users/create', (req, res) => {
   executeScriptWithInput('perl addUser.pl', userData, res);
 });
 
-// Mejoramos el endpoint de borrado para asegurar actualización
+// Security: Properly sanitize username input
 app.delete('/api/users/:username', (req, res) => {
   const username = sanitizeInput(req.params.username);
   
@@ -125,15 +109,8 @@ app.delete('/api/users/:username', (req, res) => {
     
     try {
       const jsonData = JSON.parse(stdout);
-      
-      // Aseguramos limpiar cualquier caché que pueda existir
-      cache.flushAll();
-      
       return res.status(jsonData.error ? 400 : 200).json(jsonData);
     } catch (parseError) {
-      // Limpiamos caché incluso en caso de error de parseo
-      cache.flushAll();
-      
       return res.status(200).json({ 
         success: true, 
         message: stdout.trim() || 'Usuario eliminado exitosamente'
