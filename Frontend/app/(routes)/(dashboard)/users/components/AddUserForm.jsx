@@ -34,6 +34,8 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
   async function handleAddUser(e) {
     e.preventDefault();
     try {
+
+
       await createUser(newUser);
       onOpenChange(false);
       setNewUser({
@@ -51,32 +53,10 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
         variant: "success",
       });
     } catch (error) {
-      console.error("Error al crear usuario:", error);
-      
-      // Extraer el mensaje de error amigable del error JSON si existe
+      console.error(error);
       let errorMessage = error.message || "Error desconocido al agregar el usuario.";
+  
       
-      try {
-        // Verificar si el mensaje de error contiene un JSON
-        if (errorMessage.includes('{') && errorMessage.includes('}')) {
-          // Extraer la cadena JSON del mensaje de error
-          const jsonStr = errorMessage.substring(
-            errorMessage.indexOf('{'), 
-            errorMessage.lastIndexOf('}') + 1
-          );
-          const errorData = JSON.parse(jsonStr);
-          
-          // Usar el mensaje amigable del JSON si existe
-          if (errorData && errorData.error) {
-            errorMessage = errorData.error;
-          }
-        }
-      } catch (parseError) {
-        console.error("Error al parsear mensaje de error:", parseError);
-        // Si hay un error al parsear, mantener el mensaje original
-      }
-      
-      // Mostrar el mensaje de error limpio
       toast({
         title: "Error al crear usuario",
         description: errorMessage,
