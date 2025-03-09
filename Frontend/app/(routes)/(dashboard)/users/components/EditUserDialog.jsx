@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -25,6 +25,7 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
   const { ous, groups: allGroups, isLoading } = useOusAndGroups();
   const { updateUser } = useUsers();
   const [openGroups, setOpenGroups] = useState(false);
+  const previousFocusRef = useRef(null);
 
   const form = useForm({
     resolver: zodResolver(userSchema),
@@ -35,6 +36,27 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
       password: ""
     }
   });
+
+  useEffect(() => {
+    if (open) {
+      previousFocusRef.current = document.activeElement;
+    } else {
+      // Reset form when dialog closes
+      form.reset({
+        name: "",
+        ou: "",
+        groups: [],
+        password: ""
+      });
+      
+      // Force focus back to previous element after dialog closes
+      if (previousFocusRef.current && typeof previousFocusRef.current.focus === 'function') {
+        setTimeout(() => {
+          previousFocusRef.current.focus();
+        }, 0);
+      }
+    }
+  }, [open, form]);
 
   useEffect(() => {
     if (currentUser) {
@@ -54,14 +76,30 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
         ...(data.password ? { password: data.password } : {})
       });
       
+      // Close dialog first, then update
+      onOpenChange(false);
       onUpdate();
     } catch (error) {
       console.error('Error updating user:', error);
     }
   };
 
+  // Close handler with cleanup
+  const handleClose = () => {
+    setOpenGroups(false); // Close any open popovers
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          setOpenGroups(false);
+        }
+        onOpenChange(isOpen);
+      }}
+    >
       <DialogContent 
         className="sm:max-w-[600px]"
         aria-describedby="edit-user-description"
@@ -69,7 +107,7 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
         <DialogHeader>
           <DialogTitle className="text-2xl">Editando {currentUser?.username}</DialogTitle>
           <DialogDescription id="edit-user-description">
-            Modifique los datos del usuario y presione actualizar para guardar los cambios.
+            Modifique los datos del usuario y guarde los cambios.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -184,7 +222,7 @@ export default function EditUserDialog({ open, onOpenChange, currentUser, onUpda
             </div>
 
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button type="button" variant="outline" onClick={handleClose}>
                 Cancelar
               </Button>
               <Button type="submit">Actualizar</Button>
