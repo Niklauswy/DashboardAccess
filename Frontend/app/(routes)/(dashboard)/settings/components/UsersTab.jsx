@@ -77,8 +77,8 @@ export default function UsersTab() {
         reader.onload = async (e) => {
             try {
                 const csvText = e.target.result
-                const results = Papa.parse(csvText, { header: false, skipEmptyLines: true })
-                const records = results.data
+                const csvResults = Papa.parse(csvText, { header: false, skipEmptyLines: true }) // Renamed from 'results' to 'csvResults'
+                const records = csvResults.data
 
                 const aggregatedErrors = []
                 records.forEach((row, index) => {
@@ -119,7 +119,7 @@ export default function UsersTab() {
 
                 // Variables para seguimiento
                 let encounteredError = false
-                const results = {
+                const batchResults = { // Renamed from 'results' to 'batchResults'
                     success: [],
                     errors: []
                 }
@@ -148,7 +148,7 @@ export default function UsersTab() {
                         await createUser(userData)
                         
                         // Actualizar resultados exitosos
-                        results.success.push({
+                        batchResults.success.push({ // Use the renamed variable
                             username: userData.samAccountName,
                             fullName: `${userData.givenName} ${userData.sn}`,
                             ou: userData.ou,
@@ -158,7 +158,7 @@ export default function UsersTab() {
                         encounteredError = true
                         
                         // Actualizar resultados con errores
-                        results.errors.push({
+                        batchResults.errors.push({ // Use the renamed variable
                             username: userData.samAccountName,
                             fullName: `${userData.givenName} ${userData.sn}`,
                             errorMessage: error.message || "Error desconocido"
@@ -175,7 +175,7 @@ export default function UsersTab() {
                 await refreshUsers()
                 
                 // Mostrar resumen de resultados
-                setBatchResults(results)
+                setBatchResults(batchResults) // Use the renamed variable
                 setShowResultsDialog(true)
                 
             } catch (error) {
