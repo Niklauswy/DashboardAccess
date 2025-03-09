@@ -11,26 +11,14 @@ export function useUsers() {
   const { data: users, error, mutate } = useSWR(
     '/api/users',
     async (url) => {
-      const res = await fetch(url, { 
-        cache: 'no-store',
-        headers: {
-          'Pragma': 'no-cache',
-          'Cache-Control': 'no-cache'
-        }
-      });
+      const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error('Error cargando usuarios');
       return res.json();
     },
     {
-      // Desactivamos la revalidación automática para evitar conflictos
-      // con nuestra actualización optimista
-      refreshInterval: 0, 
+      refreshInterval: 0,
       revalidateOnFocus: false,
-      dedupingInterval: 15000, // Aumentamos para evitar revalidaciones frecuentes
-      revalidateOnReconnect: false,
-      // Esto es crucial: SWR usa este valor para determinar si debe usar los datos optimistas
-      // o los datos de la revalidación
-      focusThrottleInterval: 10000,
+      dedupingInterval: 10000,
     }
   );
 
@@ -90,42 +78,19 @@ export function useUsers() {
       throw new Error('Nombre de usuario inválido');
     }
     
-    // Actualización optimista: Eliminar usuario de la UI inmediatamente
-    const currentUsers = users || [];
-    const optimisticData = currentUsers.filter(user => 
-      user.username !== username && user.samAccountName !== username
-    );
+    const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
+      method: 'DELETE',
+    });
     
-    try {
-      // Importante: el uso de false en el segundo parámetro indica que no queremos
-      // revalidar automáticamente después de actualizar los datos optimistas
-      await mutate(optimisticData, false);
-      
-      const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
-        method: 'DELETE',
-        headers: {
-          // Agregamos headers para evitar que el navegador use caché
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      });
-      
-      const contentType = res.headers.get('content-type');
-      const data = contentType?.includes('application/json') ? await res.json() : null;
-      
-      if (!res.ok || (data && data.error)) {
-        throw new Error(data?.error || 'Error al eliminar usuario');
-      }
-      
-      // No revalidamos aquí, mantenemos los datos optimistas
-      // La actualización real vendrá cuando el usuario explícitamente refresque o navegue
-      return data || { success: true };
-    } catch (error) {
-      // Si falla, revertir la actualización optimista
-      await mutate(); 
-      throw error;
+    const contentType = res.headers.get('content-type');
+    const data = contentType?.includes('application/json') ? await res.json() : null;
+    
+    if (!res.ok || (data && data.error)) {
+      throw new Error(data?.error || 'Error al eliminar usuario');
     }
+    
+    await mutate(); // Actualiza la caché de usuarios
+    return data || { success: true };
   };
 
   // Operaciones por lotes

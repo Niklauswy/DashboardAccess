@@ -1,33 +1,10 @@
 const express = require('express');
 const { exec } = require('child_process');
 const cors = require('cors');
-const rateLimit = require('express-rate-limit');
+const rateLimit = require('express-rate-limit'); // You may need to install this
 
 const NodeCache = require('node-cache');
 const cache = new NodeCache({ stdTTL: 60 });
-
-// Función para invalidar la caché de manera más agresiva
-const invalidateCache = (keyPattern) => {
-  console.log(`Invalidando caché para patrón: ${keyPattern}`);
-  const keys = cache.keys();
-  let deleted = 0;
-  
-  keys.forEach(key => {
-    if (key.includes(keyPattern)) {
-      console.log(`Eliminando clave de caché: ${key}`);
-      cache.del(key);
-      deleted++;
-    }
-  });
-  
-  console.log(`Se eliminaron ${deleted} entradas de caché`);
-  
-  // Si es la caché de usuarios, la limpiamos completamente para evitar problemas
-  if (keyPattern === 'getUsers') {
-    cache.flushAll();
-    console.log('Caché completamente limpiada');
-  }
-};
 
 const app = express();
 const port = 5000;
@@ -132,17 +109,8 @@ app.delete('/api/users/:username', (req, res) => {
     
     try {
       const jsonData = JSON.parse(stdout);
-      
-      // Invalidar la caché después de eliminar un usuario
-      if (!jsonData.error) {
-        invalidateCache('getUsers');
-      }
-      
       return res.status(jsonData.error ? 400 : 200).json(jsonData);
     } catch (parseError) {
-      // Invalidar la caché incluso si hay error de parseo pero la operación fue exitosa
-      invalidateCache('getUsers');
-      
       return res.status(200).json({ 
         success: true, 
         message: stdout.trim() || 'Usuario eliminado exitosamente'
