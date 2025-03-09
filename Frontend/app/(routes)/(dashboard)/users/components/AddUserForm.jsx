@@ -52,8 +52,10 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
       });
     } catch (error) {
 
+      if (error.details) {
+        console.error("Detalles:", error.details);
+      }
       
-      // Mostrar mensaje de error principal
       toast({
         title: "Error al crear usuario",
         description: error.message || "Error desconocido al agregar el usuario",

@@ -37,6 +37,10 @@ export default function UsersTab() {
     const [openSeriesGroups, setOpenSeriesGroups] = useState(false)
     const [csvPasswordError, setCsvPasswordError] = useState("")
     const { toast } = useToast()
+    const [isProcessing, setIsProcessing] = useState(false)
+    const [progress, setProgress] = useState(0)
+    const [batchResults, setBatchResults] = useState(null)
+    const [showResultsDialog, setShowResultsDialog] = useState(false)
 
     // Usando el hook useUsers para operaciones de usuarios
     const { createUser, refreshUsers } = useUsers();
@@ -113,11 +117,23 @@ export default function UsersTab() {
                     return
                 }
 
+                // Variables para seguimiento
                 let encounteredError = false
-                for (const row of records) {
+                const results = {
+                    success: [],
+                    errors: []
+                }
+                setIsProcessing(true)
+                setProgress(0)
+                setIsReviewing(false)
+                
+                // Procesar los registros
+                for (let i = 0; i < records.length; i++) {
+                    const row = records[i]
                     while (row.length < 5) {
                         row.push("")
                     }
+                    
                     const userData = {
                         samAccountName: row[0].trim(),
                         givenName: row[1].trim(),
@@ -128,62 +144,43 @@ export default function UsersTab() {
                     }
                     
                     try {
-                        // Usando el hook createUser en lugar de fetch directo
-                        await createUser(userData);
-                        toast({
-                            title: `Usuario ${userData.samAccountName} creado`,
-                            description: `El usuario ${userData.samAccountName} se creó correctamente.`,
-                            variant: "success",
+                        // Usar el hook para crear usuario
+                        await createUser(userData)
+                        
+                        // Actualizar resultados exitosos
+                        results.success.push({
+                            username: userData.samAccountName,
+                            fullName: `${userData.givenName} ${userData.sn}`,
+                            ou: userData.ou,
+                            groups: userData.groups
                         })
                     } catch (error) {
                         encounteredError = true
                         
-                        // Extraer el mensaje de error amigable del posible JSON
-                        let errorMessage = error.message;
-                        
-                        try {
-                            // Verificar si el mensaje de error contiene un JSON
-                            if (errorMessage.includes('{') && errorMessage.includes('}')) {
-                                // Extraer la cadena JSON del mensaje de error
-                                const jsonStr = errorMessage.substring(
-                                    errorMessage.indexOf('{'), 
-                                    errorMessage.lastIndexOf('}') + 1
-                                );
-                                const errorData = JSON.parse(jsonStr);
-                                
-                                // Usar el mensaje amigable del JSON si existe
-                                if (errorData && errorData.error) {
-                                    errorMessage = errorData.error;
-                                }
-                            }
-                        } catch (parseError) {
-                            console.error("Error al parsear mensaje de error:", parseError);
-                            // Si hay un error al parsear, mantener el mensaje original
-                        }
-                        
-                        toast({
-                            title: `Error creando ${userData.samAccountName}`,
-                            description: errorMessage,
-                            variant: "destructive",
+                        // Actualizar resultados con errores
+                        results.errors.push({
+                            username: userData.samAccountName,
+                            fullName: `${userData.givenName} ${userData.sn}`,
+                            errorMessage: error.message || "Error desconocido"
                         })
                     }
+                    
+                    // Actualizar progreso
+                    setProgress(Math.round(((i + 1) / records.length) * 100))
                 }
                 
-                setIsReviewing(false)
+                // Finalizar procesamiento
+                setIsProcessing(false)
                 setCsvFile(null)
+                await refreshUsers()
                 
-                // Actualizar la lista después de procesar todos los usuarios
-                await refreshUsers();
+                // Mostrar resumen de resultados
+                setBatchResults(results)
+                setShowResultsDialog(true)
                 
-                if (!encounteredError) {
-                    toast({
-                        title: "Procesamiento CSV",
-                        description: "Todos los usuarios han sido procesados exitosamente.",
-                        variant: "success",
-                    })
-                }
             } catch (error) {
                 setIsReviewing(false)
+                setIsProcessing(false)
                 toast({
                     title: "Error en CSV",
                     description: error.message || "Error al procesar el archivo CSV.",
@@ -195,6 +192,15 @@ export default function UsersTab() {
     }
 
     const handleCreateUsers = async () => {
+        if (!newUserPrefix) {
+            toast({
+                title: "Prefijo requerido",
+                description: "Ingrese un prefijo para los usuarios",
+                variant: "destructive"
+            })
+            return
+        }
+        
         if (!newUserDefaultPassword) {
             setSeriePasswordError("Ingrese una contraseña válida.")
             return
@@ -207,8 +213,14 @@ export default function UsersTab() {
         
         setSeriePasswordError("")
         
-        let successCount = 0;
-        let errorCount = 0;
+        // Variables para seguimiento
+        const results = {
+            success: [],
+            errors: []
+        }
+        
+        setIsProcessing(true)
+        setProgress(0)
         
         for (let i = 1; i <= newUserQuantity; i++) {
             const number = String(i).padStart(2, "0")
@@ -223,59 +235,34 @@ export default function UsersTab() {
             }
             
             try {
-                // Usando el hook createUser en lugar de fetch directo
-                await createUser(userData);
-                successCount++;
-                toast({
-                    title: `Usuario ${username} creado`,
-                    description: `El usuario ${username} se creó correctamente.`,
-                    variant: "success",
+                // Usar el hook para crear usuario
+                await createUser(userData)
+                
+                // Actualizar resultados exitosos
+                results.success.push({
+                    username: username,
+                    ou: userData.ou,
+                    groups: userData.groups
                 })
             } catch (error) {
-                errorCount++;
-                
-                // Extraer el mensaje de error amigable del posible JSON
-                let errorMessage = error.message;
-                
-                try {
-                    // Verificar si el mensaje de error contiene un JSON
-                    if (errorMessage.includes('{') && errorMessage.includes('}')) {
-                        // Extraer la cadena JSON del mensaje de error
-                        const jsonStr = errorMessage.substring(
-                            errorMessage.indexOf('{'), 
-                            errorMessage.lastIndexOf('}') + 1
-                        );
-                        const errorData = JSON.parse(jsonStr);
-                        
-                        // Usar el mensaje amigable del JSON si existe
-                        if (errorData && errorData.error) {
-                            errorMessage = errorData.error;
-                        }
-                    }
-                } catch (parseError) {
-                    console.error("Error al parsear mensaje de error:", parseError);
-                    // Si hay un error al parsear, mantener el mensaje original
-                }
-                
-                toast({
-                    title: `Error creando ${username}`,
-                    description: errorMessage,
-                    variant: "destructive",
+                // Actualizar resultados con errores
+                results.errors.push({
+                    username: username,
+                    errorMessage: error.message || "Error desconocido"
                 })
             }
+            
+            // Actualizar progreso
+            setProgress(Math.round((i / newUserQuantity) * 100))
         }
         
-        // Actualizar la lista después de procesar todos los usuarios
-        await refreshUsers();
+        // Finalizar procesamiento
+        setIsProcessing(false)
+        await refreshUsers()
         
-        // Resumen final
-        if (successCount > 0) {
-            toast({
-                title: "Usuarios creados",
-                description: `Se crearon ${successCount} usuarios correctamente${errorCount > 0 ? ` (${errorCount} con errores)` : ''}`,
-                variant: successCount === newUserQuantity ? "success" : "default",
-            });
-        }
+        // Mostrar resumen de resultados
+        setBatchResults(results)
+        setShowResultsDialog(true)
     }
 
     return (
@@ -509,6 +496,101 @@ export default function UsersTab() {
                     </DialogContent>
                 </Dialog>
             )}
+
+            {/* Dialog para procesamiento */}
+            {isProcessing && (
+                <Dialog open={true} onOpenChange={() => {}}>
+                    <DialogContent className="sm:max-w-[600px]">
+                        <div className="space-y-6">
+                            <h3 className="text-lg font-semibold">Procesando usuarios...</h3>
+                            <div className="w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700">
+                                <div 
+                                    className="bg-blue-600 h-4 rounded-full transition-all duration-300" 
+                                    style={{ width: `${progress}%` }}
+                                ></div>
+                            </div>
+                            <p className="text-sm text-center">{progress}% completado</p>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
+            
+            {/* Dialog para resultados finales */}
+            <Dialog open={showResultsDialog} onOpenChange={setShowResultsDialog}>
+                <DialogContent className="sm:max-w-[700px]">
+                    <DialogHeader>
+                        <DialogTitle>Resultados de la operación</DialogTitle>
+                    </DialogHeader>
+                    {batchResults && (
+                        <div className="space-y-6">
+                            <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50">
+                                <div className="text-sm">
+                                    <span className="text-green-600 font-medium">{batchResults.success.length}</span> usuarios creados exitosamente
+                                </div>
+                                <div className="text-sm">
+                                    <span className="text-red-600 font-medium">{batchResults.errors.length}</span> errores
+                                </div>
+                            </div>
+                            
+                            {batchResults.errors.length > 0 && (
+                                <div className="space-y-4">
+                                    <h4 className="text-md font-medium text-red-600">Errores</h4>
+                                    <div className="max-h-56 overflow-y-auto border rounded-lg">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Usuario</TableHead>
+                                                    <TableHead>Error</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {batchResults.errors.map((error, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell className="font-medium">{error.username}</TableCell>
+                                                        <TableCell className="text-red-600">{error.errorMessage}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {batchResults.success.length > 0 && (
+                                <div className="space-y-4">
+                                    <h4 className="text-md font-medium text-green-600">Usuarios creados</h4>
+                                    <div className="max-h-60 overflow-y-auto border rounded-lg">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Usuario</TableHead>
+                                                    <TableHead>Nombre</TableHead>
+                                                    <TableHead>OU</TableHead>
+                                                    <TableHead>Grupos</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {batchResults.success.map((user, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell className="font-medium">{user.username}</TableCell>
+                                                        <TableCell>{user.fullName || user.username}</TableCell>
+                                                        <TableCell>{user.ou || "-"}</TableCell>
+                                                        <TableCell>{user.groups?.join(", ") || "-"}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <div className="flex justify-end">
+                                <Button onClick={() => setShowResultsDialog(false)}>Cerrar</Button>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
 
             <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
                 <DialogContent className="sm:max-w-[600px]">
