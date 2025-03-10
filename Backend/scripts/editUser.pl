@@ -102,7 +102,7 @@ try {
     
     # Si se proporciona nueva contraseña
     if ($password) {
-        $user->setPassword($password);
+        $user->changePassword($password);  # Corregido: usando changePassword en vez de setPassword
         debug("Contraseña actualizada");
     }
     
