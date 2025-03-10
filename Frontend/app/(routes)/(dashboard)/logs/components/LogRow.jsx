@@ -1,7 +1,7 @@
 import React from 'react';
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { LogIn, LogOut } from "lucide-react";
+import { LogIn, LogOut, Link2 } from "lucide-react";
 
 const LogRow = ({ log, index }) => {
   // Alternate row colors for better readability
@@ -12,10 +12,21 @@ const LogRow = ({ log, index }) => {
     if (!event) return <Badge variant="outline">Desconocido</Badge>;
     
     const lowerEvent = event.toLowerCase();
+    
+    // Include "connect" as a login event
     if (lowerEvent.includes('login') || lowerEvent.includes('ingreso')) {
       return (
         <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
           <LogIn className="mr-1 h-3 w-3" />
+          {event}
+        </Badge>
+      );
+    }
+    
+    if (lowerEvent.includes('connect')) {
+      return (
+        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
+          <Link2 className="mr-1 h-3 w-3" />
           {event}
         </Badge>
       );

@@ -43,6 +43,8 @@ export function LogBarChart({ logs = [], filters }) {
 
   // Process log data for the chart
   const { chartData, total } = React.useMemo(() => {
+    console.log(`Processing ${logs?.length || 0} logs for chart, with timeRange: ${timeRange}`);
+    
     if (!logs?.length) return { chartData: [], total: { login: 0, logout: 0, failed: 0 } };
     
     // Get date range based on selected timeRange or filter dates
@@ -74,6 +76,8 @@ export function LogBarChart({ logs = [], filters }) {
       }
     }
     
+    console.log(`Chart date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+    
     // Group logs by date
     const dateGroups = {};
     
@@ -97,7 +101,10 @@ export function LogBarChart({ logs = [], filters }) {
     
     // Fill in log counts
     logs.forEach(log => {
-      if (!log.dateObj) return;
+      if (!log.dateObj) {
+        console.log("Log without dateObj:", log);
+        return;
+      }
       
       // Only count logs within the selected date range
       if (log.dateObj < startDate || log.dateObj > endDate) return;
@@ -109,20 +116,27 @@ export function LogBarChart({ logs = [], filters }) {
       
       // Increment appropriate counter based on event type
       const eventType = (log.event || '').toLowerCase();
-      if (eventType.includes('login') || eventType.includes('ingreso')) {
+      
+      // Add "connect" to the login types
+      if (eventType.includes('login') || eventType.includes('ingreso') || eventType.includes('connect')) {
         dateGroups[dateKey].login++;
         totalLogin++;
+        console.log(`Login event: ${eventType} on ${dateKey}`);
       } else if (eventType.includes('logout') || eventType.includes('salida')) {
         dateGroups[dateKey].logout++;
         totalLogout++;
       } else if (eventType.includes('fail') || eventType.includes('error')) {
         dateGroups[dateKey].failed++;
         totalFailed++;
+      } else {
+        console.log(`Unrecognized event type: "${eventType}"`);
       }
     });
     
     // Convert to array and sort by date
     const data = Object.values(dateGroups).sort((a, b) => a.date.localeCompare(b.date));
+    
+    console.log(`Generated ${data.length} chart data points with ${totalLogin} logins`);
     
     return { 
       chartData: data,
