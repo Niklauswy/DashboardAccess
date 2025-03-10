@@ -210,13 +210,13 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                 </SelectTrigger>
                 <SelectContent>
                   {isLoading ? (
-                    <SelectItem value="" disabled>Cargando...</SelectItem>ctItem>
+                    <SelectItem value="loading" disabled>Cargando...</SelectItem>
                   ) : ous && ous.length > 0 ? (
                     ous.map((ou) => (
                       <SelectItem key={ou} value={ou}>{ou}</SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="" disabled>No hay carreras disponibles</SelectItem>tem>
+                    <SelectItem value="none" disabled>No hay carreras disponibles</SelectItem>
                   )}
                 </SelectContent>
               </Select>
