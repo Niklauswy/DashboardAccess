@@ -143,8 +143,19 @@ export default function EditUserForm({ user, refreshUsers, open, onOpenChange })
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog 
+      open={open} 
+      onOpenChange={(isOpen) => {
+        // Ensure we clean up when dialog closes
+        if (!isOpen) {
+          // Clean up state when closing to avoid stale state
+          setErrors({});
+          setOpenGroups(false);
+        }
+        onOpenChange(isOpen);
+      }}
+    >
+      <DialogContent className="sm:max-w-[600px]" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-2xl">Editar Usuario</DialogTitle>
         </DialogHeader>
