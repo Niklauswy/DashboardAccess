@@ -13,20 +13,31 @@ const LogRow = ({ log, index }) => {
     
     const lowerEvent = event.toLowerCase();
     
-    // Include "connect" as a login event
-    if (lowerEvent.includes('login') || lowerEvent.includes('ingreso')) {
+    // Exact match check first for disconnect
+    if (lowerEvent === 'disconnect') {
       return (
-        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
-          <LogIn className="mr-1 h-3 w-3" />
+        <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200">
+          <LogOut className="mr-1 h-3 w-3" />
           {event}
         </Badge>
       );
     }
     
-    if (lowerEvent.includes('connect')) {
+    // Exact match for connect
+    if (lowerEvent === 'connect') {
       return (
         <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
           <Link2 className="mr-1 h-3 w-3" />
+          {event}
+        </Badge>
+      );
+    }
+    
+    // Additional pattern matching
+    if (lowerEvent.includes('login') || lowerEvent.includes('ingreso')) {
+      return (
+        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
+          <LogIn className="mr-1 h-3 w-3" />
           {event}
         </Badge>
       );
