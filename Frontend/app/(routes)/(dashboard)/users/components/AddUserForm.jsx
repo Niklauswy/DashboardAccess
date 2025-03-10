@@ -32,6 +32,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
   });
   const [errors, setErrors] = useState({});
   const [openGroups, setOpenGroups] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Function to handle group selection without closing popover
   const handleGroupsChange = (group) => {
@@ -87,6 +88,8 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
       return;
     }
 
+    setIsSubmitting(true); // Activar estado de envío
+    
     try {
       await createUser(newUser);
       onOpenChange(false);
@@ -115,6 +118,8 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
         description: error.message || "Error desconocido al agregar el usuario",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false); // Desactivar estado de envío
     }
   }
 
@@ -327,10 +332,20 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
             </div>
           </div>
           <div className="flex justify-end gap-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancelar
             </Button>
-            <Button type="submit">Agregar Usuario</Button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Agregando...' : 'Agregar Usuario'}
+            </Button>
           </div>
         </form>
       </DialogContent>
