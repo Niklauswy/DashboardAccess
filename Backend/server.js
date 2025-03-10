@@ -247,7 +247,7 @@ app.put('/api/users/:username', (req, res) => {
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
   
-  executeScriptWithInput('perl scripts/editUser.pl', dataToSend, res);
+  executeScriptWithInput('perl editUser.pl', dataToSend, res);
 });
 
 // Catch-all route for unmatched endpoints
