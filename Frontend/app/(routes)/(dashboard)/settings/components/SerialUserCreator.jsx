@@ -54,6 +54,19 @@ export default function SerialUserCreator({
     return Object.keys(errors).length === 0;
   };
 
+  // Añadir una función centralizada para gestionar cambios de grupos
+  const handleGroupsChange = (group) => {
+    console.log("Grupo seleccionado (serie):", group);
+    console.log("Grupos actuales (serie):", serieGroups);
+    
+    const updatedGroups = serieGroups.includes(group)
+      ? serieGroups.filter((g) => g !== group)
+      : [...serieGroups, group];
+      
+    console.log("Grupos actualizados (serie):", updatedGroups);
+    setSerieGroups(updatedGroups);
+  };
+
   const handleCreateUsers = () => {
     // Validar el formulario antes de enviarlo
     if (!validateSerialForm()) {
@@ -164,11 +177,8 @@ export default function SerialUserCreator({
                       {groups.map((group) => (
                         <CommandItem
                           key={group}
-                          onSelect={() => {
-                            setSerieGroups(serieGroups.includes(group)
-                              ? serieGroups.filter((g) => g !== group)
-                              : [...serieGroups, group])
-                          }}
+                          value={group}
+                          onSelect={() => handleGroupsChange(group)}
                         >
                           <Check className={cn("mr-2 h-4 w-4", serieGroups.includes(group) ? "opacity-100" : "opacity-0")} />
                           {group}
@@ -187,7 +197,14 @@ export default function SerialUserCreator({
                 {serieGroups.map((group) => (
                   <Badge key={group} variant="secondary" className="flex items-center gap-1">
                     {group}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => setSerieGroups(serieGroups.filter((g) => g !== group))} />
+                    <X 
+                      className="h-3 w-3 cursor-pointer" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleGroupsChange(group);
+                      }} 
+                    />
                   </Badge>
                 ))}
               </div>

@@ -23,7 +23,7 @@ my $json_text = do { local $/; <STDIN> };
 my $user_data;
 try {
     $user_data = decode_json($json_text);
-    #debug("Datos JSON decodificados correctamente.");
+    debug("Datos JSON recibidos: " . $json_text); # Mostrar datos recibidos
 } catch {
     print encode_json({ error => 'Datos JSON inválidos', details => "$_" });
     debug("Error al decodificar JSON: $_");
@@ -38,6 +38,15 @@ my $password       = $user_data->{password};
 my $ou             = defined $user_data->{ou} ? $user_data->{ou} : "";
 my $groups         = $user_data->{groups};
 my $description    = $user_data->{description} || '';
+
+# Validar que tenemos un array de grupos
+if (!$groups) {
+    $groups = [];
+}
+elsif (ref($groups) ne 'ARRAY') {
+    $groups = [$groups]; # Si no es un array, conviértelo en uno
+    debug("Grupos convertidos a array: " . join(", ", @$groups));
+}
 
 # Validate required fields (OU and groups are now required)
 unless ($samAccountName && $givenName && $sn && $password && $ou) {
@@ -55,7 +64,7 @@ unless ($samAccountName && $givenName && $sn && $password && $ou) {
 }
 
 # Validate groups is a non-empty array
-unless ($groups && ref($groups) eq 'ARRAY' && scalar(@$groups) > 0) {
+unless (scalar(@$groups) > 0) {
     print encode_json({ error => "Debe seleccionar al menos un grupo" });
     debug("No se seleccionaron grupos");
     exit(1);
@@ -83,14 +92,30 @@ my $defaultDN = (ref $defaultContainer && $defaultContainer->can('dn'))
     ? $defaultContainer->dn
     : $defaultContainer;
 
-# Check if the OU exists
-my $ou_dn = "ou=$ou," . $defaultDN;  # construct expected DN for the OU
-my $ou_obj = EBox::Samba::OU->new( dn => $ou_dn );
-if (not $ou_obj->exists()) {
+debug("Default Container DN: $defaultDN");
+debug("Buscando OU: $ou");
+
+# Corregido: listar todas las OUs disponibles para comparar
+my $list_ous_cmd = "sudo samba-tool ou list";
+my $ous_output = qx($list_ous_cmd 2>&1);
+debug("OUs disponibles: $ous_output");
+
+# Verificar OU usando samba-tool directamente en lugar del objeto EBox
+my $check_ou_cmd = "sudo samba-tool ou show \"$ou\" 2>&1";
+my $ou_check = qx($check_ou_cmd);
+my $ou_exists = ($? == 0);
+
+debug("Resultado de verificación de OU: $ou_check (Existe: " . ($ou_exists ? "Sí" : "No") . ")");
+
+if (!$ou_exists) {
     print encode_json({ error => "La carrera (OU) '$ou' no existe" });
-    debug("La OU '$ou' no existe.");
+    debug("La OU '$ou' no existe según samba-tool.");
     exit(1);
 }
+
+# Construct OU DN
+my $ou_dn = "OU=$ou,$defaultDN";
+debug("Usando OU DN: $ou_dn");
 
 # Function to check if a user already exists
 sub user_exists {
@@ -152,9 +177,11 @@ if ($? != 0) {
 }
 
 # Check each group and add the user to the specified groups
+debug("Procesando " . scalar(@$groups) . " grupos: " . join(", ", @$groups));
 foreach my $groupName (@$groups) {
     next unless $groupName =~ /\S/;
     
+    debug("Verificando existencia del grupo: $groupName");
     # Check if group exists
     my $checkGroup = `sudo samba-tool group show "$groupName" 2>/dev/null`;
     unless ($checkGroup) {

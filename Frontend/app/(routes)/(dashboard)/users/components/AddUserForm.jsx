@@ -113,6 +113,22 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
     }
   }
 
+  // Añadir una impresión a consola para verla en la depuración
+  const handleGroupsChange = (group) => {
+    console.log("Grupo seleccionado:", group);
+    console.log("Grupos actuales:", newUser.groups);
+    
+    const updatedGroups = newUser.groups.includes(group)
+      ? newUser.groups.filter((g) => g !== group)
+      : [...newUser.groups, group];
+      
+    console.log("Grupos actualizados:", updatedGroups);
+    setNewUser({
+      ...newUser,
+      groups: updatedGroups
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
@@ -251,16 +267,8 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                           groups.map((group) => (
                             <CommandItem
                               key={group}
-                              onSelect={() => {
-                                console.log("Seleccionando grupo:", group); // Agregar logging para depurar
-                                setNewUser({
-                                  ...newUser,
-                                  groups: newUser.groups.includes(group)
-                                    ? newUser.groups.filter((g) => g !== group)
-                                    : [...newUser.groups, group],
-                                });
-                                // No cerramos el popover para permitir selecciones múltiples
-                              }}
+                              value={group}
+                              onSelect={() => handleGroupsChange(group)}
                             >
                               <Check
                                 className={cn(
@@ -289,12 +297,11 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                       {group}
                       <X
                         className="h-3 w-3 cursor-pointer"
-                        onClick={() =>
-                          setNewUser({
-                            ...newUser,
-                            groups: newUser.groups.filter((g) => g !== group),
-                          })
-                        }
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleGroupsChange(group);
+                        }}
                       />
                     </Badge>
                   ))}
