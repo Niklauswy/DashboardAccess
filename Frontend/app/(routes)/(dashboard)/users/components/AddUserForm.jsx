@@ -225,89 +225,85 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
               )}
             </div>
 
-            {/* Grupos - Complete refactor to solve selection issues */}
+            {/* Grupos - Completely redesigned with a simpler approach */}
             <div className="space-y-2">
               <Label>
                 Grupos <span className="text-destructive">*</span>
               </Label>
-              <Popover 
-                open={openGroups} 
-                onOpenChange={setOpenGroups}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    type="button"
-                    className={cn("w-full justify-between", errors.groups ? "border-destructive" : "")}
-                    disabled={isLoading}
-                  >
-                    {newUser.groups.length > 0 
-                      ? `${newUser.groups.length} grupos seleccionados` 
-                      : "Seleccione grupos"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <div className="max-h-[300px] overflow-auto">
-                    {isLoading ? (
-                      <div className="p-4 text-center text-sm">Cargando grupos...</div>
-                    ) : groups && groups.length > 0 ? (
-                      <div>
-                        {groups.map((group) => (
-                          <div 
-                            key={group}
-                            className={cn(
-                              "flex items-center px-4 py-2 cursor-pointer hover:bg-muted",
-                              newUser.groups.includes(group) && "bg-muted"
-                            )}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              
-                              // Toggle group selection
-                              setNewUser(prev => {
-                                const newGroups = prev.groups.includes(group)
-                                  ? prev.groups.filter(g => g !== group)
-                                  : [...prev.groups, group];
-                                
-                                return { ...prev, groups: newGroups };
-                              });
-                            }}
+              <div className="relative">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn("w-full justify-between", errors.groups ? "border-destructive" : "")}
+                  onClick={() => setOpenGroups(!openGroups)}
+                >
+                  {newUser.groups.length > 0 
+                    ? `${newUser.groups.length} grupos seleccionados` 
+                    : "Seleccione grupos"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+                
+                {openGroups && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg">
+                    <div className="p-2">
+                      <input 
+                        type="text" 
+                        placeholder="Buscar grupos..." 
+                        className="w-full p-2 border rounded-md mb-2"
+                        onChange={(e) => {
+                          // Implementar búsqueda en tiempo real si es necesario
+                        }}
+                      />
+                    </div>
+                    
+                    <div className="max-h-[200px] overflow-y-auto">
+                      {groups?.map((group) => (
+                        <div 
+                          key={group} 
+                          className={cn(
+                            "flex items-center p-2 cursor-pointer hover:bg-gray-100",
+                            newUser.groups.includes(group) && "bg-gray-100"
+                          )}
+                          onClick={() => handleGroupsChange(group)}
+                        >
+                          <input
+                            type="checkbox"
+                            className="mr-2"
+                            checked={newUser.groups.includes(group)}
+                            onChange={() => {}}
+                            onClick={(e) => e.stopPropagation()}
+                            id={`group-${group}`}
+                          />
+                          <label 
+                            htmlFor={`group-${group}`}
+                            className="grow cursor-pointer"
                           >
-                            <div className={cn(
-                              "mr-2 h-4 w-4 border rounded-sm flex items-center justify-center",
-                              newUser.groups.includes(group) ? "bg-primary border-primary" : "border-input"
-                            )}>
-                              {newUser.groups.includes(group) && (
-                                <Check className="h-3 w-3 text-primary-foreground" />
-                              )}
-                            </div>
-                            <span>{group}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="p-4 text-center text-sm">No hay grupos disponibles</div>
-                    )}
+                            {group}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="p-2 border-t flex justify-between">
+                      <span className="text-sm text-gray-500">
+                        {newUser.groups.length} seleccionados
+                      </span>
+                      <Button 
+                        type="button"
+                        size="sm" 
+                        onClick={() => setOpenGroups(false)}
+                      >
+                        Aceptar
+                      </Button>
+                    </div>
                   </div>
-                  <div className="p-2 border-t flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">
-                      {newUser.groups.length} seleccionados
-                    </span>
-                    <Button 
-                      size="sm" 
-                      variant="default" 
-                      onClick={() => setOpenGroups(false)}
-                    >
-                      Aceptar
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                )}
+              </div>
+              
               {errors.groups && (
                 <p className="text-sm text-destructive">{errors.groups}</p>
               )}
+              
               {newUser.groups.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {newUser.groups.map((group) => (
