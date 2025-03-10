@@ -81,11 +81,8 @@ export function LogBarChart({ logs = [], filters }) {
       };
       currentDate = addDays(currentDate, 1);
     }
-
-    // Debug info to check log events
-    console.log("Sample log events:", logs.slice(0, 5).map(log => log.event));
     
-    // Fill in log counts - Fixed to properly detect disconnect events
+    // Fill in log counts
     logs.forEach(log => {
       if (!log.dateObj) return;
       
@@ -147,6 +144,19 @@ export function LogBarChart({ logs = [], filters }) {
             <div className="h-3 w-3 rounded-sm bg-[hsl(142.1_76.2%_36.3%)]"></div>
             <span className="text-xs text-muted-foreground">Conexiones: {totals.connect}</span>
           </div>
+          <div className="ml-4 flex items-center space-x-1">
+            <div className="h-3 w-3 rounded-sm bg-[hsl(47.9_95.8%_53.1%)]"></div>
+            <span className="text-xs text-muted-foreground">Desconexiones: {totals.disconnect}</span>
+          </div>
+        </div>
+      </CardHeader>
+      
+      {!isDateFilterActive && (
+        <div className="flex justify-center gap-2 pt-4">
+          <Button 
+            variant={timeRange === "7d" ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setTimeRange("7d")}
           >
             7 días
           </Button>
@@ -156,72 +166,70 @@ export function LogBarChart({ logs = [], filters }) {
             onClick={() => setTimeRange("14d")}
           >
             14 días
-          <div className="ml-4 flex items-center space-x-1">/Button>
-            <div className="h-3 w-3 rounded-sm bg-[hsl(47.9_95.8%_53.1%)]"></div>
-            <span className="text-xs text-muted-foreground">Desconexiones: {totals.disconnect}</span>={timeRange === "30d" ? "default" : "outline"} 
-          </div>sm"
+          </Button>
+          <Button 
+            variant={timeRange === "30d" ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setTimeRange("30d")}
+          >
+            30 días
+          </Button>
         </div>
-      </CardHeader>
+      )}
       
-      <CardContent className="px-2 sm:p-6 pt-6">/Button>
+      <CardContent className="px-2 sm:p-6 pt-6">
         {chartData.length > 0 ? (
           <ChartContainer
             config={chartConfig}
             className="aspect-auto h-[250px] w-full"
-          >ngth > 0 ? (
+          >
             <BarChart
-              data={chartData} config={chartConfig}
-              margin={{me="aspect-auto h-[250px] w-full"
+              data={chartData}
+              margin={{
                 top: 10,
-                right: 10,arChart
-                left: 5,      data={chartData}
-                bottom: 5,        margin={{
+                right: 10,
+                left: 5,
+                bottom: 5,
               }}
             >
               <CartesianGrid vertical={false} strokeDasharray="3 3" />
               <XAxis
                 dataKey="date"
-                tickLine={false} >
-                axisLine={false}ianGrid vertical={false} strokeDasharray="3 3" />
+                tickLine={false}
+                axisLine={false}
                 tickMargin={8}
-                minTickGap={30}="date"
-                tickFormatter={(value) => {={false}
-                  const date = new Date(value);false}
-                  return format(date, 'dd MMM', { locale: es });in={8}
-                }}={30}
-              />tickFormatter={(value) => {
-              <YAxis allowDecimals={false} />     const date = new Date(value);
+                minTickGap={30}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return format(date, 'dd MMM', { locale: es });
+                }}
+              />
+              <YAxis allowDecimals={false} />
               <ChartTooltip
                 cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-                contentStyle={{ 
-                  border: '1px solid #ccc',
-                  backgroundColor: 'white',
-                  borderRadius: '4px',
-                  padding: '10px'Content
-                }} => {
-                content={lue), 'EEEE, dd MMMM yyyy', { locale: es });
+                content={
                   <ChartTooltipContent
-                    className="w-[180px]"/>
-                    labelFormatter={(value) => {}
+                    className="w-[180px]"
+                    labelFormatter={(value) => {
                       return format(new Date(value), 'EEEE, dd MMMM yyyy', { locale: es });
                     }}
-                    valueFormatter={(value) => value}connect" 
+                    valueFormatter={(value) => value}
                   />
                 }
               />
               <Bar 
+                dataKey="connect" 
+                stackId="a"
+                fill="var(--color-connect)" 
+                radius={[4, 4, 0, 0]}
                 name="Conexiones"
-                dataKey="connect" ataKey="disconnect" 
-                stackId="a"stackId="a"
-                fill="var(--color-connect)" l="var(--color-disconnect)" 
-                radius={[4, 4, 0, 0]}0]}
               />
               <Bar 
-                name="Desconexiones"
                 dataKey="disconnect" 
-                stackId="a"sName="h-[250px] flex items-center justify-center text-muted-foreground">
-                fill="var(--color-disconnect)" odo seleccionado
+                stackId="a"
+                fill="var(--color-disconnect)" 
                 radius={[4, 4, 0, 0]}
+                name="Desconexiones"
               />
             </BarChart>
           </ChartContainer>
@@ -231,4 +239,6 @@ export function LogBarChart({ logs = [], filters }) {
           </div>
         )}
       </CardContent>
-    </Card>  );}
+    </Card>
+  );
+}
