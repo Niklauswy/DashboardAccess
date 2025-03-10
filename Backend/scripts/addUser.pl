@@ -23,7 +23,7 @@ my $json_text = do { local $/; <STDIN> };
 my $user_data;
 try {
     $user_data = decode_json($json_text);
-    debug("Datos JSON recibidos: $json_text"); # Mostrar datos recibidos para depuración
+    #debug("Datos JSON decodificados correctamente.");
 } catch {
     print encode_json({ error => 'Datos JSON inválidos', details => "$_" });
     debug("Error al decodificar JSON: $_");
@@ -39,23 +39,13 @@ my $ou             = defined $user_data->{ou} ? $user_data->{ou} : "";
 my $groups         = $user_data->{groups};
 my $description    = $user_data->{description} || '';
 
-# Validar que tenemos un array de grupos
-if (!$groups) {
-    $groups = [];
-}
-elsif (ref($groups) ne 'ARRAY') {
-    $groups = [$groups]; # Si no es un array, conviértelo en uno
-    debug("Grupos convertidos a array: " . join(", ", @$groups));
-}
-
 # Validate required fields (OU and groups are now required)
-unless ($samAccountName && $givenName && $sn && $password && $ou) {
+unless ($samAccountName && $givenName && $sn && $password) {
     my $missing = [];
     push @$missing, "nombre de usuario" unless $samAccountName;
     push @$missing, "nombre" unless $givenName;
     push @$missing, "apellido" unless $sn;
     push @$missing, "contraseña" unless $password;
-    push @$missing, "carrera (OU)" unless $ou;
     
     my $error_msg = "Faltan campos requeridos: " . join(", ", @$missing);
     print encode_json({ error => $error_msg });
@@ -64,7 +54,7 @@ unless ($samAccountName && $givenName && $sn && $password && $ou) {
 }
 
 # Validate groups is a non-empty array
-unless (scalar(@$groups) > 0) {
+unless ($groups && ref($groups) eq 'ARRAY' && scalar(@$groups) > 0) {
     print encode_json({ error => "Debe seleccionar al menos un grupo" });
     debug("No se seleccionaron grupos");
     exit(1);
@@ -93,57 +83,55 @@ my $defaultDN = (ref $defaultContainer && $defaultContainer->can('dn'))
     : $defaultContainer;
 
 debug("Default Container DN: $defaultDN");
-debug("Buscando OU: $ou");
 
-# IMPROVED: Get the list of OUs directly from samba-tool and clean the output
-my $list_ous_cmd = "sudo samba-tool ou list";
-my @available_ous_raw = split(/\n/, qx($list_ous_cmd));
+# SIMPLIFICADO: Hardcodear el dominio directamente
+my $domain_components = "dc=access,dc=com";
+debug("Usando dominio hardcodeado: $domain_components");
 
-# Process OU names to remove the "OU=" prefix if present
-my @available_ous = ();
-foreach my $raw_ou (@available_ous_raw) {
-    $raw_ou =~ s/^\s+|\s+$//g;  # trim whitespace
-    # Remove "OU=" prefix if present
-    $raw_ou =~ s/^OU=//i;
-    push @available_ous, $raw_ou if $raw_ou;
-}
+# Verificar OU solo si se proporciona
+my $move_user = 0;  # Por defecto, no mover
+my $ou_dn = "";     # Inicializar vacío
 
-debug("OUs disponibles procesadas: " . join(", ", @available_ous));
-
-# Check if the OU exists in the list of available OUs
-my $ou_exists = 0;
-foreach my $available_ou (@available_ous) {
-    if ($available_ou eq $ou) {
-        $ou_exists = 1;
-        debug("OU encontrada: $ou");
-        last;
+if ($ou) {
+    debug("Buscando OU: $ou");
+    
+    # Validar que la OU existe
+    my $list_ous_cmd = "sudo samba-tool ou list";
+    my @available_ous_raw = split(/\n/, qx($list_ous_cmd));
+    
+    # Procesar y limpiar lista de OUs
+    my @available_ous = ();
+    foreach my $raw_ou (@available_ous_raw) {
+        $raw_ou =~ s/^\s+|\s+$//g;  # trim whitespace
+        $raw_ou =~ s/^OU=//i;       # Remove "OU=" prefix if present
+        push @available_ous, $raw_ou if $raw_ou;
     }
-}
-
-# Additional debugging to help identify issues
-if (!$ou_exists) {
-    debug("Comparación exacta fallida para '$ou'. Intentando comparación insensible a mayúsculas/minúsculas.");
-    # Try case-insensitive comparison as a fallback
+    
+    debug("OUs disponibles: " . join(", ", @available_ous));
+    
+    # Verificar si la OU existe (con verificación insensible a mayúsculas/minúsculas)
+    my $ou_exists = 0;
     foreach my $available_ou (@available_ous) {
         if (lc($available_ou) eq lc($ou)) {
             $ou_exists = 1;
-            debug("OU encontrada con comparación insensible: $available_ou vs $ou");
-            # Use the exact case from the list for consistency
+            debug("OU encontrada: $ou");
+            # Usar el nombre exacto de la lista para mantener la consistencia
             $ou = $available_ou;
             last;
         }
     }
+    
+    if (!$ou_exists) {
+        print encode_json({ error => "La carrera (OU) '$ou' no existe" });
+        debug("La OU '$ou' no existe.");
+        exit(1);
+    }
+    
+    # Construir el DN para la OU
+    $ou_dn = "ou=$ou,$domain_components";
+    debug("Usando OU DN: $ou_dn");
+    $move_user = 1;  # Habilitar mover el usuario
 }
-
-if (!$ou_exists) {
-    print encode_json({ error => "La carrera (OU) '$ou' no existe" });
-    debug("La OU '$ou' no existe en la lista de OUs disponibles.");
-    exit(1);
-}
-
-# Construct OU DN - this should now work with the correct case
-my $ou_dn = "OU=$ou,$defaultDN";
-debug("Usando OU DN: $ou_dn");
 
 # Function to check if a user already exists
 sub user_exists {
@@ -191,17 +179,21 @@ try {
     exit(1);
 };
 
-# Move the user to the specified OU
-my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"$ou_dn\" -d 3";
-debug("Moviendo usuario $samAccountName a la OU: $ou_dn");
-my $outputMove = qx($commandMove 2>&1);
+# Mover el usuario a la OU solamente si se proporcionó una OU
+if ($move_user && $ou_dn) {
+    my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"$ou_dn\" -d 3";
+    debug("Moviendo usuario $samAccountName a la OU: $ou_dn");
+    my $outputMove = qx($commandMove 2>&1);
 
-if ($? != 0) {
-    debug("Error al mover el usuario: $outputMove");
-    print encode_json({ error => "Error al mover el usuario a la carrera (OU) especificada", details => $outputMove });
-    exit(1);
+    if ($? != 0) {
+        debug("Error al mover el usuario: $outputMove");
+        print encode_json({ error => "Error al mover el usuario a la carrera (OU) especificada", details => $outputMove });
+        exit(1);
+    } else {
+        debug("Usuario $samAccountName movido exitosamente a OU $ou.");
+    }
 } else {
-    debug("Usuario $samAccountName movido exitosamente a OU $ou.");
+    debug("No se especificó OU o el OU_DN está vacío. El usuario $samAccountName permanece en el contenedor por defecto.");
 }
 
 # Check each group and add the user to the specified groups
