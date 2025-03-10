@@ -1,34 +1,18 @@
 "use client";
-import * as React from "react"
-import { type LegendProps, Legend, ResponsiveContainer, Tooltip } from "recharts"
+import * as React from "react";
+import { Legend, ResponsiveContainer, Tooltip } from "recharts";
+import { cn } from "@/components/lib/utils";
 
-import { cn } from "@/components/lib/utils"
-
-export type ChartConfig = {
-  [key: string]: {
-    label: string
-    color?: string
-  }
-}
-
-const ChartContext = React.createContext<{
-  config: ChartConfig | null
-}>({
+const ChartContext = React.createContext({
   config: null,
-})
-
-interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {
-  config: ChartConfig
-  children: React.ReactNode
-  className?: string
-}
+});
 
 export function ChartContainer({
   config,
   children,
   className,
   ...props
-}: ChartContainerProps) {
+}) {
   return (
     <ChartContext.Provider value={{ config }}>
       <div className={cn("recharts-responsive-container", className)} {...props}>
@@ -51,27 +35,15 @@ export function ChartContainer({
   )
 }
 
-interface ChartLegendProps extends LegendProps {
-  className?: string
-}
-
-export function ChartLegend({ className, ...props }: ChartLegendProps) {
+export function ChartLegend({ className, ...props }) {
   return <Legend wrapperStyle={{ paddingTop: "1.25em" }} {...props} />
-}
-
-interface ChartLegendContentProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  payload?: {
-    value: string
-    color: string
-  }[]
 }
 
 export function ChartLegendContent({
   payload,
   className,
   ...props
-}: ChartLegendContentProps) {
+}) {
   const { config } = React.useContext(ChartContext)
 
   if (!payload || !config) {
@@ -105,27 +77,8 @@ export function ChartLegendContent({
   )
 }
 
-export function ChartTooltip(props: React.ComponentProps<typeof Tooltip>) {
+export function ChartTooltip(props) {
   return <Tooltip {...props} />
-}
-
-interface ChartTooltipContentProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  active?: boolean
-  payload?: {
-    name: string
-    value: string | number
-    stroke: string
-    fill: string
-    dataKey: string
-    color: string
-  }[]
-  label?: string
-  labelFormatter?: (label: string) => React.ReactNode
-  valueFormatter?: (value: number) => React.ReactNode
-  indicator?: "box" | "line" | "dot" | "none"
-  className?: string
-  nameKey?: string
 }
 
 export function ChartTooltipContent({
@@ -138,7 +91,7 @@ export function ChartTooltipContent({
   className,
   nameKey,
   ...props
-}: ChartTooltipContentProps) {
+}) {
   const { config } = React.useContext(ChartContext)
 
   if (!active || !payload || !payload.length || !config) {
@@ -154,7 +107,7 @@ export function ChartTooltipContent({
       {...props}
     >
       <div className="border-b px-3.5 py-2 text-center text-xs font-medium">
-        {labelFormatter ? labelFormatter(label as string) : label}
+        {labelFormatter ? labelFormatter(label) : label}
       </div>
       <div className="px-3.5 py-2">
         {payload.map((item) => {
