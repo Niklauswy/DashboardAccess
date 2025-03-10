@@ -229,6 +229,27 @@ app.delete('/api/users/:username', (req, res) => {
   });
 });
 
+app.put('/api/users/:username', (req, res) => {
+  const username = sanitizeInput(req.params.username);
+  const userData = req.body;
+  
+  console.log(`Actualizando usuario: ${username}`);
+  console.log('Datos de actualización:', JSON.stringify(userData));
+  
+  // Añadimos el nombre de usuario original a los datos enviados al script
+  const dataToSend = {
+    ...userData,
+    originalUsername: username
+  };
+  
+  // Añadimos cabeceras para evitar cacheo
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  
+  executeScriptWithInput('perl editUser.pl', dataToSend, res);
+});
+
 // Catch-all route for unmatched endpoints
 app.all('*', (req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });

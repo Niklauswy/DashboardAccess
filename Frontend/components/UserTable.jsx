@@ -24,12 +24,13 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
     const { toast } = useToast();
     const { batchActions } = useUsers(); // Ahora usando el hook simplificado
     const [open, setOpen] = useState(false); // Add user dialog
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [batchDialogOpen, setBatchDialogOpen] = useState(false);
     const [batchActionType, setBatchActionType] = useState("");
-    const [currentUser, setCurrentUser] = useState(null);
-    
+    const [searchTerm, setSearchTerm] = useState('');
+    const [addUserOpen, setAddUserOpen] = useState(false);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+
     // Custom hooks to manage state and filters
     const {
         filter, setFilter,
@@ -83,8 +84,8 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
         const user = users.find(u => u.username === userId);
         switch (action) {
             case "edit":
-                setCurrentUser(user);
-                setEditDialogOpen(true);
+                setUserToEdit(user);
+                setEditUserOpen(true);
                 break;
             case "delete":
                 setCurrentUser(user);
@@ -127,6 +128,11 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                 variant: "destructive"
             });
         }
+    };
+
+    const handleEditUser = (user) => {
+        setUserToEdit(user);
+        setEditUserOpen(true);
     };
 
     const selectedUsers = users.filter(user => selectedRows.includes(user.username));
@@ -221,17 +227,6 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                 refreshUsers={refreshUsers} 
             />
             
-            <EditUserDialog
-                open={editDialogOpen}
-                onOpenChange={setEditDialogOpen}
-                currentUser={currentUser}
-                onUpdate={() => {
-                    setEditDialogOpen(false);
-                    toast({ title: "Usuario actualizado" });
-                    refreshUsers();
-                }}
-            />
-            
             <DeleteUserDialog
                 open={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}
@@ -250,6 +245,8 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                 selectedUsers={selectedUsers}
                 onConfirm={handleBatchConfirm}
             />
+
+           
         </div>
     );
 }
