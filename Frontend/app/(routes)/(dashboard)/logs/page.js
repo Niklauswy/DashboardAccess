@@ -73,11 +73,10 @@ export default function Logs() {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-6 lg:p-8">
- 
             <div className="space-y-4">
                 <LogFilter logs={logs} filters={filters} setFilters={setFilters} />
                 
-                <LogBarChart logs={filteredLogs} />
+                <LogBarChart logs={filteredLogs} filters={filters} />
                 
                 <LogTable 
                     logs={filteredLogs} 
