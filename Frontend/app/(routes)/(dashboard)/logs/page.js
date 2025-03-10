@@ -10,14 +10,17 @@ import LogTableSkeleton from '@/app/(routes)/(dashboard)/logs/components/LogTabl
 
 export default function Logs() {
     // Use the custom hook for logs
-    const { logs, error, isLoading, isRefreshing, refreshLogs } = useLogs();
-    // State for filters
+    const { logs = [], error, isLoading, isRefreshing, refreshLogs } = useLogs();
+    
+    // Initialize filters with empty arrays
     const [filters, setFilters] = useState({
-        user: '',
-        dateRange: '',
+        users: [],
+        ous: [],
+        groups: [],
+        events: [],
+        labs: [],
         ip: '',
-        event: '',
-        lab: ''
+        dateRange: null
     });
 
     if (error) {
@@ -33,23 +36,31 @@ export default function Logs() {
         return <LogTableSkeleton />;
     }
 
-    // Filter logs based on selected filters
+    // Filter logs based on the new multi-selection filters
     const filteredLogs = logs.filter(log => {
-        // User filter
-        const userMatch = !filters.user || 
-            (log.user && log.user.toLowerCase().includes(filters.user.toLowerCase()));
+        // User filter (any of the selected users)
+        const userMatch = filters.users.length === 0 || 
+            (log.user && filters.users.includes(log.user));
         
-        // IP filter
+        // OU filter (any of the selected OUs)
+        const ouMatch = filters.ous.length === 0 || 
+            (log.ou && filters.ous.includes(log.ou));
+            
+        // Group filter (any of the selected groups)
+        const groupMatch = filters.groups.length === 0 || 
+            (log.groups && log.groups.some(group => filters.groups.includes(group)));
+        
+        // Event filter (any of the selected events)
+        const eventMatch = filters.events.length === 0 || 
+            (log.event && filters.events.includes(log.event));
+        
+        // Lab filter (any of the selected labs)
+        const labMatch = filters.labs.length === 0 || 
+            (log.lab && filters.labs.includes(log.lab));
+        
+        // IP filter (partial match)
         const ipMatch = !filters.ip || 
             (log.ip && log.ip.includes(filters.ip));
-        
-        // Event filter
-        const eventMatch = !filters.event || 
-            (log.event && log.event.toLowerCase() === filters.event.toLowerCase());
-        
-        // Lab filter
-        const labMatch = !filters.lab || 
-            (log.lab && log.lab.toLowerCase() === filters.lab.toLowerCase());
         
         // Date range filter
         const dateRangeMatch = !filters.dateRange || (
@@ -59,7 +70,7 @@ export default function Logs() {
             log.dateObj <= new Date(filters.dateRange.to).setHours(23, 59, 59, 999)
         );
 
-        return userMatch && ipMatch && eventMatch && labMatch && dateRangeMatch;
+        return userMatch && ouMatch && groupMatch && eventMatch && labMatch && ipMatch && dateRangeMatch;
     });
 
     return (
@@ -70,9 +81,7 @@ export default function Logs() {
             <div className="space-y-4">
                 <LogFilter logs={logs} filters={filters} setFilters={setFilters} />
                 
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <LogBarChart logs={filteredLogs} />
-                </div>
+                <LogBarChart logs={filteredLogs} />
                 
                 <LogTable 
                     logs={filteredLogs} 
