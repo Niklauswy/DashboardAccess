@@ -95,19 +95,43 @@ my $defaultDN = (ref $defaultContainer && $defaultContainer->can('dn'))
 debug("Default Container DN: $defaultDN");
 debug("Buscando OU: $ou");
 
-# IMPROVED: Get the list of OUs directly from samba-tool
+# IMPROVED: Get the list of OUs directly from samba-tool and clean the output
 my $list_ous_cmd = "sudo samba-tool ou list";
-my @available_ous = split(/\n/, qx($list_ous_cmd));
-debug("OUs disponibles: " . join(", ", @available_ous));
+my @available_ous_raw = split(/\n/, qx($list_ous_cmd));
 
-# FIXED: Check if the OU exists in the list of available OUs
+# Process OU names to remove the "OU=" prefix if present
+my @available_ous = ();
+foreach my $raw_ou (@available_ous_raw) {
+    $raw_ou =~ s/^\s+|\s+$//g;  # trim whitespace
+    # Remove "OU=" prefix if present
+    $raw_ou =~ s/^OU=//i;
+    push @available_ous, $raw_ou if $raw_ou;
+}
+
+debug("OUs disponibles procesadas: " . join(", ", @available_ous));
+
+# Check if the OU exists in the list of available OUs
 my $ou_exists = 0;
 foreach my $available_ou (@available_ous) {
-    $available_ou =~ s/^\s+|\s+$//g;  # trim whitespace
     if ($available_ou eq $ou) {
         $ou_exists = 1;
         debug("OU encontrada: $ou");
         last;
+    }
+}
+
+# Additional debugging to help identify issues
+if (!$ou_exists) {
+    debug("Comparación exacta fallida para '$ou'. Intentando comparación insensible a mayúsculas/minúsculas.");
+    # Try case-insensitive comparison as a fallback
+    foreach my $available_ou (@available_ous) {
+        if (lc($available_ou) eq lc($ou)) {
+            $ou_exists = 1;
+            debug("OU encontrada con comparación insensible: $available_ou vs $ou");
+            # Use the exact case from the list for consistency
+            $ou = $available_ou;
+            last;
+        }
     }
 }
 
@@ -117,7 +141,7 @@ if (!$ou_exists) {
     exit(1);
 }
 
-# Construct OU DN
+# Construct OU DN - this should now work with the correct case
 my $ou_dn = "OU=$ou,$defaultDN";
 debug("Usando OU DN: $ou_dn");
 
