@@ -33,6 +33,7 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const [editUserOpen, setEditUserOpen] = useState(false);
     const [userToEdit, setUserToEdit] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null); // Add missing currentUser state
     
     // Custom hooks to manage state and filters
     const {
@@ -138,7 +139,7 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
         setEditUserOpen(true);
     };
 
-    const filteredSelectedUsers = users.filter(user => selectedRows.includes(user.username));
+    const selectedUsersList = users.filter(user => selectedRows.includes(user.username));
 
     return (
         <div className="flex flex-col space-y-4">
@@ -245,7 +246,7 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                 open={batchDialogOpen}
                 onClose={() => setBatchDialogOpen(false)}
                 actionType={batchActionType}
-                selectedUsers={filteredSelectedUsers}
+                selectedUsers={selectedUsersList}
                 onConfirm={handleBatchConfirm}
             />
 
