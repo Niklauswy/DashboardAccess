@@ -225,7 +225,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
               )}
             </div>
 
-            {/* Grupos - Fixed to prevent popover from closing on selection */}
+            {/* Grupos - Updating to match the working implementation in SerialUserCreator */}
             <div className="space-y-2">
               <Label>
                 Grupos <span className="text-destructive">*</span>
@@ -238,14 +238,14 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                     aria-expanded={openGroups}
                     className={cn("w-full justify-between", errors.groups ? "border-destructive" : "")}
                     disabled={isLoading}
-                    type="button" // Prevent form submission
+                    type="button"
                   >
                     {isLoading ? "Cargando..." : 
                       newUser.groups.length > 0 ? `${newUser.groups.length} grupos seleccionados` : "Seleccione grupos"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start" side="bottom">
+                <PopoverContent className="w-full p-0" align="start">
                   <Command>
                     <CommandInput placeholder="Buscar grupos..." />
                     <CommandList>
@@ -257,21 +257,16 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                           groups.map((group) => (
                             <CommandItem
                               key={group}
-                              onSelect={() => {
-                                handleGroupsChange(group);
-                                // Keep popover open by preventing default
-                                return false;
-                              }}
+                              value={group}
+                              onSelect={() => handleGroupsChange(group)}
                             >
-                              <div className="flex items-center w-full" onClick={(e) => e.preventDefault()}>
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    newUser.groups.includes(group) ? "opacity-100" : "opacity-0",
-                                  )}
-                                />
-                                <span>{group}</span>
-                              </div>
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  newUser.groups.includes(group) ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                              {group}
                             </CommandItem>
                           ))
                         ) : (
