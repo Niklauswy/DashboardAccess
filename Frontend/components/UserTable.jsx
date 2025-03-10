@@ -58,38 +58,14 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
 
     // Filtered and sorted data
     const filteredUsers = useMemo(() => {
-        if (!Array.isArray(users)) return [];
-        
-        if (!filter.trim()) {
-            // If no filter, just apply OU and group filters
-            return users.filter(
-                (user) =>
-                    (selectedCarreras.length === 0 || selectedCarreras.includes(user.ou)) &&
-                    (selectedGroups.length === 0 || (user.groups && user.groups.some(group => selectedGroups.includes(group))))
-            );
-        }
-
-        // Split search terms by spaces for multi-word search
-        const searchTerms = filter.toLowerCase().trim().split(/\s+/);
-        
-        return users.filter((user) => {
-            // Check if user matches OU and group filters
-            const matchesOuFilter = selectedCarreras.length === 0 || selectedCarreras.includes(user.ou);
-            const matchesGroupFilter = selectedGroups.length === 0 || 
-                (user.groups && user.groups.some(group => selectedGroups.includes(group)));
-            
-            if (!matchesOuFilter || !matchesGroupFilter) {
-                return false;
-            }
-            
-            // Create a combined text from relevant fields for searching
-            const fullName = `${user.givenName || ''} ${user.sn || ''}`.toLowerCase();
-            const username = (user.username || user.samAccountName || '').toLowerCase();
-            const searchableText = `${username} ${fullName} ${user.ou || ''}`.toLowerCase();
-            
-            // Return true if ALL search terms are found in any searchable field
-            return searchTerms.every(term => searchableText.includes(term));
-        });
+        return Array.isArray(users) ? users.filter(
+            (user) =>
+                (selectedCarreras.length === 0 || selectedCarreras.includes(user.ou)) &&
+                (selectedGroups.length === 0 || (user.groups && user.groups.some(group => selectedGroups.includes(group)))) &&
+                Object.values(user).some((value) =>
+                    value && value.toString().toLowerCase().includes(filter.toLowerCase())
+                )
+        ) : [];
     }, [filter, selectedCarreras, selectedGroups, users]);
 
     const sortedUsers = useMemo(() => {

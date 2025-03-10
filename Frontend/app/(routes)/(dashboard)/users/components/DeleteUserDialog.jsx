@@ -1,92 +1,85 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { useUsers } from "@/hooks/useUsers";
-import { useState } from "react";
-import { toast } from "@/components/hooks/use-toast";
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/hooks/use-toast"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useUsers } from '@/hooks/useUsers';
 
 export default function DeleteUserDialog({ open, onOpenChange, currentUser, onDelete }) {
-    const { deleteUser } = useUsers();
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [error, setError] = useState(null);
-    
-    const handleDelete = async () => {
-        if (!currentUser?.username) return;
-        
-        setIsDeleting(true);
-        setError(null);
-        
-        try {
-            await deleteUser(currentUser.username);
-            
-            onOpenChange(false);
-            onDelete();
-            
-            if (typeof toast === 'function') {
-                toast({
-                    title: "Usuario eliminado",
-                    description: `El usuario ${currentUser.username} ha sido eliminado exitosamente.`,
-                    variant: "success",
-                });
-            }
-        } catch (error) {
-            setError(error.message || 'Error al eliminar usuario');
-            
-            if (typeof toast === 'function') {
-                toast({
-                    title: "Error",
-                    description: error.message || 'Error al eliminar usuario',
-                    variant: "destructive",
-                });
-            }
-        } finally {
-            setIsDeleting(false);
-        }
-    };
+  const { toast } = useToast();
+  const { deleteUser } = useUsers();
+  const [isDeleting, setIsDeleting] = useState(false);
 
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent 
-                className="sm:max-w-[600px]"
-                aria-describedby="delete-user-description"
-            >
-                <DialogHeader>
-                    <DialogTitle className="text-2xl">Eliminar Usuario</DialogTitle>
-                    <DialogDescription id="delete-user-description">
-                        Esta acción no se puede deshacer. El usuario será eliminado permanentemente.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-6 mt-4">
-                    <p>
-                        ¿Está seguro de eliminar el usuario <strong>{currentUser?.username}</strong>?
-                    </p>
-                    
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
-                            <p className="font-medium">Error</p>
-                            <p>{error}</p>
-                        </div>
-                    )}
-                    
-                    <div className="flex justify-end gap-4">
-                        <Button 
-                            type="button" 
-                            variant="outline" 
-                            onClick={() => onOpenChange(false)}
-                            disabled={isDeleting}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button 
-                            type="button" 
-                            variant="destructive" 
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                        >
-                            {isDeleting ? "Eliminando..." : "Eliminar"}
-                        </Button>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-    );
+  const handleDeleteConfirm = async () => {
+    if (!currentUser) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteUser(currentUser.username || currentUser.samAccountName);
+      onDelete();
+    } catch (error) {
+      toast({
+        title: "Error al eliminar usuario",
+        description: error.message || "No se pudo eliminar el usuario",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <Dialog 
+      open={open} 
+      onOpenChange={(isOpen) => {
+        // Clean up when dialog closes
+        if (!isOpen) {
+          // Force focus back to document body
+          setTimeout(() => {
+            document.body.focus();
+          }, 10);
+        }
+        onOpenChange(isOpen);
+      }}
+    >
+      <DialogContent 
+        className="sm:max-w-[425px]"
+        onEscapeKeyDown={() => onOpenChange(false)}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>Confirmar eliminación</DialogTitle>
+          <DialogDescription>
+            ¿Está seguro de que desea eliminar al usuario{" "}
+            <span className="font-medium">
+              {currentUser?.givenName 
+                ? `${currentUser.givenName} ${currentUser.sn}`
+                : currentUser?.username || ""}
+            </span>?
+            Esta acción no se puede deshacer.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+            disabled={isDeleting}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            type="button" 
+            variant="destructive"
+            disabled={isDeleting}
+            onClick={handleDeleteConfirm}
+          >
+            {isDeleting ? 'Eliminando...' : 'Eliminar'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }

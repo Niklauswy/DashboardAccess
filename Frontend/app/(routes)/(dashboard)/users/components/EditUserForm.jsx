@@ -146,16 +146,31 @@ export default function EditUserForm({ user, refreshUsers, open, onOpenChange })
     <Dialog 
       open={open} 
       onOpenChange={(isOpen) => {
-        // Ensure we clean up when dialog closes
+        // Clean up when dialog closes
         if (!isOpen) {
-          // Clean up state when closing to avoid stale state
           setErrors({});
           setOpenGroups(false);
+          // Force focus back to document body
+          setTimeout(() => {
+            document.body.focus();
+          }, 10);
         }
         onOpenChange(isOpen);
       }}
     >
-      <DialogContent className="sm:max-w-[600px]" onPointerDownOutside={(e) => e.preventDefault()}>
+      <DialogContent 
+        className="sm:max-w-[600px]"
+        // Important: Add these handlers to fix focus issues
+        onEscapeKeyDown={() => onOpenChange(false)}
+        onPointerDownOutside={(e) => {
+          // Allow outside clicks but prevent focus trap issues
+          e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          // Don't let interactions outside trigger focus change
+          e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="text-2xl">Editar Usuario</DialogTitle>
         </DialogHeader>

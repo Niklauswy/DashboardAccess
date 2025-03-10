@@ -124,19 +124,8 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
   }
 
   return (
-    <Dialog 
-      open={open} 
-      onOpenChange={(isOpen) => {
-        // Ensure we clean up when dialog closes
-        if (!isOpen) {
-          // Clean up state when closing
-          setErrors({});
-          setOpenGroups(false);
-        }
-        onOpenChange(isOpen);
-      }}
-    >
-      <DialogContent className="sm:max-w-[600px]" onPointerDownOutside={(e) => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="text-2xl">Agregar Nuevo Usuario</DialogTitle>
         </DialogHeader>
