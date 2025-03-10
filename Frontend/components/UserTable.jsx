@@ -29,7 +29,6 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
     const [batchDialogOpen, setBatchDialogOpen] = useState(false);
     const [batchActionType, setBatchActionType] = useState("");
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedUsers, setSelectedUsers] = useState([]);
     const [addUserOpen, setAddUserOpen] = useState(false);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const [editUserOpen, setEditUserOpen] = useState(false);
@@ -139,7 +138,7 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
         setEditUserOpen(true);
     };
 
-    const selectedUsers = users.filter(user => selectedRows.includes(user.username));
+    const filteredSelectedUsers = users.filter(user => selectedRows.includes(user.username));
 
     return (
         <div className="flex flex-col space-y-4">
@@ -246,7 +245,7 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                 open={batchDialogOpen}
                 onClose={() => setBatchDialogOpen(false)}
                 actionType={batchActionType}
-                selectedUsers={selectedUsers}
+                selectedUsers={filteredSelectedUsers}
                 onConfirm={handleBatchConfirm}
             />
 
