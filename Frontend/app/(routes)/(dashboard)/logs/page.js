@@ -62,7 +62,7 @@ export default function Logs() {
         const ipMatch = !filters.ip || 
             (log.ip && log.ip.includes(filters.ip));
         
-        // Date range filter
+        // Date range filter - Ensure we have both from and to dates before attempting comparison
         const dateRangeMatch = !filters.dateRange || !filters.dateRange.from || !filters.dateRange.to || (
             log.dateObj >= new Date(filters.dateRange.from) &&
             log.dateObj <= new Date(filters.dateRange.to).setHours(23, 59, 59, 999)
