@@ -106,7 +106,9 @@ export default function EditUserForm({ user, refreshUsers, open, onOpenChange })
     try {
       // Solo incluir contraseña si se va a cambiar
       const dataToUpdate = {
-        ...editedUser
+        ...editedUser,
+        // Asegurarse de que no se modifique el nombre de usuario original
+        samAccountName: user.samAccountName || user.username
       };
       
       if (!changePassword) {
@@ -148,21 +150,18 @@ export default function EditUserForm({ user, refreshUsers, open, onOpenChange })
         </DialogHeader>
         <form onSubmit={handleUpdateUser} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Usuario */}
+            {/* Usuario - Now non-editable */}
             <div className="space-y-2">
               <Label htmlFor="edit-samAccountName">
-                Usuario <span className="text-destructive">*</span>
+                Usuario <span className="text-gray-500">(no editable)</span>
               </Label>
               <Input
                 id="edit-samAccountName"
-                placeholder="Ingrese el usuario"
                 value={editedUser.samAccountName}
-                onChange={(e) => setEditedUser({ ...editedUser, samAccountName: e.target.value })}
-                className={errors.samAccountName ? "border-destructive" : ""}
+                className="bg-gray-50"
+                disabled={true}
               />
-              {errors.samAccountName && (
-                <p className="text-sm text-destructive">{errors.samAccountName}</p>
-              )}
+              <p className="text-xs text-muted-foreground">El nombre de usuario no puede ser modificado para mantener la integridad de datos.</p>
             </div>
             
             {/* Nombre */}
