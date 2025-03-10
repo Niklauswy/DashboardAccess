@@ -480,7 +480,7 @@ export default function LogFilter({ logs, filters, setFilters }) {
                   IP: {filters.ip}
                 </Badge>
               )}
-              {filters.dateRange && (
+              {filters.dateRange && filters.dateRange.from && filters.dateRange.to && (
                 <Badge className="bg-primary/10 text-primary border-primary/20">
                   Fechas: {filters.dateRange.from.toLocaleDateString()} - {filters.dateRange.to.toLocaleDateString()}
                 </Badge>

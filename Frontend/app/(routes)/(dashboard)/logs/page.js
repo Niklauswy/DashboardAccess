@@ -63,9 +63,7 @@ export default function Logs() {
             (log.ip && log.ip.includes(filters.ip));
         
         // Date range filter
-        const dateRangeMatch = !filters.dateRange || (
-            filters.dateRange.from && 
-            filters.dateRange.to &&
+        const dateRangeMatch = !filters.dateRange || !filters.dateRange.from || !filters.dateRange.to || (
             log.dateObj >= new Date(filters.dateRange.from) &&
             log.dateObj <= new Date(filters.dateRange.to).setHours(23, 59, 59, 999)
         );
@@ -75,9 +73,7 @@ export default function Logs() {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-6 lg:p-8">
-            <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-bold tracking-tight">Registros de Actividad</h2>
-            </div>
+ 
             <div className="space-y-4">
                 <LogFilter logs={logs} filters={filters} setFilters={setFilters} />
                 
