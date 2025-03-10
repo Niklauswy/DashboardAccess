@@ -1,89 +1,84 @@
 'use client';
-import React, {useEffect, useState} from 'react';
+
+import React, { useState } from 'react';
 import LogTable from '@/app/(routes)/(dashboard)/logs/components/LogTable';
-import LogFilter from '@/app/(routes)/(dashboard)/logs/components/LogFiltrer';
-import {LogBarChart} from '@/app/(routes)/(dashboard)/logs/components/LogBarChart';
-import {parse} from 'date-fns';
+import LogFilter from '@/app/(routes)/(dashboard)/logs/components/LogFilter';
+import { LogBarChart } from '@/app/(routes)/(dashboard)/logs/components/LogBarChart';
+import { useLogs } from '@/hooks/useLogs';
 import ErrorServer from '@/components/ErrorServer';
-import NoData from '@/components/NoData';
 import LogTableSkeleton from '@/app/(routes)/(dashboard)/logs/components/LogTableSkeleton';
 
 export default function Logs() {
-    const [filters, setFilters] = useState({user: '', dateRange: '', ip: '', event: ''});
-    const [logs, setLogs] = useState([]);
-    const [serverError, setServerError] = useState(null);
+    // Use the custom hook for logs
+    const { logs, error, isLoading, isRefreshing, refreshLogs } = useLogs();
+    // State for filters
+    const [filters, setFilters] = useState({
+        user: '',
+        dateRange: '',
+        ip: '',
+        event: '',
+        lab: ''
+    });
 
-    useEffect(() => {
-        async function fetchLogs() {
-            try {
-                const res = await fetch('/api/logs', { // Cambiado a ruta relativa
-                    cache: 'no-store',
-                });
-                if (!res.ok) {
-                    throw new Error('Error fetching logs');
-                }
-                const data = await res.json();
-                console.log('Fetched logs:', data); // Añadido para depuración
-                setLogs(data);
-                setServerError(null);
-            } catch (error) {
-                console.error('Error fetching logs:', error);
-                setServerError(error.message);
-            }
-        }
-
-        fetchLogs();
-        const intervalId = setInterval(() => {
-            fetchLogs();
-        }, 5000);
-        return () => clearInterval(intervalId);
-    }, []);
-
-    const handleRetry = () => {
-        window.location.reload();
-    };
-
-    if (serverError) {
-        return <ErrorServer message={serverError} onRetry={handleRetry} />;
+    if (error) {
+        return (
+            <ErrorServer
+                message="Error al cargar los registros de logs. Por favor, intente de nuevo."
+                onRetry={refreshLogs}
+            />
+        );
     }
 
-    if (!logs) {
+    if (isLoading) {
         return <LogTableSkeleton />;
     }
 
-    // Check if logs is an array and non-empty
-    if (!Array.isArray(logs) || logs.length === 0) {
-        return <NoData message="No se encontraron logs." />;
-    }
-
-    const filteredLogs = logs.filter(({user, ip, event, date}) => {
-        const {user: filterUser, ip: filterIp, event: filterEvent, dateRange} = filters;
-
-        const userMatch = !filterUser || user?.toLowerCase().includes(filterUser.toLowerCase());
-        const ipMatch = !filterIp || ip?.includes(filterIp);
-        const eventMatch = !filterEvent || event?.toLowerCase() === filterEvent.toLowerCase();
-
-        const logDateObj = parse(date, 'yyyy MMM dd HH:mm:ss', new Date());
-
-        const dateRangeMatch = !dateRange || (
-            dateRange.from && dateRange.to &&
-            logDateObj >= new Date(dateRange.from) &&
-            logDateObj <= new Date(dateRange.to).setHours(23, 59, 59, 999)
+    // Filter logs based on selected filters
+    const filteredLogs = logs.filter(log => {
+        // User filter
+        const userMatch = !filters.user || 
+            (log.user && log.user.toLowerCase().includes(filters.user.toLowerCase()));
+        
+        // IP filter
+        const ipMatch = !filters.ip || 
+            (log.ip && log.ip.includes(filters.ip));
+        
+        // Event filter
+        const eventMatch = !filters.event || 
+            (log.event && log.event.toLowerCase() === filters.event.toLowerCase());
+        
+        // Lab filter
+        const labMatch = !filters.lab || 
+            (log.lab && log.lab.toLowerCase() === filters.lab.toLowerCase());
+        
+        // Date range filter
+        const dateRangeMatch = !filters.dateRange || (
+            filters.dateRange.from && 
+            filters.dateRange.to &&
+            log.dateObj >= new Date(filters.dateRange.from) &&
+            log.dateObj <= new Date(filters.dateRange.to).setHours(23, 59, 59, 999)
         );
 
-        return userMatch && ipMatch && eventMatch && dateRangeMatch;
+        return userMatch && ipMatch && eventMatch && labMatch && dateRangeMatch;
     });
 
-    console.log('Filtered logs:', filteredLogs); // Añadido para verificar logs filtrados
-
     return (
-        <div className="flex min-h-screen w-full flex-col">
-            <div className="flex flex-col sm:gap-4 sm:py-4">
-                <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-                    <LogFilter logs={logs} filters={filters} setFilters={setFilters}/>
-                    <LogTable logs={filteredLogs}/>
-                    <LogBarChart logs={filteredLogs}/>
-                </main>
+        <div className="flex-1 space-y-4 p-4 md:p-6 lg:p-8">
+            <div className="flex items-center justify-between">
+                <h2 className="text-3xl font-bold tracking-tight">Registros de Actividad</h2>
+            </div>
+            <div className="space-y-4">
+                <LogFilter logs={logs} filters={filters} setFilters={setFilters} />
+                
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <LogBarChart logs={filteredLogs} />
+                </div>
+                
+                <LogTable 
+                    logs={filteredLogs} 
+                    isRefreshing={isRefreshing} 
+                    refreshLogs={refreshLogs} 
+                />
             </div>
         </div>
     );

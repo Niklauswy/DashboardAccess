@@ -1,16 +1,48 @@
 import React from 'react';
 import { TableCell, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { LogIn, LogOut } from "lucide-react";
 
 const LogRow = ({ log, index }) => {
-  const rowClass = index % 2 === 0 ? 'bg-gray-100' : 'bg-white';
+  // Alternate row colors for better readability
+  const rowClass = index % 2 === 0 ? 'bg-muted/50' : '';
+  
+  // Determine badge color based on event type
+  const getEventBadge = (event) => {
+    if (!event) return <Badge variant="outline">Desconocido</Badge>;
+    
+    const lowerEvent = event.toLowerCase();
+    if (lowerEvent.includes('login') || lowerEvent.includes('ingreso')) {
+      return (
+        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
+          <LogIn className="mr-1 h-3 w-3" />
+          {event}
+        </Badge>
+      );
+    }
+    
+    if (lowerEvent.includes('logout') || lowerEvent.includes('salida')) {
+      return (
+        <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200">
+          <LogOut className="mr-1 h-3 w-3" />
+          {event}
+        </Badge>
+      );
+    }
+    
+    return <Badge variant="outline">{event}</Badge>;
+  };
+
   return (
     <TableRow className={rowClass}>
-      <TableCell>{log.user}</TableCell>
-      <TableCell>{log.ip}</TableCell>
-        <TableCell>{log.id_computer}</TableCell>
-        <TableCell>{log.lab}</TableCell>
-      <TableCell>{log.event}</TableCell>
-      <TableCell>{log.date}</TableCell>
+      <TableCell className="font-medium">{log.user || '-'}</TableCell>
+      <TableCell>{log.ip || '-'}</TableCell>
+      <TableCell>{log.id_computer || '-'}</TableCell>
+      <TableCell>{log.lab || '-'}</TableCell>
+      <TableCell>{getEventBadge(log.event)}</TableCell>
+      <TableCell className="text-right font-mono text-xs">
+        {log.formattedDate || log.date || '-'}
+      </TableCell>
     </TableRow>
   );
 };
