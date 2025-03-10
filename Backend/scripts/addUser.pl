@@ -7,7 +7,7 @@ use EBox;
 use EBox::Samba::User;
 use File::Slurp;
 use Try::Tiny;
-use EBox::Samba::OU; # Asegurarse que EBox::Samba::OU está disponible
+use EBox::Samba::OU; 
 
 # Function to print debug messages to STDERR
 sub debug {
@@ -20,137 +20,63 @@ EBox::init();
 
 my $json_text = do { local $/; <STDIN> };
 
+# Constantes y configuración
+my $DOMAIN = "dc=access,dc=com";
+my $PASSWORD_REGEX = qr/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+# Función unificada para manejar errores
+sub error_exit {
+    my ($message, $details) = @_;
+    debug($message);
+    my $error_data = { error => $message };
+    $error_data->{details} = $details if $details;
+    print encode_json($error_data);
+    exit(1);
+}
+
+# Decodificar JSON de entrada
 my $user_data;
 try {
     $user_data = decode_json($json_text);
-    #debug("Datos JSON decodificados correctamente.");
 } catch {
-    print encode_json({ error => 'Datos JSON inválidos', details => "$_" });
-    debug("Error al decodificar JSON: $_");
-    exit(1);
+    error_exit('Datos JSON inválidos', "$_");
 };
 
-# Extract user data
-my $samAccountName = $user_data->{samAccountName};
-my $givenName      = $user_data->{givenName};
-my $sn             = $user_data->{sn};
-my $password       = $user_data->{password};
-my $ou             = defined $user_data->{ou} ? $user_data->{ou} : "";
-my $groups         = $user_data->{groups};
+# Extraer datos del usuario
+my $samAccountName = $user_data->{samAccountName} || '';
+my $givenName      = $user_data->{givenName} || '';
+my $sn             = $user_data->{sn} || '';
+my $password       = $user_data->{password} || '';
+my $ou             = $user_data->{ou} || '';
+my $groups         = ref($user_data->{groups}) eq 'ARRAY' ? $user_data->{groups} : [];
 my $description    = $user_data->{description} || '';
 
-# Validate required fields (OU and groups are now required)
-unless ($samAccountName && $givenName && $sn && $password) {
-    my $missing = [];
-    push @$missing, "nombre de usuario" unless $samAccountName;
-    push @$missing, "nombre" unless $givenName;
-    push @$missing, "apellido" unless $sn;
-    push @$missing, "contraseña" unless $password;
-    
-    my $error_msg = "Faltan campos requeridos: " . join(", ", @$missing);
-    print encode_json({ error => $error_msg });
-    debug($error_msg);
-    exit(1);
-}
+# Validar campos requeridos
+my @missing;
+push @missing, "nombre de usuario" unless $samAccountName;
+push @missing, "nombre" unless $givenName;
+push @missing, "apellido" unless $sn;
+push @missing, "contraseña" unless $password;
+error_exit("Faltan campos requeridos: " . join(", ", @missing)) if @missing;
 
-# Validate groups is a non-empty array
-unless ($groups && ref($groups) eq 'ARRAY' && scalar(@$groups) > 0) {
-    print encode_json({ error => "Debe seleccionar al menos un grupo" });
-    debug("No se seleccionaron grupos");
-    exit(1);
-}
+# Validar grupos
+error_exit("Debe seleccionar al menos un grupo") unless scalar(@$groups) > 0;
 
-# Validate password complexity with regex
-if (length($password) < 8) {
-    print encode_json({ error => "La contraseña debe tener al menos 8 caracteres" });
-    debug("Contraseña demasiado corta");
-    exit(1);
-}
+# Validar contraseña
+error_exit("La contraseña debe tener al menos 8 caracteres") if length($password) < 8;
+error_exit("La contraseña debe contener al menos una letra mayúscula, una minúscula y un número") 
+    unless $password =~ $PASSWORD_REGEX;
 
-# Validate password complexity with regex
-if ($password !~ /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/) {
-    print encode_json({ 
-        error => "La contraseña debe contener al menos una letra mayúscula, una minúscula y un número"
-    });
-    debug("La contraseña no cumple requisitos de complejidad");
-    exit(1);
-}
+# Verificar si el usuario ya existe
+my $user_exists = `sudo samba-tool user show "$samAccountName" 2>/dev/null`;
+error_exit("El usuario '$samAccountName' ya existe") if $user_exists;
 
-# Get default users container and its DN string
+# Obtener contenedor predeterminado
 my $defaultContainer = EBox::Samba::User->defaultContainer();
-my $defaultDN = (ref $defaultContainer && $defaultContainer->can('dn'))
-    ? $defaultContainer->dn
-    : $defaultContainer;
 
-debug("Default Container DN: $defaultDN");
-
-# SIMPLIFICADO: Hardcodear el dominio directamente
-my $domain_components = "dc=access,dc=com";
-debug("Usando dominio hardcodeado: $domain_components");
-
-# Verificar OU solo si se proporciona
-my $move_user = 0;  # Por defecto, no mover
-my $ou_dn = "";     # Inicializar vacío
-
-if ($ou) {
-    debug("Buscando OU: $ou");
-    
-    # Validar que la OU existe
-    my $list_ous_cmd = "sudo samba-tool ou list";
-    my @available_ous_raw = split(/\n/, qx($list_ous_cmd));
-    
-    # Procesar y limpiar lista de OUs
-    my @available_ous = ();
-    foreach my $raw_ou (@available_ous_raw) {
-        $raw_ou =~ s/^\s+|\s+$//g;  # trim whitespace
-        $raw_ou =~ s/^OU=//i;       # Remove "OU=" prefix if present
-        push @available_ous, $raw_ou if $raw_ou;
-    }
-    
-    debug("OUs disponibles: " . join(", ", @available_ous));
-    
-    # Verificar si la OU existe (con verificación insensible a mayúsculas/minúsculas)
-    my $ou_exists = 0;
-    foreach my $available_ou (@available_ous) {
-        if (lc($available_ou) eq lc($ou)) {
-            $ou_exists = 1;
-            debug("OU encontrada: $ou");
-            # Usar el nombre exacto de la lista para mantener la consistencia
-            $ou = $available_ou;
-            last;
-        }
-    }
-    
-    if (!$ou_exists) {
-        print encode_json({ error => "La carrera (OU) '$ou' no existe" });
-        debug("La OU '$ou' no existe.");
-        exit(1);
-    }
-    
-    # Construir el DN para la OU
-    $ou_dn = "ou=$ou,$domain_components";
-    debug("Usando OU DN: $ou_dn");
-    $move_user = 1;  # Habilitar mover el usuario
-}
-
-# Function to check if a user already exists
-sub user_exists {
-    my ($username) = @_;
-    my $check_command = `sudo samba-tool user show "$username" 2>/dev/null`;
-    return $check_command ? 1 : 0;
-}
-
-# Check if the user already exists
-if (user_exists($samAccountName)) {
-    print encode_json({ error => "El usuario '$samAccountName' ya existe" });
-    debug("Usuario $samAccountName ya existe.");
-    exit(1);
-}
-
-# Create the user
-my $user;
+# Crear el usuario
 try {
-    $user = EBox::Samba::User->create(
+    my $user = EBox::Samba::User->create(
         samAccountName => $samAccountName,
         parent         => $defaultContainer,
         givenName      => $givenName,
@@ -163,9 +89,8 @@ try {
     my $error_msg = $_;
     my $user_friendly_error;
     
-    # Capturar errores comunes y convertirlos a mensajes más amigables
     if ($error_msg =~ /password validation failed/i) {
-        $user_friendly_error = "La contraseña no cumple con los requisitos de complejidad. Debe incluir mayúsculas, minúsculas, números y caracteres especiales.";
+        $user_friendly_error = "La contraseña no cumple con los requisitos de complejidad.";
     } elsif ($error_msg =~ /already exists/i) {
         $user_friendly_error = "El usuario '$samAccountName' ya existe en el sistema.";
     } elsif ($error_msg =~ /invalid characters/i) {
@@ -174,60 +99,55 @@ try {
         $user_friendly_error = "Error al crear el usuario: $_";
     }
     
-    print encode_json({ error => $user_friendly_error, details => "$error_msg" });
-    debug("Error al crear el usuario: $error_msg");
-    exit(1);
+    error_exit($user_friendly_error, "$error_msg");
 };
 
-# Mover el usuario a la OU solamente si se proporcionó una OU
-if ($move_user && $ou_dn) {
+# Mover a OU si se especificó
+if ($ou) {
+    # Simplificamos la validación de OU
+    my $list_ous_cmd = "sudo samba-tool ou list";
+    my @available_ous = split(/\n/, qx($list_ous_cmd));
+    my $ou_exists = 0;
+    
+    foreach my $available_ou (@available_ous) {
+        $available_ou =~ s/^\s+|\s+$//g;  # trim
+        $available_ou =~ s/^OU=//i;       # remove prefix
+        if (lc($available_ou) eq lc($ou)) {
+            $ou_exists = 1;
+            $ou = $available_ou;  # usar el caso exacto
+            last;
+        }
+    }
+    
+    error_exit("La carrera (OU) '$ou' no existe") unless $ou_exists;
+    
+    my $ou_dn = "ou=$ou,$DOMAIN";
     my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"$ou_dn\" -d 3";
-    debug("Moviendo usuario $samAccountName a la OU: $ou_dn");
     my $outputMove = qx($commandMove 2>&1);
 
-    if ($? != 0) {
-        debug("Error al mover el usuario: $outputMove");
-        print encode_json({ error => "Error al mover el usuario a la carrera (OU) especificada", details => $outputMove });
-        exit(1);
-    } else {
-        debug("Usuario $samAccountName movido exitosamente a OU $ou.");
-    }
-} else {
-    debug("No se especificó OU o el OU_DN está vacío. El usuario $samAccountName permanece en el contenedor por defecto.");
+    error_exit("Error al mover el usuario a la OU especificada", $outputMove) if $? != 0;
+    debug("Usuario $samAccountName movido exitosamente a OU $ou.");
 }
 
-# Check each group and add the user to the specified groups
+# Agregar a grupos
 foreach my $groupName (@$groups) {
     next unless $groupName =~ /\S/;
     
-    # Check if group exists
     my $checkGroup = `sudo samba-tool group show "$groupName" 2>/dev/null`;
-    unless ($checkGroup) {
-        print encode_json({ error => "El grupo '$groupName' no existe" });
-        debug("El grupo '$groupName' no existe");
-        exit(1);
-    }
+    error_exit("El grupo '$groupName' no existe") unless $checkGroup;
     
-    debug("Añadiendo usuario $samAccountName al grupo $groupName.");
     my $commandAddGroup = "sudo samba-tool group addmembers \"$groupName\" \"$samAccountName\"";
     my $outputAddGroup = qx($commandAddGroup 2>&1);
 
     if ($? != 0) {
-        debug("Error al añadir al grupo: $outputAddGroup");
-        if ($outputAddGroup =~ /failed to find/i) {
-            print encode_json({ error => "El grupo '$groupName' no existe", details => $outputAddGroup });
-        } else {
-            print encode_json({ error => "Error al añadir el usuario al grupo '$groupName'", details => $outputAddGroup });
-        }
-        exit(1);
-    } else {
-        debug("Usuario $samAccountName añadido exitosamente al grupo $groupName.");
+        error_exit("Error al añadir el usuario al grupo '$groupName'", $outputAddGroup);
     }
+    debug("Usuario $samAccountName añadido exitosamente al grupo $groupName.");
 }
 
-# Success response
-debug("Usuario $samAccountName creado y configurado correctamente.");
+# Respuesta exitosa
 print encode_json({ success => "Usuario $samAccountName creado correctamente." });
+exit(0);
 
 
 

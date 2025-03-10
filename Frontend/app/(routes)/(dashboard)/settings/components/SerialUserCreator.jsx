@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Check, ChevronsUpDown, X } from "lucide-react"
 import { cn } from "@/components/lib/utils"
-import { PasswordInput } from "@/components/PasswordInput"
+import { useValidation } from "@/hooks/useValidation"
 
 export default function SerialUserCreator({
   onCreateUsers,
@@ -19,6 +19,7 @@ export default function SerialUserCreator({
   groups = [],
   ous = []
 }) {
+  const { validatePassword, validateField, validateArray } = useValidation();
   const [newUserPrefix, setNewUserPrefix] = useState("")
   const [newUserQuantity, setNewUserQuantity] = useState(1)
   const [newUserDefaultPassword, setNewUserDefaultPassword] = useState("")
@@ -27,28 +28,21 @@ export default function SerialUserCreator({
   const [formErrors, setFormErrors] = useState({})
   const [openSeriesGroups, setOpenSeriesGroups] = useState(false)
 
-  // Función para validar el formulario
+  // Función para validar el formulario using the validation hook
   const validateSerialForm = () => {
     const errors = {};
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
     
-    if (!newUserPrefix.trim()) {
-      errors.prefix = "El prefijo es obligatorio";
-    }
+    const prefixError = validateField(newUserPrefix, "prefijo");
+    if (prefixError) errors.prefix = prefixError;
     
-    if (!newUserDefaultPassword) {
-      errors.password = "La contraseña es obligatoria";
-    } else if (!passwordRegex.test(newUserDefaultPassword)) {
-      errors.password = "La contraseña debe tener al menos 8 caracteres, una letra mayúscula, una minúscula y un número";
-    }
+    const passwordError = validatePassword(newUserDefaultPassword);
+    if (passwordError) errors.password = passwordError;
     
-    if (!serieOU) {
-      errors.ou = "Debe seleccionar una carrera";
-    }
+    const ouError = validateField(serieOU, "carrera");
+    if (ouError) errors.ou = ouError;
     
-    if (!serieGroups.length) {
-      errors.groups = "Debe seleccionar al menos un grupo";
-    }
+    const groupsError = validateArray(serieGroups, "grupo");
+    if (groupsError) errors.groups = groupsError;
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -57,13 +51,11 @@ export default function SerialUserCreator({
   // Añadir una función centralizada para gestionar cambios de grupos
   const handleGroupsChange = (group) => {
     console.log("Grupo seleccionado (serie):", group);
-    console.log("Grupos actuales (serie):", serieGroups);
     
     const updatedGroups = serieGroups.includes(group)
       ? serieGroups.filter((g) => g !== group)
       : [...serieGroups, group];
       
-    console.log("Grupos actualizados (serie):", updatedGroups);
     setSerieGroups(updatedGroups);
   };
 
@@ -118,9 +110,10 @@ export default function SerialUserCreator({
           
           <div>
             <Label htmlFor="user-default-password">Contraseña por defecto <span className="text-destructive">*</span></Label>
-            {/* Cambiar Input por PasswordInput */}
-            <PasswordInput
+            {/* Replace PasswordInput with regular Input */}
+            <Input
               id="user-default-password"
+              type="password"
               value={newUserDefaultPassword}
               onChange={(e) => setNewUserDefaultPassword(e.target.value)}
               placeholder="Ingrese la contraseña"
@@ -163,6 +156,7 @@ export default function SerialUserCreator({
                   role="combobox" 
                   aria-expanded={openSeriesGroups} 
                   className={cn("w-full justify-between", formErrors.groups ? "border-destructive" : "")}
+                  type="button"
                 >
                   {serieGroups.length > 0 ? `${serieGroups.length} grupos seleccionados` : "Seleccione grupos"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

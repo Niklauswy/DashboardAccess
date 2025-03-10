@@ -12,14 +12,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge"
 import { Check, ChevronsUpDown, X } from "lucide-react"
 import { cn } from "@/components/lib/utils"
-import { PasswordInput } from "@/components/PasswordInput"
 import { useOusAndGroups } from "@/hooks/useOusAndGroups";
 import { useUsers } from "@/hooks/useUsers";
+import { useValidation } from "@/hooks/useValidation"; // Using the validation hook
 
 export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
   const { toast } = useToast();
   const { ous, groups, isLoading } = useOusAndGroups();
   const { createUser } = useUsers();
+  const { validatePassword, validateField, validateArray } = useValidation();
   
   const [newUser, setNewUser] = useState({
     samAccountName: "",
@@ -32,42 +33,46 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
   const [errors, setErrors] = useState({});
   const [openGroups, setOpenGroups] = useState(false);
 
-  // Función para validar el formulario
+  // Function to handle group selection without closing popover
+  const handleGroupsChange = (group) => {
+    console.log("Group selection:", group);
+    
+    setNewUser(prev => {
+      const updatedGroups = prev.groups.includes(group)
+        ? prev.groups.filter(g => g !== group)
+        : [...prev.groups, group];
+        
+      return { ...prev, groups: updatedGroups };
+    });
+  };
+
+  // Función para validar el formulario using the validation hook
   const validateForm = () => {
     const newErrors = {};
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-    // Validar usuario
-    if (!newUser.samAccountName.trim()) {
-      newErrors.samAccountName = "El nombre de usuario es obligatorio";
-    }
+    // User field validation
+    const samAccountNameError = validateField(newUser.samAccountName, "nombre de usuario");
+    if (samAccountNameError) newErrors.samAccountName = samAccountNameError;
 
-    // Validar nombre
-    if (!newUser.givenName.trim()) {
-      newErrors.givenName = "El nombre es obligatorio";
-    }
+    // Name validation
+    const givenNameError = validateField(newUser.givenName, "nombre");
+    if (givenNameError) newErrors.givenName = givenNameError;
 
-    // Validar apellido
-    if (!newUser.sn.trim()) {
-      newErrors.sn = "El apellido es obligatorio";
-    }
+    // Last name validation
+    const snError = validateField(newUser.sn, "apellido");
+    if (snError) newErrors.sn = snError;
 
-    // Validar contraseña
-    if (!newUser.password) {
-      newErrors.password = "La contraseña es obligatoria";
-    } else if (!passwordRegex.test(newUser.password)) {
-      newErrors.password = "La contraseña debe tener al menos 8 caracteres, una letra mayúscula, una minúscula y un número";
-    }
+    // Password validation
+    const passwordError = validatePassword(newUser.password);
+    if (passwordError) newErrors.password = passwordError;
 
-    // Validar carrera (OU)
-    if (!newUser.ou) {
-      newErrors.ou = "Debe seleccionar una carrera";
-    }
+    // OU validation
+    const ouError = validateField(newUser.ou, "carrera");
+    if (ouError) newErrors.ou = ouError;
 
-    // Validar grupos
-    if (!newUser.groups.length) {
-      newErrors.groups = "Debe seleccionar al menos un grupo";
-    }
+    // Groups validation
+    const groupsError = validateArray(newUser.groups, "grupo");
+    if (groupsError) newErrors.groups = groupsError;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -75,7 +80,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
 
   async function handleAddUser(e) {
     e.preventDefault();
-    console.log("Enviando formulario con grupos:", newUser.groups); // Agregar logging para depurar
+    console.log("Submitting form with groups:", newUser.groups);
     
     // Validar el formulario antes de enviarlo
     if (!validateForm()) {
@@ -112,22 +117,6 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
       });
     }
   }
-
-  // Añadir una impresión a consola para verla en la depuración
-  const handleGroupsChange = (group) => {
-    console.log("Grupo seleccionado:", group);
-    console.log("Grupos actuales:", newUser.groups);
-    
-    const updatedGroups = newUser.groups.includes(group)
-      ? newUser.groups.filter((g) => g !== group)
-      : [...newUser.groups, group];
-      
-    console.log("Grupos actualizados:", updatedGroups);
-    setNewUser({
-      ...newUser,
-      groups: updatedGroups
-    });
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -188,18 +177,18 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
               )}
             </div>
             
-            {/* Contraseña */}
+            {/* Contraseña - Changed to regular Input */}
             <div className="space-y-2">
               <Label htmlFor="password">
                 Contraseña <span className="text-destructive">*</span>
               </Label>
-              <PasswordInput
+              <Input
                 id="password"
+                type="password"
                 value={newUser.password}
                 onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                 placeholder="Ingrese la contraseña"
                 className={errors.password ? "border-destructive" : ""}
-                required
               />
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password}</p>
@@ -236,7 +225,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
               )}
             </div>
 
-            {/* Grupos */}
+            {/* Grupos - Fixed to prevent popover from closing */}
             <div className="space-y-2">
               <Label>
                 Grupos <span className="text-destructive">*</span>
@@ -249,6 +238,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                     aria-expanded={openGroups}
                     className={cn("w-full justify-between", errors.groups ? "border-destructive" : "")}
                     disabled={isLoading}
+                    type="button" // Prevent form submission
                   >
                     {isLoading ? "Cargando..." : 
                       newUser.groups.length > 0 ? `${newUser.groups.length} grupos seleccionados` : "Seleccione grupos"}
@@ -268,7 +258,10 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                             <CommandItem
                               key={group}
                               value={group}
-                              onSelect={() => handleGroupsChange(group)}
+                              onSelect={(value) => {
+                                // Don't close the popover, just toggle the group
+                                handleGroupsChange(group);
+                              }}
                             >
                               <Check
                                 className={cn(

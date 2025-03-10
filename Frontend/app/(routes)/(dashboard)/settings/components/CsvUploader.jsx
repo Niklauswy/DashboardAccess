@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileSpreadsheet, Info } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PasswordInput } from "@/components/PasswordInput"
+import { Input } from "@/components/ui/input"
 import { Users } from "lucide-react"
 
 export default function CsvUploader({ 
@@ -143,8 +143,9 @@ export default function CsvUploader({
         </div>
         <div className="space-y-2 mt-4">
           <Label htmlFor="default-password">Contraseña por defecto</Label>
-          <PasswordInput
+          <Input
             id="default-password"
+            type="password"
             value={defaultPassword}
             onChange={(e) => setDefaultPassword(e.target.value)}
             placeholder="Ingrese la contraseña por defecto"
