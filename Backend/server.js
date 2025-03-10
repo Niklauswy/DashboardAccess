@@ -21,6 +21,26 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/', apiLimiter);
 
+// Añadir logging mejorado para todas las operaciones
+app.use((req, res, next) => {
+  const start = Date.now();
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - INICIO`);
+  
+  if (req.method === 'POST' || req.method === 'PUT') {
+    console.log('Body:', JSON.stringify(req.body));
+  } else if (req.method === 'DELETE') {
+    console.log('Params:', req.params);
+  }
+  
+  // Capturar cuando finaliza la petición
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - FIN (${duration}ms) - Status: ${res.statusCode}`);
+  });
+  
+  next();
+});
+
 // Helper function para sanitizar entradas con mejor seguridad
 const sanitizeInput = (input) => {
   if (typeof input !== 'string') return '';
@@ -28,16 +48,30 @@ const sanitizeInput = (input) => {
   return input.replace(/[;&|`$()<>"'\[\]\{\}\\]/g, '');
 };
 
+// Mejorar el logging de ejecución de scripts
 const executeScript = (script, res) => {
   const command = script.replace('perl ', 'perl scripts/');
+  console.log(`Ejecutando comando: ${command}`);
   const cacheKey = command;
   const cachedData = cache.get(cacheKey);
 
   if (cachedData) {
+    console.log(`Devolviendo respuesta cacheada para: ${command}`);
     return res.status(200).json(cachedData);
   }
 
   exec(command, { shell: '/bin/bash' }, (error, stdout, stderr) => {
+    console.log(`Resultado de comando ${command}:`);
+    console.log(`stdout: ${stdout}`);
+    
+    if (stderr) {
+      console.log(`stderr: ${stderr}`);
+    }
+    
+    if (error) {
+      console.log(`error: ${error}`);
+    }
+    
     try {
       // Intentamos parsear la salida como JSON incluso con error
       const jsonData = JSON.parse(stdout);
@@ -63,9 +97,24 @@ const executeScript = (script, res) => {
   });
 };
 
+// Y también para el otro método de ejecución
 const executeScriptWithInput = (script, inputData, res) => {
   const command = script.replace('perl ', 'perl scripts/');
+  console.log(`Ejecutando comando con input: ${command}`);
+  console.log(`Input data: ${JSON.stringify(inputData)}`);
+  
   const child = exec(command, { shell: '/bin/bash' }, (error, stdout, stderr) => {
+    console.log(`Resultado de comando ${command} con input:`);
+    console.log(`stdout: ${stdout}`);
+    
+    if (stderr) {
+      console.log(`stderr: ${stderr}`);
+    }
+    
+    if (error) {
+      console.log(`error: ${error}`);
+    }
+    
     try {
       // Intentamos parsear la salida como JSON incluso si hay error
       const jsonData = JSON.parse(stdout);
@@ -139,6 +188,7 @@ app.post('/api/users/create', (req, res) => {
 // Security: Properly sanitize username input
 app.delete('/api/users/:username', (req, res) => {
   const username = sanitizeInput(req.params.username);
+  console.log(`Eliminando usuario: ${username}`);
   
   if (!username) {
     return res.status(400).json({ error: 'Nombre de usuario inválido' });
@@ -150,8 +200,15 @@ app.delete('/api/users/:username', (req, res) => {
   res.set('Expires', '0');
   
   exec(`perl scripts/deleteUser.pl "${username}"`, { shell: '/bin/bash' }, (error, stdout, stderr) => {
+    console.log(`Resultado de eliminar usuario ${username}:`);
+    console.log(`stdout: ${stdout}`);
+    
+    if (stderr) {
+      console.log(`stderr: ${stderr}`);
+    }
+    
     if (error) {
-      return res.status(500).json({ error: 'Error al eliminar usuario' });
+      console.log(`error: ${error}`);
     }
     
     try {

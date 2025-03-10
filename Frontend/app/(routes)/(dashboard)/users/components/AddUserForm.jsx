@@ -75,6 +75,7 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
 
   async function handleAddUser(e) {
     e.preventDefault();
+    console.log("Enviando formulario con grupos:", newUser.groups); // Agregar logging para depurar
     
     // Validar el formulario antes de enviarlo
     if (!validateForm()) {
@@ -251,12 +252,14 @@ export default function AddUserForm({ refreshUsers, open, onOpenChange }) {
                             <CommandItem
                               key={group}
                               onSelect={() => {
+                                console.log("Seleccionando grupo:", group); // Agregar logging para depurar
                                 setNewUser({
                                   ...newUser,
                                   groups: newUser.groups.includes(group)
                                     ? newUser.groups.filter((g) => g !== group)
                                     : [...newUser.groups, group],
-                                })
+                                });
+                                // No cerramos el popover para permitir selecciones múltiples
                               }}
                             >
                               <Check

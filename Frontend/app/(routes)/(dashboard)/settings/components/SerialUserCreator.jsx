@@ -105,7 +105,8 @@ export default function SerialUserCreator({
           
           <div>
             <Label htmlFor="user-default-password">Contraseña por defecto <span className="text-destructive">*</span></Label>
-            <Input
+            {/* Cambiar Input por PasswordInput */}
+            <PasswordInput
               id="user-default-password"
               value={newUserDefaultPassword}
               onChange={(e) => setNewUserDefaultPassword(e.target.value)}
