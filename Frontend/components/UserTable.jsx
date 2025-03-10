@@ -16,7 +16,7 @@ import DeleteUserDialog from "@/app/(routes)/(dashboard)/users/components/Delete
 import BatchActionDialog from "@/app/(routes)/(dashboard)/users/components/BatchActionDialog";
 import AddUserForm from "@/app/(routes)/(dashboard)/users/components/AddUserForm";
 import EditUserForm from '@/app/(routes)/(dashboard)/users/components/EditUserForm';
-import ProcessingDialog from '@/app/(routes)/(dashboard)/users/components/ProcessingDialog';
+import ProcessingDialog from '@/components/ProcessingDialog';
 
 // Constants moved to a separate file and imported here
 import { columns, careerIcons } from "@/app/(routes)/(dashboard)/users/components/userTableConstants";

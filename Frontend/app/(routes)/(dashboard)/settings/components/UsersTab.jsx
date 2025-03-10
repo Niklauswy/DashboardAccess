@@ -9,7 +9,7 @@ import CsvUploader from "./CsvUploader"
 import SerialUserCreator from "./SerialUserCreator"
 import BatchResultsDialog from "./BatchResultsDialog"
 import ErrorDialog from "./ErrorDialog"
-import ProcessingDialog from "./ProcessingDialog"
+import ProcessingDialog from '@/components/ProcessingDialog';
 
 const fetcher = (url) => fetch(url).then(res => res.json())
 
