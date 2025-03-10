@@ -114,10 +114,14 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
             setIsProcessingBatch(true);
             setBatchProgress(0);
             
+            // Set up beforeunload event handler
+            window.addEventListener('beforeunload', handleBeforeUnload);
+            
             try {
-                // Pass the progress tracking callback
-                const progressTracker = await batchActions.deleteUsers(selectedRows);
-                progressTracker.setProgressCallback = setBatchProgress;
+                // Pass the progress tracking callback directly
+                const progressTracker = await batchActions.deleteUsers(selectedRows, (progress) => {
+                    setBatchProgress(progress);
+                });
                 
                 // After complete
                 toast({ 
@@ -136,17 +140,25 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                 });
             } finally {
                 setIsProcessingBatch(false);
+                // Remove beforeunload event handler
+                window.removeEventListener('beforeunload', handleBeforeUnload);
             }
-        } else {
-            // Handle password change (similar approach)
+        } else if (batchActionType === "changePassword") {
+            // Handle password change with similar pattern
             setIsProcessingBatch(true);
             setBatchProgress(0);
             
+            // Set up beforeunload event handler
+            window.addEventListener('beforeunload', handleBeforeUnload);
+            
             try {
-                await batchActions.updatePasswords(selectedRows, newPassword);
+                const progressTracker = await batchActions.updatePasswords(selectedRows, newPassword, (progress) => {
+                    setBatchProgress(progress);
+                });
+                
                 toast({ 
                     title: "Contraseñas actualizadas", 
-                    description: `Se ha actualizado la contraseña de ${selectedRows.length} usuarios.` 
+                    description: `Se ha actualizado la contraseña de ${progressTracker.success.length} usuarios ${progressTracker.errors.length > 0 ? `(con ${progressTracker.errors.length} errores)` : ""}.` 
                 });
                 setSelectedRows([]);
             } catch (error) {
@@ -158,8 +170,17 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                 });
             } finally {
                 setIsProcessingBatch(false);
+                // Remove beforeunload event handler
+                window.removeEventListener('beforeunload', handleBeforeUnload);
             }
         }
+    };
+
+    // Add handler to prevent navigation during processing
+    const handleBeforeUnload = (e) => {
+        e.preventDefault();
+        e.returnValue = '¿Está seguro de que desea salir? Hay un proceso en curso y se perderá el progreso.';
+        return e.returnValue;
     };
 
     const handleEditUser = (user) => {

@@ -31,8 +31,11 @@ export default function BatchActionDialog({
     // For delete action, just confirm
     if (actionType === "delete") {
       setIsProcessing(true);
-      await onConfirm();
-      setIsProcessing(false);
+      try {
+        await onConfirm();
+      } finally {
+        setIsProcessing(false);
+      }
       return;
     }
     

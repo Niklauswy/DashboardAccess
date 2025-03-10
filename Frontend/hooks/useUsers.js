@@ -106,27 +106,53 @@ export function useUsers() {
 
   // Operaciones por lotes
   const batchActions = {
-    updatePasswords: async (usernames, newPassword) => {
+    updatePasswords: async (usernames, newPassword, progressCallback) => {
       if (!Array.isArray(usernames) || !usernames.length || !newPassword) {
         throw new Error('Parámetros inválidos');
       }
       
-      const res = await fetch('/api/users/batch/password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usernames, password: newPassword }),
-      });
+      // Create progress tracking object similar to deleteUsers
+      const progressTracker = {
+        total: usernames.length,
+        completed: 0,
+        success: [],
+        errors: [],
+      };
       
-      if (!res.ok) {
-        const error = await res.text();
-        throw new Error(error || 'Error al actualizar contraseñas');
+      // Process password changes sequentially
+      for (const username of usernames) {
+        try {
+          // Use the existing updateUser function to change just the password
+          await fetch(`/api/users/${encodeURIComponent(username)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: newPassword }),
+          });
+          
+          // Track success
+          progressTracker.success.push({ username });
+        } catch (error) {
+          // Track error
+          progressTracker.errors.push({ 
+            username, 
+            error: error.message 
+          });
+        }
+        
+        // Update progress
+        progressTracker.completed++;
+        if (progressCallback) {
+          progressCallback(Math.round((progressTracker.completed / progressTracker.total) * 100));
+        }
       }
       
-      await mutate(); // Actualiza la caché de usuarios
-      return res.json();
+      // Refresh the users list ONCE after all operations
+      await mutate();
+      
+      return progressTracker;
     },
     
-    deleteUsers: async (usernames) => {
+    deleteUsers: async (usernames, progressCallback) => {
       if (!Array.isArray(usernames) || !usernames.length) {
         throw new Error('Lista de usuarios inválida');
       }
@@ -137,13 +163,11 @@ export function useUsers() {
         completed: 0,
         success: [],
         errors: [],
-        setProgressCallback: null
       };
       
-      // Process deletions sequentially without refreshing between each one
+      // Process deletions sequentially
       for (const username of usernames) {
         try {
-          // Call our regular deleteUser function without awaiting mutate
           const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
             method: 'DELETE',
           });
@@ -161,17 +185,14 @@ export function useUsers() {
           // Track error
           progressTracker.errors.push({ 
             username, 
-            success: false, 
             error: error.message 
           });
         }
         
-        // Update progress
+        // Update progress and call callback immediately
         progressTracker.completed++;
-        if (progressTracker.setProgressCallback) {
-          progressTracker.setProgressCallback(
-            Math.round((progressTracker.completed / progressTracker.total) * 100)
-          );
+        if (progressCallback) {
+          progressCallback(Math.round((progressTracker.completed / progressTracker.total) * 100));
         }
       }
       
