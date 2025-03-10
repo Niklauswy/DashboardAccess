@@ -35,9 +35,14 @@ sub format_user {
 
     my $lastLogonDate = convert_epoch($lastLogon);
 
+    my $givenName = $user->get('givenName') || "";  # Nombre
+    my $sn = $user->get('sn') || "";  # Apellido
+
     return {
         username   => $username,
-        name       => $user->get('displayName') // 'Unknown',
+        givenName  => $givenName,  # Agregamos el nombre
+        sn         => $sn,         # Agregamos el apellido
+        displayName => "$givenName $sn", # Mantenemos displayName para compatibilidad
         logonCount => int($logonCount),
         ou         => $ou,
         groups     => \@groups,

@@ -18,4 +18,22 @@ export const columns = [
     { key: "lastLogon", label: "Último Inicio", sortable: true },
     { key: "groups", label: "Grupos", sortable: false }, 
     { key: "accion", label: "", fixed: true },
+    {
+        header: "Nombre",
+        id: "givenName",
+        accessorKey: "givenName",
+        cell: ({ row }) => <div>{row.original.givenName || 'N/A'}</div>,
+    },
+    {
+        header: "Apellido",
+        id: "sn",
+        accessorKey: "sn",
+        cell: ({ row }) => <div>{row.original.sn || 'N/A'}</div>,
+    },
+    {
+        header: "Nombre Completo",
+        id: "displayName",
+        accessorKey: "displayName",
+        cell: ({ row }) => <div>{row.original.displayName || 'N/A'}</div>,
+    },
 ];

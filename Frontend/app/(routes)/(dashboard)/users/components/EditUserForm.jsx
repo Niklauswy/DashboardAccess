@@ -39,8 +39,8 @@ export default function EditUserForm({ user, refreshUsers, open, onOpenChange })
     if (user && open) {
       setEditedUser({
         samAccountName: user.samAccountName || user.username || "",
-        givenName: user.givenName || user.name || "",
-        sn: user.sn || "",
+        givenName: user.givenName || "", // Usar directamente givenName
+        sn: user.sn || "", // Usar directamente sn
         password: "", // Siempre vacío al inicio
         ou: user.ou || "",
         groups: user.groups || [],
@@ -150,10 +150,10 @@ export default function EditUserForm({ user, refreshUsers, open, onOpenChange })
         </DialogHeader>
         <form onSubmit={handleUpdateUser} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Usuario - Now non-editable */}
+            {/* Usuario  */}
             <div className="space-y-2">
               <Label htmlFor="edit-samAccountName">
-                Usuario <span className="text-gray-500">(no editable)</span>
+                Usuario <span className="text-gray-500"></span>
               </Label>
               <Input
                 id="edit-samAccountName"
