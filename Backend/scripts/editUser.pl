@@ -44,14 +44,14 @@ try {
 };
 
 # Extraer datos del usuario
-my $samAccountName = $user_data->{samAccountName} || '';
-my $originalUsername = $user_data->{originalUsername} || $samAccountName; # Para cuando se cambia el nombre de usuario
-my $givenName = $user_data->{givenName} || '';
-my $sn = $user_data->{sn} || '';
+my $originalUsername = $user_data->{originalUsername}; # Siempre requerido
+my $samAccountName = $user_data->{samAccountName}; # Opcional en actualizaciones
+my $givenName = $user_data->{givenName}; # Opcional en actualizaciones
+my $sn = $user_data->{sn}; # Opcional en actualizaciones
 my $password = $user_data->{password}; # Opcional, solo si se actualiza
-my $ou = $user_data->{ou} || '';
-my $groups = ref($user_data->{groups}) eq 'ARRAY' ? $user_data->{groups} : [];
-my $description = $user_data->{description} || '';
+my $ou = $user_data->{ou}; # Opcional en actualizaciones
+my $groups = ref($user_data->{groups}) eq 'ARRAY' ? $user_data->{groups} : undef; # Opcional en actualizaciones
+my $description = $user_data->{description}; # Opcional en actualizaciones
 
 # Validar que tenemos un usuario para editar
 error_exit("Nombre de usuario obligatorio") unless $originalUsername;
@@ -72,13 +72,13 @@ my ($user) = grep { $_->get('samAccountName') eq $originalUsername } @$users;
 error_exit("El usuario '$originalUsername' no existe") unless $user;
 
 # Si se cambia el nombre de usuario, verificar que el nuevo no exista
-if ($samAccountName ne $originalUsername) {
+if ($samAccountName && $samAccountName ne $originalUsername) {
     my ($existingUser) = grep { $_->get('samAccountName') eq $samAccountName } @$users;
     error_exit("Ya existe un usuario con el nombre '$samAccountName'") if $existingUser;
 }
 
 try {
-    # Actualizar datos de usuario
+    # Actualizar datos de usuario SOLO si se proporcionaron nuevos valores
     if ($givenName) {
         $user->set('givenName', $givenName);
         debug("Nombre actualizado: $givenName");
@@ -94,15 +94,15 @@ try {
         debug("Descripción actualizada");
     }
     
-    # Si se proporciona un nuevo nombre de usuario
-    if ($samAccountName ne $originalUsername) {
+    # Si se proporciona un nuevo nombre de usuario Y es diferente del original
+    if ($samAccountName && $samAccountName ne $originalUsername) {
         $user->set('samAccountName', $samAccountName);
         debug("Nombre de usuario actualizado: $originalUsername -> $samAccountName");
     }
     
     # Si se proporciona nueva contraseña
     if ($password) {
-        $user->changePassword($password);  # Corregido: usando changePassword en vez de setPassword
+        $user->changePassword($password);
         debug("Contraseña actualizada");
     }
     
@@ -134,23 +134,29 @@ if ($ou) {
     
     error_exit("La carrera (OU) '$ou' no existe") unless $ou_exists;
     
+    # Usar el nombre de usuario correcto (original o nuevo si se cambió)
+    my $userToMove = $samAccountName && $samAccountName ne $originalUsername ? $samAccountName : $originalUsername;
+    
     my $ou_dn = "ou=$ou,$DOMAIN";
-    my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"$ou_dn\" -d 3";
-    debug("Moviendo usuario $samAccountName a la OU: $ou_dn");
+    my $commandMove = "sudo samba-tool user move \"$userToMove\" \"$ou_dn\" -d 3";
+    debug("Moviendo usuario $userToMove a la OU: $ou_dn");
     my $outputMove = qx($commandMove 2>&1);
 
     if ($? != 0) {
         debug("Error al mover usuario: $outputMove");
         error_exit("Error al mover el usuario a la OU especificada", $outputMove);
     } else {
-        debug("Usuario $samAccountName movido exitosamente a OU $ou");
+        debug("Usuario $userToMove movido exitosamente a OU $ou");
     }
 }
 
-# Actualizar grupos
-if (@$groups) {
+# Actualizar grupos solo si se proporcionaron
+if ($groups) {
+    # Usar el nombre de usuario correcto (original o nuevo si se cambió)
+    my $userToUpdate = $samAccountName && $samAccountName ne $originalUsername ? $samAccountName : $originalUsername;
+    
     # Obtener los grupos actuales del usuario
-    my $currentGroupsCmd = "sudo samba-tool user getgroups \"$samAccountName\"";
+    my $currentGroupsCmd = "sudo samba-tool user getgroups \"$userToUpdate\"";
     my $currentGroupsOutput = qx($currentGroupsCmd 2>&1);
     my @currentGroups = split(/\n/, $currentGroupsOutput);
     @currentGroups = grep { $_ ne "" } @currentGroups; # Eliminar líneas vacías
@@ -168,14 +174,14 @@ if (@$groups) {
         next unless $currentGroup =~ /\S/;
         next if grep { $_ eq $currentGroup } @$groups;
         
-        my $commandRemoveGroup = "sudo samba-tool group removemembers \"$currentGroup\" \"$samAccountName\"";
+        my $commandRemoveGroup = "sudo samba-tool group removemembers \"$currentGroup\" \"$userToUpdate\"";
         my $outputRemoveGroup = qx($commandRemoveGroup 2>&1);
         
         if ($? != 0) {
             debug("Error al remover del grupo $currentGroup: $outputRemoveGroup");
             # No salimos por error para intentar completar el resto de operaciones
         } else {
-            debug("Usuario $samAccountName removido del grupo $currentGroup");
+            debug("Usuario $userToUpdate removido del grupo $currentGroup");
         }
     }
     
@@ -184,14 +190,14 @@ if (@$groups) {
         next unless $groupName =~ /\S/;
         next if grep { $_ eq $groupName } @currentGroups;
         
-        my $commandAddGroup = "sudo samba-tool group addmembers \"$groupName\" \"$samAccountName\"";
+        my $commandAddGroup = "sudo samba-tool group addmembers \"$groupName\" \"$userToUpdate\"";
         my $outputAddGroup = qx($commandAddGroup 2>&1);
         
         if ($? != 0) {
             debug("Error al añadir al grupo $groupName: $outputAddGroup");
             # No salimos por error para intentar completar el resto de operaciones
         } else {
-            debug("Usuario $samAccountName añadido al grupo $groupName");
+            debug("Usuario $userToUpdate añadido al grupo $groupName");
         }
     }
 }
