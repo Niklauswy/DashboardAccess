@@ -16,6 +16,7 @@ import EditUserDialog from "@/app/(routes)/(dashboard)/users/components/EditUser
 import DeleteUserDialog from "@/app/(routes)/(dashboard)/users/components/DeleteUserDialog";
 import BatchActionDialog from "@/app/(routes)/(dashboard)/users/components/BatchActionDialog";
 import AddUserForm from "@/app/(routes)/(dashboard)/users/components/AddUserForm";
+import EditUserForm from '@/app/(routes)/(dashboard)/users/components/EditUserForm';
 
 // Constants moved to a separate file and imported here
 import { columns, careerIcons } from "@/app/(routes)/(dashboard)/users/components/userTableConstants";
@@ -28,9 +29,12 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
     const [batchDialogOpen, setBatchDialogOpen] = useState(false);
     const [batchActionType, setBatchActionType] = useState("");
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedUsers, setSelectedUsers] = useState([]);
     const [addUserOpen, setAddUserOpen] = useState(false);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-
+    const [editUserOpen, setEditUserOpen] = useState(false);
+    const [userToEdit, setUserToEdit] = useState(null);
+    
     // Custom hooks to manage state and filters
     const {
         filter, setFilter,
@@ -246,7 +250,14 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                 onConfirm={handleBatchConfirm}
             />
 
-           
+            {userToEdit && (
+                <EditUserForm
+                    open={editUserOpen}
+                    onOpenChange={setEditUserOpen}
+                    user={userToEdit}
+                    refreshUsers={refreshUsers}
+                />
+            )}
         </div>
     );
 }
