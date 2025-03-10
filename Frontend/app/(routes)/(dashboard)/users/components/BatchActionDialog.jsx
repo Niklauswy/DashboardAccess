@@ -119,19 +119,24 @@ export default function BatchActionDialog({
         {actionType === "delete" && (
           <div className="py-4">
             <div className="max-h-[200px] overflow-y-auto rounded border p-2">
-              <p className="font-medium mb-2">Usuarios seleccionados:</p>
+              <p className="font-medium mb-2">
+                Usuarios seleccionados: <span className="text-primary">{selectedUsers.length}</span>
+              </p>
               <ul className="list-disc list-inside space-y-1">
-                {selectedUsers.slice(0, 10).map(user => (
+                {selectedUsers.slice(0, 8).map(user => (
                   <li key={user.username} className="text-sm">
-                    {user.givenName} {user.sn} ({user.username})
+                    {user.givenName || ''} {user.sn || ''} <span className="text-gray-500">({user.username})</span>
                   </li>
                 ))}
-                {selectedUsers.length > 10 && (
-                  <li className="text-sm font-medium">
-                    ...y {selectedUsers.length - 10} usuarios más
+                {selectedUsers.length > 8 && (
+                  <li className="text-sm font-medium text-gray-600 mt-1 pt-1 border-t">
+                    ...y {selectedUsers.length - 8} usuarios más
                   </li>
                 )}
               </ul>
+              <p className="text-xs text-amber-600 mt-2">
+                ⚠️ Esta acción eliminará a todos los usuarios seleccionados y no puede deshacerse.
+              </p>
             </div>
           </div>
         )}

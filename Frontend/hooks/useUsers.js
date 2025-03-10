@@ -131,19 +131,54 @@ export function useUsers() {
         throw new Error('Lista de usuarios inválida');
       }
       
-      // Ejecutar múltiples eliminaciones en secuencia
-      const results = [];
+      // Create progress tracking object
+      const progressTracker = {
+        total: usernames.length,
+        completed: 0,
+        success: [],
+        errors: [],
+        setProgressCallback: null
+      };
+      
+      // Process deletions sequentially without refreshing between each one
       for (const username of usernames) {
         try {
-          const result = await deleteUser(username);
-          results.push({ username, success: true, result });
+          // Call our regular deleteUser function without awaiting mutate
+          const res = await fetch(`/api/users/${encodeURIComponent(username)}`, {
+            method: 'DELETE',
+          });
+          
+          const contentType = res.headers.get('content-type');
+          const data = contentType?.includes('application/json') ? await res.json() : null;
+          
+          if (!res.ok || (data && data.error)) {
+            throw new Error(data?.error || 'Error al eliminar usuario');
+          }
+          
+          // Track success
+          progressTracker.success.push({ username, result: data });
         } catch (error) {
-          results.push({ username, success: false, error: error.message });
+          // Track error
+          progressTracker.errors.push({ 
+            username, 
+            success: false, 
+            error: error.message 
+          });
+        }
+        
+        // Update progress
+        progressTracker.completed++;
+        if (progressTracker.setProgressCallback) {
+          progressTracker.setProgressCallback(
+            Math.round((progressTracker.completed / progressTracker.total) * 100)
+          );
         }
       }
       
-      await mutate(); // Actualiza la caché de usuarios
-      return results;
+      // Refresh the users list ONCE after all operations
+      await mutate();
+      
+      return progressTracker;
     }
   };
 

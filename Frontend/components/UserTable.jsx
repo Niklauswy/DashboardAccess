@@ -12,11 +12,11 @@ import UserTableActions from "@/app/(routes)/(dashboard)/users/components/UserTa
 import UserTableContent from "@/app/(routes)/(dashboard)/users/components/UserTableContent";
 import UserTablePagination from "@/app/(routes)/(dashboard)/users/components/UserTablePagination";
 import BatchActionsBar from "@/app/(routes)/(dashboard)/users/components/BatchActionsBar";
-import EditUserDialog from "@/app/(routes)/(dashboard)/users/components/EditUserDialog";
 import DeleteUserDialog from "@/app/(routes)/(dashboard)/users/components/DeleteUserDialog";
 import BatchActionDialog from "@/app/(routes)/(dashboard)/users/components/BatchActionDialog";
 import AddUserForm from "@/app/(routes)/(dashboard)/users/components/AddUserForm";
 import EditUserForm from '@/app/(routes)/(dashboard)/users/components/EditUserForm';
+import ProcessingDialog from '@/app/(routes)/(dashboard)/users/components/ProcessingDialog';
 
 // Constants moved to a separate file and imported here
 import { columns, careerIcons } from "@/app/(routes)/(dashboard)/users/components/userTableConstants";
@@ -34,6 +34,8 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
     const [editUserOpen, setEditUserOpen] = useState(false);
     const [userToEdit, setUserToEdit] = useState(null);
     const [currentUser, setCurrentUser] = useState(null); // Add missing currentUser state
+    const [batchProgress, setBatchProgress] = useState(0);
+    const [isProcessingBatch, setIsProcessingBatch] = useState(false);
     
     // Custom hooks to manage state and filters
     const {
@@ -108,29 +110,55 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
     const handleBatchConfirm = async (newPassword) => {
         setBatchDialogOpen(false);
         
-        try {
-            if (batchActionType === "delete") {
-                await batchActions.deleteUsers(selectedRows);
+        if (batchActionType === "delete") {
+            setIsProcessingBatch(true);
+            setBatchProgress(0);
+            
+            try {
+                // Pass the progress tracking callback
+                const progressTracker = await batchActions.deleteUsers(selectedRows);
+                progressTracker.setProgressCallback = setBatchProgress;
+                
+                // After complete
                 toast({ 
                     title: "Usuarios eliminados", 
-                    description: `Se han eliminado ${selectedRows.length} usuarios.` 
+                    description: `Se han eliminado ${progressTracker.success.length} usuarios ${progressTracker.errors.length > 0 ? `(con ${progressTracker.errors.length} errores)` : ""}.` 
                 });
-            } else {
+                
+                // Clear selected rows
+                setSelectedRows([]);
+            } catch (error) {
+                console.error('Batch operation error:', error);
+                toast({ 
+                    title: "Error", 
+                    description: error.message || "Hubo un problema al procesar la operación",
+                    variant: "destructive"
+                });
+            } finally {
+                setIsProcessingBatch(false);
+            }
+        } else {
+            // Handle password change (similar approach)
+            setIsProcessingBatch(true);
+            setBatchProgress(0);
+            
+            try {
                 await batchActions.updatePasswords(selectedRows, newPassword);
                 toast({ 
                     title: "Contraseñas actualizadas", 
                     description: `Se ha actualizado la contraseña de ${selectedRows.length} usuarios.` 
                 });
+                setSelectedRows([]);
+            } catch (error) {
+                console.error('Batch operation error:', error);
+                toast({ 
+                    title: "Error", 
+                    description: error.message || "Hubo un problema al procesar la operación",
+                    variant: "destructive"
+                });
+            } finally {
+                setIsProcessingBatch(false);
             }
-            refreshUsers();
-            setSelectedRows([]);
-        } catch (error) {
-            console.error('Batch operation error:', error);
-            toast({ 
-                title: "Error", 
-                description: error.message || "Hubo un problema al procesar la operación",
-                variant: "destructive"
-            });
         }
     };
 
@@ -258,6 +286,13 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                     refreshUsers={refreshUsers}
                 />
             )}
+
+            {/* Add ProcessingDialog for batch operations */}
+            <ProcessingDialog
+                open={isProcessingBatch}
+                progress={batchProgress}
+                actionText={batchActionType === "delete" ? "Eliminando usuarios" : "Actualizando contraseñas"}
+            />
         </div>
     );
 }

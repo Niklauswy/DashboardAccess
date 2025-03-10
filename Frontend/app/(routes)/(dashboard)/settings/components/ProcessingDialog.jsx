@@ -1,6 +1,7 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 
-export default function ProcessingDialog({ open, progress = 0 }) {
+export default function ProcessingDialog({ open, progress = 0, actionText = "Procesando usuarios" }) {
   return (
     <Dialog open={open}>
       <DialogContent className="sm:max-w-[400px]" hideClose={true}>
@@ -9,10 +10,11 @@ export default function ProcessingDialog({ open, progress = 0 }) {
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
           </div>
 
-          <div className="space-y-2 text-center">
-            <h3 className="text-lg font-semibold">Procesando usuarios</h3>
+          <div className="space-y-4 text-center">
+            <h3 className="text-lg font-semibold">{actionText}</h3>
+            <Progress value={progress} className="h-2" />
             <p className="text-sm text-muted-foreground">
-              Estamos creando los usuarios ({progress}% completado)
+              {progress}% completado
             </p>
           </div>
         </div>
