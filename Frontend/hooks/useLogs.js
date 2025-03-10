@@ -1,6 +1,6 @@
 import useSWR from 'swr';
 import { useState } from 'react';
-import { format, parseISO, isValid } from 'date-fns';
+import { format, parse, isValid } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export function useLogs() {
@@ -16,13 +16,18 @@ export function useLogs() {
       const data = await res.json();
       
       // Process and standardize dates
-      return data.map(log => ({
-        ...log,
-        formattedDate: formatLogDate(log.date),
-        dateObj: parseLogDate(log.date),
-        // Add a unique ID if none exists
-        id: log.id || `${log.user}-${log.date}-${Math.random().toString(36).substr(2, 9)}`
-      }));
+      return data.map(log => {
+        // Create a valid date object from the log date string
+        const dateObj = parseLogDate(log.date);
+
+        return {
+          ...log,
+          formattedDate: formatLogDate(dateObj),
+          dateObj: dateObj,
+          // Add a unique ID if none exists
+          id: log.id || `${log.user}-${log.date}-${Math.random().toString(36).substr(2, 9)}`
+        };
+      });
     },
     {
       refreshInterval: 30000, // Auto refresh every 30 seconds
@@ -43,47 +48,54 @@ export function useLogs() {
   
   // Helper function to handle date parsing with consistent format
   function parseLogDate(dateString) {
+    if (!dateString) return new Date();
+    
     try {
-      // Try parsing with format from backend
-      const date = new Date(dateString);
-      if (isValid(date)) return date;
+      // Try common date formats from most specific to least
       
-      // Fallback formats for backward compatibility
-      const formats = [
-        'yyyy MMM dd HH:mm:ss', 
-        'dd/MM/yyyy HH:mm:ss',
-        'yyyy-MM-dd HH:mm:ss'
-      ];
-      
-      for (const formatStr of formats) {
-        try {
-          const parsedDate = parseISO(dateString);
-          if (isValid(parsedDate)) return parsedDate;
-        } catch (e) {
-          console.debug('Date parse attempt failed:', e);
-        }
+      // Format: "2024 Mar 15 12:34:56" (from perl script)
+      if (dateString.match(/^\d{4}\s+\w{3}\s+\d{1,2}\s+\d{1,2}:\d{2}:\d{2}$/)) {
+        const [year, month, day, time] = dateString.split(' ');
+        const monthMap = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+        const [hour, min, sec] = time.split(':').map(Number);
+        
+        return new Date(parseInt(year), monthMap[month], parseInt(day), hour, min, sec);
       }
       
-      // Return current date as fallback
-      return new Date();
+      // Format: "DD/MM/YYYY HH:MM:SS"
+      if (dateString.match(/^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2}$/)) {
+        const [datePart, timePart] = dateString.split(' ');
+        const [day, month, year] = datePart.split('/').map(Number);
+        const [hour, min, sec] = timePart.split(':').map(Number);
+        
+        return new Date(year, month - 1, day, hour, min, sec);
+      }
+      
+      // Simple format: try standard JS Date parsing
+      const jsDate = new Date(dateString);
+      if (isValid(jsDate)) {
+        return jsDate;
+      }
+      
+      console.warn('Failed to parse date:', dateString);
+      return new Date(); // Fallback to current date
     } catch (e) {
-      console.error('Error parsing date:', e);
+      console.error('Date parsing error:', e);
       return new Date();
     }
   }
   
   // Helper function to format dates consistently
-  function formatLogDate(dateString) {
+  function formatLogDate(dateObj) {
     try {
-      const date = parseLogDate(dateString);
-      return format(date, 'dd/MM/yyyy HH:mm:ss', { locale: es });
+      return format(dateObj, 'dd/MM/yyyy HH:mm:ss', { locale: es });
     } catch (e) {
-      return dateString;
+      return 'Fecha inválida';
     }
   }
 
   return {
-    logs,
+    logs: logs || [],
     error,
     isLoading: !logs && !error,
     isRefreshing,

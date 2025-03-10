@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LogTable from '@/app/(routes)/(dashboard)/logs/components/LogTable';
 import LogFilter from '@/app/(routes)/(dashboard)/logs/components/LogFilter';
 import { LogBarChart } from '@/app/(routes)/(dashboard)/logs/components/LogBarChart';
@@ -22,6 +22,18 @@ export default function Logs() {
         ip: '',
         dateRange: null
     });
+    
+    // Log some debug info when logs change
+    useEffect(() => {
+        if (logs && logs.length > 0) {
+            console.log(`Got ${logs.length} logs`);
+            console.log('First log:', logs[0]);
+            
+            // Check date objects
+            const validDates = logs.filter(log => log.dateObj instanceof Date && !isNaN(log.dateObj));
+            console.log(`Logs with valid dateObj: ${validDates.length} out of ${logs.length}`);
+        }
+    }, [logs]);
 
     if (error) {
         return (
@@ -36,7 +48,7 @@ export default function Logs() {
         return <LogTableSkeleton />;
     }
 
-    // Filter logs based on the new multi-selection filters
+    // Filter logs based on the multi-selection filters
     const filteredLogs = logs.filter(log => {
         // User filter (any of the selected users)
         const userMatch = filters.users.length === 0 || 
@@ -62,14 +74,19 @@ export default function Logs() {
         const ipMatch = !filters.ip || 
             (log.ip && log.ip.includes(filters.ip));
         
-        // Date range filter - Ensure we have both from and to dates before attempting comparison
-        const dateRangeMatch = !filters.dateRange || !filters.dateRange.from || !filters.dateRange.to || (
-            log.dateObj >= new Date(filters.dateRange.from) &&
-            log.dateObj <= new Date(filters.dateRange.to).setHours(23, 59, 59, 999)
-        );
+        // Date range filter - Ensure we have both from and to dates 
+        // and that we have a valid dateObj to compare with
+        const dateRangeMatch = !filters.dateRange || !filters.dateRange.from || !filters.dateRange.to || 
+            !log.dateObj || (
+                log.dateObj >= new Date(filters.dateRange.from) &&
+                log.dateObj <= new Date(filters.dateRange.to).setHours(23, 59, 59, 999)
+            );
 
         return userMatch && ouMatch && groupMatch && eventMatch && labMatch && ipMatch && dateRangeMatch;
     });
+
+    // Log filtering results
+    console.log(`Filtered ${logs.length} logs down to ${filteredLogs.length}`);
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-6 lg:p-8">
