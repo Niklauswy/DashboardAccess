@@ -6,8 +6,8 @@ use JSON;
 use DateTime;
 use POSIX qw(strftime);
 
-# Debug flag - set to 1 to see debugging information
-my $DEBUG = 0;
+# Debug flag - enable debugging
+my $DEBUG = 1;
 
 # Function to print debug messages
 sub debug {
@@ -15,12 +15,18 @@ sub debug {
     print STDERR "DEBUG: $msg\n" if $DEBUG;
 }
 
+# Log script start time
+debug("Script started at " . localtime());
+
 # Inicializar Zentyal/EBox
 use EBox;
 use EBox::Samba;
 
+debug("Initializing EBox...");
 EBox::init();
+debug("Getting samba module instance...");
 my $samba = EBox::Global->modInstance('samba');
+debug("Samba module obtained: " . (defined $samba ? "Yes" : "No"));
 
 # Variables para fecha/hora
 my $now = DateTime->now(time_zone => 'local');
@@ -40,55 +46,38 @@ my %ip_counts;             # IP => count
 my @hourly_activity = (0) x 24;
 my %session_durations;     # Para calcular tiempo promedio
 my %os_distribution;       # SO => count
+my %computers_active;      # computer_name => 1 (if active)
+my %computers_by_location; # location => [computer_names]
 
 # 1. Procesamos logs para identificar sesiones activas
 debug("Buscando logs de smbd_audit...");
-my $logs_cmd = 'sudo zgrep -a "smbd_audit:" /var/log/syslog* | sed \'s/^[^:]*://\' 2>/dev/null';
+my $logs_cmd = 'zgrep -a "smbd_audit:" /var/log/syslog* | sed \'s/^[^:]*://\' | grep -Ei "connect" | awk \'{ match($0, /smbd_audit:[[:space:]]*(.*)/, a); split(a[1], b, /\|/); print $1, $2, $3, $4, b[5], b[3], b[2]; }\' | sort -k1M -k2n -k3';
+
+debug("Ejecutando comando: $logs_cmd");
 my @log_lines = `$logs_cmd`;
 debug("Encontradas " . scalar(@log_lines) . " líneas de log");
-
-# Si no hay logs, generar algunos datos de muestra para pruebas
-if (scalar(@log_lines) == 0) {
-    debug("No se encontraron logs. Generando datos de muestra");
-    
-    # Usuarios simulados para muestras
-    my @sample_users = ('usuario1', 'usuario2', 'admin', 'invitado');
-    my @sample_ips = ('192.168.1.100', '192.168.1.101', '10.0.0.15', '172.16.0.25');
-    
-    # Simular algunas sesiones activas
-    for my $i (0..2) {
-        my $user = $sample_users[$i % scalar(@sample_users)];
-        my $ip = $sample_ips[$i % scalar(@sample_ips)];
-        my $start_time = $now->clone->subtract(minutes => int(rand(120)))->strftime('%Y-%m-%d %H:%M:%S');
-        
-        $active_sessions{"$ip:$user"} = {
-            user => $user,
-            ip => $ip,
-            start_time => $start_time,
-            event => 'connect'
-        };
-        $users_active{$user}++;
-        $ip_counts{$ip} += int(rand(5)) + 1;
-    }
-    
-    # Simular actividad horaria
-    for my $h (8..17) { # Horas laborables
-        $hourly_activity[$h] = int(rand(10)) + 1;
-    }
+debug("Primeras 3 líneas de log:") if @log_lines;
+for (my $i = 0; $i < 3 && $i < scalar(@log_lines); $i++) {
+    debug("  " . $log_lines[$i]);
 }
 
 # Obtener año actual para completar las fechas de log
 my $current_year = $now->year;
 
 # Procesar logs reales si existen
+debug("Procesando logs de sesiones...");
+my $logs_procesados = 0;
+my $logs_validos = 0;
+
 foreach my $line (@log_lines) {
     chomp $line;
-    debug("Procesando línea: $line");
+    $logs_procesados++;
     
     # Formato típico: "May 15 10:30:15 hostname smbd_audit: |ip|user|connect|"
     # Hacemos el pattern matching más flexible para capturar más formatos
     if ($line =~ /^(\w{3})\s+(\d{1,2})\s+(\d{2}:\d{2}:\d{2}).*smbd_audit:\s*\|?\s*([^\s|]+)\s*\|?\s*([^\s|]+)\s*\|?\s*(\w+)\s*\|?/) {
         my ($month, $day, $time, $ip, $username, $event) = ($1, $2, $3, $4, $5, $6);
+        $logs_validos++;
         
         debug("Match encontrado: mes=$month, día=$day, hora=$time, IP=$ip, usuario=$username, evento=$event");
         
@@ -118,8 +107,8 @@ foreach my $line (@log_lines) {
         next unless $log_date; # Saltamos si hay error en la fecha
         
         # Actualizar conteo por hora
-        my $hour = $log_date->hour;
-        $hourly_activity[$hour]++;
+        my $log_hour = $log_date->hour;  # Renamed from $hour to $log_hour
+        $hourly_activity[$log_hour]++;
         
         # Contar IPs para detectar inusuales
         $ip_counts{$ip}++;
@@ -162,19 +151,31 @@ foreach my $line (@log_lines) {
                 $users_active{$username}-- if $users_active{$username} > 0;
             }
         }
+    } else {
+        debug("Línea no coincide con el patrón: $line");
     }
 }
 
-# 2. Obtener información de computadoras
-my %computers_active;
-my %computers_by_location;
+debug("Logs procesados: $logs_procesados, logs válidos: $logs_validos");
+debug("Usuarios activos encontrados: " . scalar(keys %users_active));
+debug("Sesiones activas encontradas: " . scalar(keys %active_sessions));
+debug("IPs contabilizadas: " . scalar(keys %ip_counts));
 
+# 2. Obtener información de computadoras
 debug("Obteniendo información de equipos...");
 # Comando para listar ordenadores
 my $computer_list_cmd = "sudo samba-tool computer list 2>/dev/null";
+debug("Ejecutando: $computer_list_cmd");
 my @computer_names = `$computer_list_cmd`;
 chomp @computer_names;
 debug("Encontrados " . scalar(@computer_names) . " equipos");
+
+if (@computer_names) {
+    debug("Primeros 3 equipos:") if @computer_names;
+    for (my $i = 0; $i < 3 && $i < scalar(@computer_names); $i++) {
+        debug("  " . $computer_names[$i]);
+    }
+}
 
 # Si no hay equipos, crear algunos de muestra
 if (scalar(@computer_names) == 0) {
@@ -199,7 +200,9 @@ foreach my $computer_name (@computer_names) {
     
     # Obtener detalles del ordenador
     my $cmd = "sudo samba-tool computer show \"$computer_name\" 2>/dev/null";
+    debug("Ejecutando: $cmd");
     my @output = `$cmd`;
+    debug("  Obtenidas " . scalar(@output) . " líneas de información");
     
     my $os = "Unknown";
     my $last_logon_time = 0;
@@ -235,44 +238,45 @@ foreach my $computer_name (@computer_names) {
     push @{$computers_by_location{$location}}, $computer_name;
 }
 
-# Si no hay datos de OS, crear algunos de muestra
-if (!%os_distribution) {
-    $os_distribution{"Windows 10"} = 5;
-    $os_distribution{"Windows 11"} = 3;
-    $os_distribution{"Ubuntu"} = 2;
-    $os_distribution{"macOS"} = 1;
-}
+debug("Equipos activos encontrados: " . scalar(keys %computers_active));
+debug("OS detectados: " . scalar(keys %os_distribution));
 
 # 3. Calcular tiempo promedio de sesión
+debug("Calculando tiempo promedio de sesión...");
 my $total_duration = 0;
 my $session_count = 0;
 my $avg_session_time = "0h 0m";
 
 foreach my $username (keys %session_durations) {
+    debug("  Duración para $username: " . scalar(@{$session_durations{$username}}) . " sesiones");
     foreach my $duration (@{$session_durations{$username}}) {
         $total_duration += $duration;
         $session_count++;
     }
 }
 
-# Si no hay duración, crear una muestra
-if ($session_count == 0) {
-    $avg_session_time = "1h 30m";  # Valor de muestra
-} else {
+debug("Total duraciones: $total_duration, Total sesiones: $session_count");
+
+# Check for division by zero before calculating average
+if ($session_count > 0) {
     my $avg_seconds = int($total_duration / $session_count);
     my $hours = int($avg_seconds / 3600);
     my $minutes = int(($avg_seconds % 3600) / 60);
     $avg_session_time = "${hours}h ${minutes}m";
+    debug("Tiempo promedio de sesión: $avg_session_time");
 }
 
 # 4. Obtener top usuarios por recuento de inicios de sesión
+debug("Obteniendo top usuarios...");
 my @top_users;
 
 # Si tenemos datos de usuarios, los procesamos
 if ($samba->can('realUsers')) {
+    debug("El módulo samba puede obtener realUsers");
     my $users_data = eval { $samba->realUsers(0) };
     
     if ($users_data && ref($users_data) eq 'ARRAY') {
+        debug("Obtenidos " . scalar(@$users_data) . " usuarios");
         foreach my $user (@$users_data) {
             next unless $user->can('get');
             
@@ -283,43 +287,33 @@ if ($samba->can('realUsers')) {
                 name => $username,
                 value => int($logon_count)
             };
+            
+            debug("  Usuario: $username, Logins: $logon_count") if $logon_count > 0;
         }
         
         # Ordenar y limitar a los 10 principales
         @top_users = sort { $b->{value} <=> $a->{value} } @top_users;
         @top_users = @top_users[0..9] if @top_users > 10;
+    } else {
+        debug("No se pudieron obtener usuarios: " . ($@ || "Error desconocido"));
     }
+} else {
+    debug("El módulo samba NO puede obtener realUsers");
 }
 
-# Si no hay usuarios, crear datos de muestra
-if (!@top_users) {
-    debug("Generando usuarios de muestra");
-    @top_users = (
-        { name => "admin", value => 45 },
-        { name => "jperez", value => 32 },
-        { name => "mrodriguez", value => 28 },
-        { name => "alopez", value => 15 },
-        { name => "test", value => 7 }
-    );
-}
+debug("Top usuarios encontrados: " . scalar(@top_users));
 
 # 5. Identificar IPs inusuales (menos de 3 ocurrencias)
+debug("Identificando IPs inusuales...");
 my @unusual_ips;
 foreach my $ip (keys %ip_counts) {
     if ($ip_counts{$ip} < 3 && $ip ne '') {
+        debug("  IP inusual: $ip (conteo: $ip_counts{$ip})");
         push @unusual_ips, { ip => $ip, count => $ip_counts{$ip} };
     }
 }
 
-# Si no hay IPs inusuales, crear algunas muestras
-if (!@unusual_ips) {
-    debug("Generando IPs inusuales de muestra");
-    @unusual_ips = (
-        { ip => "192.168.1.57", count => 1 },
-        { ip => "10.0.0.123", count => 2 },
-        { ip => "172.16.0.88", count => 2 }
-    );
-}
+debug("IPs inusuales encontradas: " . scalar(@unusual_ips));
 
 # Ordenar IPs por número de ocurrencias (ascendente)
 @unusual_ips = sort { $a->{count} <=> $b->{count} } @unusual_ips;
@@ -349,7 +343,16 @@ foreach my $os (keys %os_distribution) {
 debug("Buscando actividad reciente...");
 my @recent_activity;
 my $recent_cmd = 'sudo zgrep -a "smbd_audit:" /var/log/syslog* | sed \'s/^[^:]*://\' | tail -20 2>/dev/null';
+debug("Ejecutando: $recent_cmd");
 my @recent_lines = `$recent_cmd`;
+debug("Encontradas " . scalar(@recent_lines) . " líneas recientes");
+
+if (@recent_lines) {
+    debug("Primeras 3 líneas:") if @recent_lines;
+    for (my $i = 0; $i < 3 && $i < scalar(@recent_lines); $i++) {
+        debug("  " . $recent_lines[$i]);
+    }
+}
 
 foreach my $line (@recent_lines) {
     if ($line =~ /^(\w{3})\s+(\d{1,2})\s+(\d{2}:\d{2}:\d{2}).*smbd_audit:\s+\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*(\w+)\s*\|/) {
@@ -364,34 +367,19 @@ foreach my $line (@recent_lines) {
             event => $event,
             ip => $ip
         };
+        
+        debug("  Actividad reciente: $date_str $user $event desde $ip");
+    } else {
+        debug("  Línea no coincide con patrón: $line");
     }
     
     last if scalar(@recent_activity) >= 5;
 }
 
-# Si no hay actividad reciente, crear datos de muestra
-if (!@recent_activity) {
-    debug("Generando actividad reciente de muestra");
-    
-    my @sample_users = ('admin', 'jperez', 'mrodriguez', 'alopez', 'invitado');
-    my @sample_ips = ('192.168.1.100', '192.168.1.101', '10.0.0.15', '172.16.0.25');
-    my @sample_events = ('connect', 'disconnect', 'open', 'close');
-    
-    for my $i (0..4) {
-        my $time_ago = $i * 15; # minutos atrás
-        my $event_time = $now->clone->subtract(minutes => $time_ago);
-        my $date_str = $event_time->strftime('%d/%m/%Y %H:%M:%S');
-        
-        push @recent_activity, {
-            date => $date_str,
-            user => $sample_users[$i % scalar(@sample_users)],
-            event => $sample_events[$i % scalar(@sample_events)],
-            ip => $sample_ips[$i % scalar(@sample_ips)]
-        };
-    }
-}
+debug("Actividades recientes encontradas: " . scalar(@recent_activity));
 
 # Convertimos las sesiones activas a un formato adecuado para el JSON
+debug("Formateando sesiones activas...");
 my @session_list;
 foreach my $key (keys %active_sessions) {
     my $session = $active_sessions{$key};
@@ -401,40 +389,28 @@ foreach my $key (keys %active_sessions) {
         start_time => $session->{start_time},
         event => $session->{event}
     };
+    
+    debug("  Sesión activa: $session->{user} desde $session->{ip} iniciada en $session->{start_time}");
 }
 
-# Si no hay sesiones activas, crear algunas muestras
-if (!@session_list) {
-    debug("Generando sesiones activas de muestra");
-    
-    my @sample_users = ('admin', 'jperez', 'mrodriguez');
-    my @sample_ips = ('192.168.1.100', '10.0.0.15', '172.16.0.25');
-    
-    for my $i (0..2) {
-        my $start_time = $now->clone->subtract(minutes => int(rand(60)))->strftime('%Y-%m-%d %H:%M:%S');
-        
-        push @session_list, {
-            user => $sample_users[$i],
-            ip => $sample_ips[$i],
-            start_time => $start_time,
-            event => 'connect'
-        };
-    }
-}
+debug("Sesiones activas encontradas: " . scalar(@session_list));
 
 # 9. Armar el JSON final de respuesta
+debug("Generando JSON de respuesta...");
 my %dashboard_data = (
     activeSessions => scalar(@session_list),
-    activeUsers => scalar(keys %users_active) || scalar(@session_list), # Si no hay usuarios activos, usar conteo de sesiones
-    activeComputers => scalar(keys %computers_active) || int(scalar(@session_list) * 0.8), # Si no hay equipos activos, estimar
+    activeUsers => scalar(keys %users_active),
+    activeComputers => scalar(keys %computers_active),
     averageSessionTime => $avg_session_time,
     hourlyActivity => \@hourly_activity_formatted,
     osDistribution => \@os_distribution_data,
     topUsers => \@top_users,
-    unusualIPs => \@unusual_ips,
+    unusualIPs => @unusual_ips,
     recentActivity => \@recent_activity,
     sessionList => \@session_list
 );
+
+debug("JSON generado con éxito. Terminando script.");
 
 # Convertir a JSON
 my $json = JSON->new->utf8->pretty->encode(\%dashboard_data);
