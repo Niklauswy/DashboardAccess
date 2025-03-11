@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { Legend, ResponsiveContainer } from "recharts";
-import { cn } from "@/lib/utils";
+import { cn } from "@/components/lib/utils";
 
 // Create a context for chart configuration
 const ChartContext = React.createContext({});
