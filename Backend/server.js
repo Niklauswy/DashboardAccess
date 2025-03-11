@@ -271,49 +271,13 @@ app.get('/api/stats', (req, res) => {
   
   // Ejecutar el script para obtener estadísticas frescas
   exec('perl scripts/getDashboardStats.pl', { shell: '/bin/bash' }, (error, stdout, stderr) => {
-    if (error || stderr) {
-      console.error(`Error o advertencia ejecutando getDashboardStats.pl:`, 
-        error ? error.message : '', stderr || '');
-      
-      // Return mock data if the script fails
-      const mockData = {
-        activeSessions: Math.floor(Math.random() * 15) + 5,
-        activeUsers: Math.floor(Math.random() * 10) + 3,
-        activeComputers: Math.floor(Math.random() * 20) + 10,
-        averageSessionTime: "1h 30m",
-        hourlyActivity: Array.from({length: 24}, (_, i) => ({
-          hour: `${String(i).padStart(2, '0')}:00`,
-          count: Math.floor(Math.random() * 10)
-        })),
-        osDistribution: [
-          {name: "Windows 10", value: 15},
-          {name: "Windows 11", value: 8},
-          {name: "Linux", value: 5}
-        ],
-        topUsers: [
-          {name: "usuario1", value: 42},
-          {name: "usuario2", value: 37},
-          {name: "usuario3", value: 25},
-          {name: "admin", value: 18},
-          {name: "usuario4", value: 15}
-        ],
-        unusualIPs: [
-          {ip: "192.168.1.45", count: 1},
-          {ip: "192.168.1.72", count: 2}
-        ],
-        recentActivity: [
-          {date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString(), user: "usuario1", event: "connect", ip: "192.168.1.10"},
-          {date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString(), user: "admin", event: "connect", ip: "192.168.1.5"}
-        ],
-        sessionList: [
-          {user: "usuario1", ip: "192.168.1.10", start_time: new Date().toISOString(), event: "connect"},
-          {user: "admin", ip: "192.168.1.5", start_time: new Date().toISOString(), event: "connect"}
-        ]
-      };
-      
-      // Cache this mock data for a shorter period
-      cache.set(cacheKey, mockData, 30);
-      return res.status(200).json(mockData);
+    if (error) {
+      console.error(`Error ejecutando getDashboardStats.pl: ${error}`);
+      return res.status(500).json({ error: 'Error obteniendo estadísticas del dashboard' });
+    }
+    
+    if (stderr) {
+      console.warn(`Advertencias de getDashboardStats.pl: ${stderr}`);
     }
     
     try {
