@@ -147,7 +147,7 @@ sub determine_status {
 
     my $months_diff = ($dt_now->year - $dt_lastLogon->year) * 12 + ($dt_now->month - $dt_lastLogon->month);
 
-    if ($months_diff > 3) {
+    if ($months_diff > 4) {
         return 'Desconocido';
     } else {
         return 'Activa';
