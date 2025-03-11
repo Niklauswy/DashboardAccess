@@ -14,7 +14,7 @@ export const dataSlidebarRoutes = [
     {
         icon: RectangleEllipsis,
         label: "Menú",
-        href: "/dashboard",
+        href: "/",
         section: "general"
 
 

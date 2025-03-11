@@ -1,5 +1,5 @@
 'use client'
-import UserTable from '@/components/UserTable';
+import UserTable from '@/app/(routes)/users/components/UserTable';
 import UserTableSkeleton from '@/components/skeletons/UserTableSkeleton';
 import ErrorServer from '@/components/ErrorServer';
 import { useUsers } from '@/hooks/useUsers';

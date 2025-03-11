@@ -3,23 +3,23 @@ import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { useToast } from "@/components/hooks/use-toast";
-import { useUserTableFilters } from "@/app/(routes)/(dashboard)/users/hooks/useUserTableFilters";
-import { useUserTableState } from "@/app/(routes)/(dashboard)/users/hooks/useUserTableState";
+import { useToast } from "@/hooks/use-toast";
+import { useUserTableFilters } from "@/app/(routes)/users/hooks/useUserTableFilters";
+import { useUserTableState } from "@/app/(routes)/users/hooks/useUserTableState";
 import { useUsers } from "@/hooks/useUsers"; // Cambiado a useUsers
-import UserTableFilters from "@/app/(routes)/(dashboard)/users/components/UserTableFilters";
-import UserTableActions from "@/app/(routes)/(dashboard)/users/components/UserTableActions";
-import UserTableContent from "@/app/(routes)/(dashboard)/users/components/UserTableContent";
-import UserTablePagination from "@/app/(routes)/(dashboard)/users/components/UserTablePagination";
-import BatchActionsBar from "@/app/(routes)/(dashboard)/users/components/BatchActionsBar";
-import DeleteUserDialog from "@/app/(routes)/(dashboard)/users/components/DeleteUserDialog";
-import BatchActionDialog from "@/app/(routes)/(dashboard)/users/components/BatchActionDialog";
-import AddUserForm from "@/app/(routes)/(dashboard)/users/components/AddUserForm";
-import EditUserForm from '@/app/(routes)/(dashboard)/users/components/EditUserForm';
+import UserTableFilters from "@/app/(routes)/users/components/UserTableFilters";
+import UserTableActions from "@/app/(routes)/users/components/UserTableActions";
+import UserTableContent from "@/app/(routes)/users/components/UserTableContent";
+import UserTablePagination from "@/app/(routes)/users/components/UserTablePagination";
+import BatchActionsBar from "@/app/(routes)/users/components/BatchActionsBar";
+import DeleteUserDialog from "@/app/(routes)/users/components/DeleteUserDialog";
+import BatchActionDialog from "@/app/(routes)/users/components/BatchActionDialog";
+import AddUserForm from "@/app/(routes)/users/components/AddUserForm";
+import EditUserForm from '@/app/(routes)/users/components/EditUserForm';
 import ProcessingDialog from '@/components/ProcessingDialog';
 
 // Constants moved to a separate file and imported here
-import { columns, careerIcons } from "@/app/(routes)/(dashboard)/users/components/userTableConstants";
+import { columns, careerIcons } from "@/app/(routes)/users/components/userTableConstants";
 
 export default function UserTable({ users, refreshUsers, isRefreshing }) {
     const { toast } = useToast();

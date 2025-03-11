@@ -1,8 +1,8 @@
-'use client'
+    'use client'
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import { CustomTrigger } from "./dashboard/components/CustomTrigger";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { CustomTrigger } from "@/components/sidebar/CustomTrigger";
 
 export default function DashboardLayout({ children }) {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);

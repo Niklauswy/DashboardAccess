@@ -19,7 +19,7 @@ export async function middleware(request) {
   
   // Si es ruta de login y ya hay sesión, redirigir al dashboard
   if (path === '/login' && session) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
   
   // Si es una ruta protegida y no hay sesión, redirigir a login
@@ -34,7 +34,6 @@ export async function middleware(request) {
 
 export const config = { 
   matcher: [
-    // Coincide con todas las rutas excepto archivos estáticos
     '/((?!_next/static|_next/image|favicon.ico).*)'
   ]
 };

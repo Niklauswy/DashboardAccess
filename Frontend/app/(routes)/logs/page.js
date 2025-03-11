@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import LogTable from '@/app/(routes)/(dashboard)/logs/components/LogTable';
-import LogFilter from '@/app/(routes)/(dashboard)/logs/components/LogFilter';
-import { LogBarChart } from '@/app/(routes)/(dashboard)/logs/components/LogBarChart';
+import LogTable from '@/app/(routes)/logs/components/LogTable';
+import LogFilter from '@/app/(routes)/logs/components/LogFilter';
+import { LogBarChart } from '@/app/(routes)/logs/components/LogBarChart';
 import { useLogs } from '@/hooks/useLogs';
 import ErrorServer from '@/components/ErrorServer';
-import LogTableSkeleton from '@/app/(routes)/(dashboard)/logs/components/LogTableSkeleton';
+import LogTableSkeleton from '@/app/(routes)/logs/components/LogTableSkeleton';
 
 export default function Logs() {
     // Use the custom hook for logs

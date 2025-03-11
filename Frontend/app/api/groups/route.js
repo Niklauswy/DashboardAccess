@@ -6,7 +6,6 @@ export async function GET(request) {
             cache: 'no-store',
         });
         const data = await res.json();
-        // Asegurar que cada grupo tiene un campo 'type' que sea 'security' o 'distribution'
         return NextResponse.json(data);
     } catch (error) {
         return NextResponse.error();

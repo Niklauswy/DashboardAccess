@@ -60,7 +60,7 @@ const NotFound = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.6 }}
             >
-              <Link href="/dashboard" className="inline-flex items-center px-6 py-3 bg-[#00723F] text-white font-medium rounded-md hover:bg-[#005c32] transition-colors duration-200">
+              <Link href="/" className="inline-flex items-center px-6 py-3 bg-[#00723F] text-white font-medium rounded-md hover:bg-[#005c32] transition-colors duration-200">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>

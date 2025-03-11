@@ -2,7 +2,7 @@
 import { useState } from "react"
 import useSWR from "swr"
 import Papa from "papaparse"
-import { useToast } from "@/components/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { useUsers } from "@/hooks/useUsers"
 import CsvUploader from "./CsvUploader"

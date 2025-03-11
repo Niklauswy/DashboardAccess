@@ -1,7 +1,7 @@
 'use client'
 
-import {dataSlidebarRoutes} from "@/app/(routes)/(dashboard)/dashboard/components/SidebarRoutes.data";
-import SidebarItem from "@/app/(routes)/(dashboard)/dashboard/components/SidebarItem";
+import {dataSlidebarRoutes} from "@/components/sidebar/SidebarRoutes.data";
+import SidebarItem from "@/components/sidebar/SidebarItem";
 import {Badge} from "@/components/ui/badge";
 
 const SidebarRoutes = () => {

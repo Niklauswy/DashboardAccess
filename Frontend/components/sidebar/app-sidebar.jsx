@@ -4,8 +4,8 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import SidebarTitle from "@/app/(routes)/(dashboard)/dashboard/components/SidebarTitle";
-import SidebarRoutes from "@/app/(routes)/(dashboard)/dashboard/components/SidebarRoutes";
+import SidebarTitle from "@/components/sidebar/SidebarTitle";
+import SidebarRoutes from "@/components/sidebar/SidebarRoutes";
 import { useSession } from 'next-auth/react';
 import { NavUser } from "./nav-user";
 export function AppSidebar() {

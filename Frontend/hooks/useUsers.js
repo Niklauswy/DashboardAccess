@@ -44,15 +44,12 @@ export function useUsers() {
       body: JSON.stringify(userData),
     });
     
-    // Intentamos leer como JSON primero
     const data = await res.json();
     
-    // Si hay error en la respuesta
     if (!res.ok || data.error) {
-      // Creamos un objeto Error con el mensaje de error específico
       const error = new Error(data.error || 'Error al crear usuario');
       
-      // Agregamos los detalles como propiedad del error para debugging
+      //  detalles como propiedad del error para debugging
       if (data.details) {
         error.details = data.details;
       }
@@ -80,7 +77,7 @@ export function useUsers() {
       throw new Error(error || 'Error al actualizar usuario');
     }
     
-    await mutate(); // Actualiza la caché de usuarios
+    await mutate();
     return res.json();
   };
 
@@ -100,7 +97,7 @@ export function useUsers() {
       throw new Error(data?.error || 'Error al eliminar usuario');
     }
     
-    await mutate(); // Actualiza la caché de usuarios
+    await mutate();
     return data || { success: true };
   };
 
