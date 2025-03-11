@@ -1,35 +1,30 @@
 "use client";
 import * as React from "react";
-import { Legend, ResponsiveContainer, Tooltip } from "recharts";
-import { cn } from "@/components/lib/utils";
+import { Legend, ResponsiveContainer } from "recharts";
+import { cn } from "@/lib/utils";
 
-const ChartContext = React.createContext({
-  config: null,
-});
+// Create a context for chart configuration
+const ChartContext = React.createContext({});
 
 export function ChartContainer({
   config,
   children,
   className,
-  ...props
 }) {
   return (
     <ChartContext.Provider value={{ config }}>
-      <div className={cn("recharts-responsive-container", className)} {...props}>
-        <ResponsiveContainer>{children}</ResponsiveContainer>
-
-        <style jsx global>{`
-          :root {
-            ${Object.entries(config)
-              .map(([key, value]) => {
-                return value.color
-                  ? `--color-${key}: ${value.color};`
-                  : null
-              })
-              .filter(Boolean)
-              .join("\n")}
-          }
-        `}</style>
+      <style>
+        {config &&
+          Object.entries(config).map(([key, value]) => {
+            return `
+              :root {
+                --color-${key}: ${value.color};
+              }
+            `
+          })}
+      </style>
+      <div className={className} style={{ width: "100%", height: "100%" }}>
+        {children}
       </div>
     </ChartContext.Provider>
   )
@@ -77,115 +72,17 @@ export function ChartLegendContent({
   )
 }
 
-export function ChartTooltip(props) {
-  return <Tooltip {...props} />
-}
-
-export function ChartTooltipContent({
-  active,
-  payload,
-  label,
-  labelFormatter,
-  valueFormatter = (value) => value,
-  indicator = "box",
-  className,
-  nameKey,
-  ...props
-}) {
-  const { config } = React.useContext(ChartContext)
-
-  if (!active || !payload || !payload.length || !config) {
-    return null
-  }
-
-  return (
-    <div
-      className={cn(
-        "rounded-lg border bg-background shadow-sm",
-        className
-      )}
-      {...props}
-    >
-      <div className="border-b px-3.5 py-2 text-center text-xs font-medium">
-        {labelFormatter ? labelFormatter(label) : label}
-      </div>
-      <div className="px-3.5 py-2">
-        {payload.map((item) => {
-          const dataKey = nameKey ? nameKey : item.dataKey
-          const configEntry = Object.entries(config).find(
-            ([key]) => key === dataKey
-          )
-
-          const name = configEntry?.[1].label ?? item.name
-          const color = item.stroke || item.fill || item.color || "#888"
-
-          return (
-            <div key={item.dataKey} className="flex items-center gap-2 py-1">
-              {indicator === "box" && (
-                <div
-                  className="h-2 w-2 rounded-sm"
-                  style={{ backgroundColor: color }}
-                />
-              )}
-              {indicator === "line" && (
-                <div
-                  className="h-0.5 w-3"
-                  style={{ backgroundColor: color }}
-                />
-              )}
-              {indicator === "dot" && (
-                <div
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
-              )}
-              <div className="grid flex-1 grid-cols-2 items-center gap-1 text-xs">
-                <span className="tabular-nums text-muted-foreground">{name}</span>
-                <span className="font-medium tabular-nums">{valueFormatter(Number(item.value))}</span>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-const ChartContext = React.createContext({})
-
-export function ChartContainer({
-  config,
-  children,
-  className,
-}) {
-  return (
-    <ChartContext.Provider value={{ config }}>
-      <style>
-        {config &&
-          Object.entries(config).map(([key, value]) => {
-            return `
-              :root {
-                --color-${key}: ${value.color};
-              }
-            `
-          })}
-      </style>
-      <div className={className} style={{ width: "100%", height: "100%" }}>
-        {children}
-      </div>
-    </ChartContext.Provider>
-  )
-}
-
+// Custom tooltip component that wraps the recharts tooltip
 export function ChartTooltip({
   children,
   ...props
 }) {
   const content = children || <ChartTooltipContent />
-  return <Tooltip content={content} {...props} />
+  return <CustomTooltip content={content} {...props} />
 }
 
-function Tooltip({ active, payload, content }) {
+// Renamed from Tooltip to CustomTooltip to avoid conflict with recharts import
+function CustomTooltip({ active, payload, content }) {
   if (!active || !payload) {
     return null
   }
@@ -306,13 +203,87 @@ function TooltipContent({
             key={index}
             className="flex items-center justify-between gap-2"
           >
-            <div className={`flex items-center gap-1.5 tooltip-item-${indicator}`} style={{ "--dot-color": color }}>
+            <div 
+              className={`flex items-center gap-1.5 tooltip-item-${indicator}`} 
+              style={{ "--dot-color": color }}
+            >
               <span className="capitalize text-muted-foreground">{label}</span>
             </div>
             <span className="font-medium tabular-nums">{item.value}</span>
           </div>
         )
       })}
+    </div>
+  )
+}
+
+// Enhanced version of ChartTooltipContent for the newer styled design
+export function EnhancedChartTooltipContent({
+  active,
+  payload,
+  label,
+  labelFormatter,
+  valueFormatter = (value) => value,
+  indicator = "box",
+  className,
+  nameKey,
+  ...props
+}) {
+  const { config } = React.useContext(ChartContext)
+
+  if (!active || !payload || !payload.length || !config) {
+    return null
+  }
+
+  return (
+    <div
+      className={cn(
+        "rounded-lg border bg-background shadow-sm",
+        className
+      )}
+      {...props}
+    >
+      <div className="border-b px-3.5 py-2 text-center text-xs font-medium">
+        {labelFormatter ? labelFormatter(label) : label}
+      </div>
+      <div className="px-3.5 py-2">
+        {payload.map((item) => {
+          const dataKey = nameKey ? nameKey : item.dataKey
+          const configEntry = Object.entries(config).find(
+            ([key]) => key === dataKey
+          )
+
+          const name = configEntry?.[1].label ?? item.name
+          const color = item.stroke || item.fill || item.color || "#888"
+
+          return (
+            <div key={item.dataKey} className="flex items-center gap-2 py-1">
+              {indicator === "box" && (
+                <div
+                  className="h-2 w-2 rounded-sm"
+                  style={{ backgroundColor: color }}
+                />
+              )}
+              {indicator === "line" && (
+                <div
+                  className="h-0.5 w-3"
+                  style={{ backgroundColor: color }}
+                />
+              )}
+              {indicator === "dot" && (
+                <div
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+              )}
+              <div className="grid flex-1 grid-cols-2 items-center gap-1 text-xs">
+                <span className="tabular-nums text-muted-foreground">{name}</span>
+                <span className="font-medium tabular-nums">{valueFormatter(Number(item.value))}</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
