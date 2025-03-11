@@ -8,7 +8,10 @@ export async function GET(request) {
         const data = await res.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Error fetching computers from external API:', error);
-        return NextResponse.error();
+        console.error('Error fetching computers:', error);
+        return NextResponse.json(
+            { error: 'Error al obtener datos de computadoras' }, 
+            { status: 500 }
+        );
     }
 }

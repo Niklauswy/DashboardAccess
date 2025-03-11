@@ -46,7 +46,6 @@ export function useLogs() {
     }
   };
   
-  // Helper function to handle date parsing with consistent format
   function parseLogDate(dateString) {
     if (!dateString) return new Date();
     

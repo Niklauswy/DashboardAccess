@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { LogIn, LogOut, Link2 } from "lucide-react";
 
 const LogRow = ({ log, index }) => {
-  // Alternate row colors for better readability
   const rowClass = index % 2 === 0 ? 'bg-muted/50' : '';
   
   // Determine badge color based on event type
@@ -33,24 +32,7 @@ const LogRow = ({ log, index }) => {
       );
     }
     
-    // Additional pattern matching
-    if (lowerEvent.includes('login') || lowerEvent.includes('ingreso')) {
-      return (
-        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
-          <LogIn className="mr-1 h-3 w-3" />
-          {event}
-        </Badge>
-      );
-    }
-    
-    if (lowerEvent.includes('logout') || lowerEvent.includes('salida')) {
-      return (
-        <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200">
-          <LogOut className="mr-1 h-3 w-3" />
-          {event}
-        </Badge>
-      );
-    }
+ 
     
     return <Badge variant="outline">{event}</Badge>;
   };

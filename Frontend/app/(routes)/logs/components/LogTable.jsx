@@ -8,19 +8,19 @@ import CustomPagination from "@/components/ui/CustomPagination";
 import LogRow from "./LogRow";
 
 const LogTable = ({ logs, isRefreshing, refreshLogs }) => {
-    const pageSize = 10;
+    const pageSize = 20;
     const [currentPage, setCurrentPage] = useState(1);
     const [currentLogs, setCurrentLogs] = useState([]);
     const totalPages = Math.ceil(logs.length / pageSize);
 
-    // Update current logs when data changes
+    // Actualizar logs cuando se refresca la tabla
     useEffect(() => {
         setCurrentLogs(logs.slice((currentPage - 1) * pageSize, currentPage * pageSize));
     }, [logs, currentPage]);
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
-        // Scroll to top of table when page changes
+        // Scroll to top cuando se cambia de página
         const tableElement = document.getElementById('log-table');
         if (tableElement) tableElement.scrollIntoView({ behavior: 'smooth' });
     };
