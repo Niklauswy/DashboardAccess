@@ -51,7 +51,8 @@ my %computers_by_location; # location => [computer_names]
 
 # 1. Procesamos logs para identificar sesiones activas
 debug("Buscando logs de smbd_audit...");
-my $logs_cmd = 'zgrep -a "smbd_audit:" /var/log/syslog* | sed \'s/^[^:]*://\' | grep -Ei "connect" | awk \'{ match($0, /smbd_audit:[[:space:]]*(.*)/, a); split(a[1], b, /\|/); print $1, $2, $3, $4, b[5], b[3], b[2]; }\' | sort -k1M -k2n -k3';
+# Modificar el comando para obtener todos los eventos connect/disconnect
+my $logs_cmd = 'zgrep -a "smbd_audit:" /var/log/syslog* | sed \'s/^[^:]*://\' | grep -Ei "connect|disconnect" | awk \'{ match($0, /smbd_audit:[[:space:]]*(.*)/, a); split(a[1], b, /\|/); print $1, $2, $3, $4, b[5], b[3], b[2]; }\' | sort -k1M -k2n -k3';
 
 debug("Ejecutando comando: $logs_cmd");
 my @log_lines = `$logs_cmd`;
@@ -69,17 +70,20 @@ debug("Procesando logs de sesiones...");
 my $logs_procesados = 0;
 my $logs_validos = 0;
 
+# También rastrear sesiones completadas para estadísticas
+my @completed_sessions;
+
 foreach my $line (@log_lines) {
     chomp $line;
     $logs_procesados++;
     
-    # Formato típico: "May 15 10:30:15 hostname smbd_audit: |ip|user|connect|"
-    # Hacemos el pattern matching más flexible para capturar más formatos
-    if ($line =~ /^(\w{3})\s+(\d{1,2})\s+(\d{2}:\d{2}:\d{2}).*smbd_audit:\s*\|?\s*([^\s|]+)\s*\|?\s*([^\s|]+)\s*\|?\s*(\w+)\s*\|?/) {
-        my ($month, $day, $time, $ip, $username, $event) = ($1, $2, $3, $4, $5, $6);
+    # Nuevo patrón para el formato de log real:
+    # "Nov 16 22:47:14 zenti Alia disconnect 192.168.68.106"
+    if ($line =~ /^(\w{3})\s+(\d{1,2})\s+(\d{2}:\d{2}:\d{2})\s+\S+\s+(\S+)\s+(\w+)\s+(\S+)/) {
+        my ($month, $day, $time, $username, $event, $ip) = ($1, $2, $3, $4, $5, $6);
         $logs_validos++;
         
-        debug("Match encontrado: mes=$month, día=$day, hora=$time, IP=$ip, usuario=$username, evento=$event");
+        debug("Match encontrado: mes=$month, día=$day, hora=$time, usuario=$username, evento=$event, IP=$ip");
         
         # Parseamos la fecha manualmente sin usar el módulo que falta
         my $month_num = $month_map{$month} || 1;
@@ -107,7 +111,7 @@ foreach my $line (@log_lines) {
         next unless $log_date; # Saltamos si hay error en la fecha
         
         # Actualizar conteo por hora
-        my $log_hour = $log_date->hour;  # Renamed from $hour to $log_hour
+        my $log_hour = $log_date->hour;
         $hourly_activity[$log_hour]++;
         
         # Contar IPs para detectar inusuales
@@ -115,7 +119,7 @@ foreach my $line (@log_lines) {
         
         # Tracking de sesiones activas
         # Si es un evento de conexión, registramos la sesión
-        if ($event =~ /connect|open/i) {
+        if ($event =~ /connect/i) {
             $active_sessions{"$ip:$username"} = {
                 user => $username,
                 ip => $ip,
@@ -123,9 +127,10 @@ foreach my $line (@log_lines) {
                 event => 'connect'
             };
             $users_active{$username}++;
+            debug("  Sesión INICIADA: $username desde $ip");
         }
         # Si es un evento de desconexión, finalizamos la sesión activa y calculamos duración
-        elsif ($event =~ /disconnect|close|logoff/i) {
+        elsif ($event =~ /disconnect/i) {
             if (exists $active_sessions{"$ip:$username"}) {
                 # Convertir la fecha almacenada como string a objeto DateTime
                 my $start_str = $active_sessions{"$ip:$username"}{start_time};
@@ -140,15 +145,28 @@ foreach my $line (@log_lines) {
                     
                     my $duration = $log_date->epoch - $session_start->epoch;
                     
-                    # Guardar duración para estadísticas (solo si parece válida)
+                    # Guardar sesión completada con su duración
                     if ($duration > 0 && $duration < 86400) { # < 24 horas
                         push @{$session_durations{$username}}, $duration;
+                        
+                        # Registrar sesión completada para estadísticas
+                        push @completed_sessions, {
+                            user => $username,
+                            ip => $ip,
+                            start_time => $start_str,
+                            end_time => $log_date->strftime('%Y-%m-%d %H:%M:%S'),
+                            duration => $duration,
+                            duration_formatted => format_duration($duration)
+                        };
                     }
                 }
                 
                 # Remover la sesión activa
                 delete $active_sessions{"$ip:$username"};
                 $users_active{$username}-- if $users_active{$username} > 0;
+                debug("  Sesión TERMINADA: $username desde $ip");
+            } else {
+                debug("  Desconexión sin conexión previa: $username desde $ip");
             }
         }
     } else {
@@ -177,19 +195,6 @@ if (@computer_names) {
     }
 }
 
-# Si no hay equipos, crear algunos de muestra
-if (scalar(@computer_names) == 0) {
-    debug("No se encontraron equipos. Generando datos de muestra");
-    @computer_names = ('PC001', 'PC002', 'LAPTOP001', 'SERVER001');
-    
-    # Simular algunos equipos activos
-    foreach my $computer (@computer_names) {
-        if (int(rand(2))) {
-            $computers_active{$computer} = 1;
-            $os_distribution{$computer % 2 ? "Windows 10" : "Windows 11"} += 1;
-        }
-    }
-}
 
 foreach my $computer_name (@computer_names) {
     # Solo procesamos nombres válidos
@@ -339,13 +344,13 @@ foreach my $os (keys %os_distribution) {
 @os_distribution_data = sort { $b->{value} <=> $a->{value} } @os_distribution_data;
 @os_distribution_data = @os_distribution_data[0..4] if @os_distribution_data > 5;
 
-# 8. Obtener actividad reciente (últimos 5 eventos)
+# 8. Obtener actividad reciente (últimos 5 eventos) - Solo eventos connect
 debug("Buscando actividad reciente...");
 my @recent_activity;
-my $recent_cmd = 'sudo zgrep -a "smbd_audit:" /var/log/syslog* | sed \'s/^[^:]*://\' | tail -20 2>/dev/null';
+my $recent_cmd = 'sudo zgrep -a "smbd_audit:" /var/log/syslog* | sed \'s/^[^:]*://\' | grep -i "connect" | tail -20 2>/dev/null';
 debug("Ejecutando: $recent_cmd");
 my @recent_lines = `$recent_cmd`;
-debug("Encontradas " . scalar(@recent_lines) . " líneas recientes");
+debug("Encontradas " . scalar(@recent_lines) . " líneas recientes de connect");
 
 if (@recent_lines) {
     debug("Primeras 3 líneas:") if @recent_lines;
@@ -405,9 +410,10 @@ my %dashboard_data = (
     hourlyActivity => \@hourly_activity_formatted,
     osDistribution => \@os_distribution_data,
     topUsers => \@top_users,
-    unusualIPs => @unusual_ips,
+    unusualIPs => \@unusual_ips,  # Corregido: Debe ser una referencia al array
     recentActivity => \@recent_activity,
-    sessionList => \@session_list
+    sessionList => \@session_list,
+    completedSessions => \@completed_sessions
 );
 
 debug("JSON generado con éxito. Terminando script.");
@@ -415,3 +421,13 @@ debug("JSON generado con éxito. Terminando script.");
 # Convertir a JSON
 my $json = JSON->new->utf8->pretty->encode(\%dashboard_data);
 print $json;
+
+# Función para formatear duración en formato legible
+sub format_duration {
+    my ($seconds) = @_;
+    my $hours = int($seconds / 3600);
+    my $minutes = int(($seconds % 3600) / 60);
+    my $secs = $seconds % 60;
+    
+    return sprintf("%02d:%02d:%02d", $hours, $minutes, $secs);
+}
