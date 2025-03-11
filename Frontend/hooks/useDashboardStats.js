@@ -5,7 +5,7 @@ export function useDashboardStats() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   const { data: stats, error, mutate } = useSWR(
-    '/api/stats', // Changed from '/api/dashboard/stats' to match backend endpoint
+    '/api/stats', 
     async (url) => {
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error('Error cargando estadísticas del dashboard');

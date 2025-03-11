@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use JSON;
 use DateTime;
+use POSIX qw(strftime);
 
 
 
@@ -43,36 +44,25 @@ my $current_year = $now->year;
 # Procesar logs
 foreach my $line (@log_lines) {
     chomp $line;
-    # Formato típico: "May 15 10:30:15 hostname smbd_audit: |ip|user|connect|"
     if ($line =~ /^(\w{3})\s+(\d{1,2})\s+(\d{2}:\d{2}:\d{2}).*smbd_audit:\s+\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*(\w+)\s*\|/) {
         my ($month, $day, $time, $ip, $username, $event) = ($1, $2, $3, $4, $5, $6);
         
-        # Parseamos la fecha manualmente sin usar el módulo que falta
         my $month_num = $month_map{$month} || 1;
-        my ($hour, $min, $sec) = split(/:/, $time);
-        
-        # Crear objeto DateTime manualmente
+        my ($t_hour, $t_min, $t_sec) = split(/:/, $time);
+
         my $log_date = eval {
-            my $dt = DateTime->new(
+            DateTime->new(
                 year   => $current_year,
                 month  => $month_num,
                 day    => $day,
-                hour   => $hour,
-                minute => $min,
-                second => $sec,
+                hour   => $t_hour,
+                minute => $t_min,
+                second => $t_sec,
                 time_zone => 'local',
             );
-            
-            # Corregir el año si la fecha parece estar en el futuro
-            if ($dt > $now && $dt->clone->subtract(years => 1) <= $now) {
-                $dt->subtract(years => 1);
-            }
-            return $dt;
         };
-        
-        next unless $log_date; # Saltamos si hay error en la fecha
-        
-        # Actualizar conteo por hora
+        next unless $log_date;
+
         my $hour = $log_date->hour;
         $hourly_activity[$hour]++;
         
