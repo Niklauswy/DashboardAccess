@@ -250,6 +250,50 @@ app.put('/api/users/:username', (req, res) => {
   executeScriptWithInput('perl editUser.pl', dataToSend, res);
 });
 
+// Nuevo endpoint para estadísticas del dashboard
+app.get('/api/dashboard/stats', (req, res) => {
+  // Configuramos headers para evitar cacheo
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  
+  console.log(`[${new Date().toISOString()}] Solicitando estadísticas del dashboard`);
+  
+  // Clave para caché
+  const cacheKey = 'dashboard_stats';
+  const cachedData = cache.get(cacheKey);
+  
+  // Verificar si tenemos datos en caché recientes (menos de 1 minuto)
+  if (cachedData) {
+    console.log(`Devolviendo estadísticas del dashboard desde caché`);
+    return res.status(200).json(cachedData);
+  }
+  
+  // Ejecutar el script para obtener estadísticas frescas
+  exec('perl scripts/getDashboardStats.pl', { shell: '/bin/bash' }, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error ejecutando getDashboardStats.pl: ${error}`);
+      return res.status(500).json({ error: 'Error obteniendo estadísticas del dashboard' });
+    }
+    
+    if (stderr) {
+      console.warn(`Advertencias de getDashboardStats.pl: ${stderr}`);
+    }
+    
+    try {
+      const jsonData = JSON.parse(stdout);
+      
+      // Guardar en caché por 1 minuto
+      cache.set(cacheKey, jsonData, 60);
+      
+      res.status(200).json(jsonData);
+    } catch (parseError) {
+      console.error(`Error parseando respuesta JSON: ${parseError}`);
+      res.status(500).json({ error: 'Error en formato de estadísticas' });
+    }
+  });
+});
+
 // Catch-all route for unmatched endpoints
 app.all('*', (req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });

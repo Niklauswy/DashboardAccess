@@ -1,135 +1,20 @@
 "use client"
-import { useState, useEffect } from "react";
-import { format, parse, differenceInDays, differenceInHours, subDays } from "date-fns";
-import { es } from "date-fns/locale";
-import { Activity, BarChart3, Users, Monitor, Clock, TrendingUp, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { Activity, Users, Monitor, Clock, TrendingUp, AlertTriangle } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivityAreaChart } from "@/components/analytics/ActivityAreaChart";
 import { LabeledBarChart } from "@/components/analytics/LabeledBarChart";
 
-// Import hooks
-import { useLogs } from "@/hooks/useLogs";
-import { useUsers } from "@/hooks/useUsers";
-import { useComputers } from "@/hooks/useComputers";
+// Importar el nuevo hook
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 export function Dashboard() {
-  const { logs, isLoading: logsLoading, refreshLogs } = useLogs();
-  const { users, isLoading: usersLoading, refreshUsers } = useUsers();
-  const { computers, groupedComputers, isLoading: computersLoading, refreshComputers } = useComputers();
-  
-  const [stats, setStats] = useState({
-    activeSessions: 0,
-    activeUsers: 0,
-    activeComputers: 0,
-    averageSessionTime: "0h",
-    topUsers: [],
-    loginsByHour: [],
-    osDistribution: [],
-    hourlyActivity: [],
-    recentActivity: [],
-    unusualIPs: []
-  });
-
+  const { stats, isLoading, refreshStats } = useDashboardStats();
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a4de6c', '#d0ed57'];
 
-  // Process data when it's available
-  useEffect(() => {
-    if (logsLoading || usersLoading || computersLoading) return;
-    
-    calculateStatistics();
-  }, [logs, users, computers, logsLoading, usersLoading, computersLoading]);
-
-  const calculateStatistics = () => {
-    // Get active sessions (logins in the last week)
-    const now = new Date();
-    const recentLogs = logs.filter(log => {
-      try {
-        const [datePart, timePart] = log.date.split(' ');
-        const [day, month, year] = datePart.split('/').map(Number);
-        const dateObj = new Date(year, month - 1, day);
-        return differenceInDays(now, dateObj) <= 7;
-      } catch (e) {
-        return false;
-      }
-    });
-    
-    // Count unique users with logins in the last week
-    const activeUsernames = [...new Set(recentLogs.map(log => log.user))];
-    
-    // Calculate OS Distribution
-    const osCount = {};
-    computers.forEach(computer => {
-      const os = computer.operatingSystem || 'Unknown';
-      if (!osCount[os]) osCount[os] = 0;
-      osCount[os]++;
-    });
-    
-    const osDistribution = Object.entries(osCount)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5); // Only top 5 OS
-    
-    // Calculate top users by login count
-    const topUsers = [...users]
-      .sort((a, b) => (b.logonCount || 0) - (a.logonCount || 0))
-      .slice(0, 7) // Top 7 users
-      .map(user => ({ name: user.username, value: user.logonCount || 0 }));
-    
-    // Calculate login activity by hour
-    const hourCounts = Array(24).fill(0);
-    logs.forEach(log => {
-      try {
-        const time = log.date.split(' ')[1];
-        const hour = parseInt(time.split(':')[0], 10);
-        if (!isNaN(hour) && hour >= 0 && hour < 24) {
-          hourCounts[hour]++;
-        }
-      } catch (e) {
-        // Skip invalid date formats
-      }
-    });
-    
-    // Format hourly activity for chart
-    const hourlyActivity = hourCounts.map((count, hour) => ({
-      hour: hour < 10 ? `0${hour}:00` : `${hour}:00`,
-      count
-    }));
-    
-    // Calculate active computers
-    const activeComputers = computers.filter(computer => 
-      computer.status === 'Activa'
-    ).length;
-    
-    // Find unusual IPs
-    const ipCounts = {};
-    logs.forEach(log => {
-      if (!ipCounts[log.ip]) ipCounts[log.ip] = 0;
-      ipCounts[log.ip]++;
-    });
-    
-    const unusualIPs = Object.entries(ipCounts)
-      .filter(([ip, count]) => count < 3 && ip && ip !== 'undefined')
-      .sort((a, b) => a[1] - b[1])
-      .slice(0, 5)
-      .map(([ip, count]) => ({ ip, count }));
-    
-    // Set all calculated statistics
-    setStats({
-      activeSessions: recentLogs.length,
-      activeUsers: activeUsernames.length,
-      activeComputers,
-      averageSessionTime: "2.5h", 
-      topUsers,
-      hourlyActivity,
-      osDistribution,
-      recentActivity: logs.slice(0, 5), // Just 5 most recent
-      unusualIPs
-    });
-  };
-
-  if (logsLoading || usersLoading || computersLoading) {
+  if (isLoading) {
     return <div className="flex justify-center items-center h-screen">Cargando datos del dashboard...</div>;
   }
 
@@ -146,7 +31,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeSessions}</div>
-            <p className="text-xs text-muted-foreground">Última semana</p>
+            <p className="text-xs text-muted-foreground">Conexiones sin desconexión</p>
           </CardContent>
         </Card>
         
@@ -157,7 +42,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeUsers}</div>
-            <p className="text-xs text-muted-foreground">Usuarios únicos con actividad reciente</p>
+            <p className="text-xs text-muted-foreground">Con sesiones abiertas</p>
           </CardContent>
         </Card>
         
@@ -168,7 +53,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeComputers}</div>
-            <p className="text-xs text-muted-foreground">Equipos con actividad reciente</p>
+            <p className="text-xs text-muted-foreground">Actividad en las últimas 3 horas</p>
           </CardContent>
         </Card>
         
@@ -179,7 +64,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.averageSessionTime}</div>
-            <p className="text-xs text-muted-foreground">Duración promedio</p>
+            <p className="text-xs text-muted-foreground">Basado en sesiones completas</p>
           </CardContent>
         </Card>
       </div>
@@ -195,8 +80,8 @@ export function Dashboard() {
           ]}
           stacked={false}
           footer={{
-            trend: "Mayor actividad entre las 09:00 y 11:00",
-            description: `Basado en ${logs.length} registros de inicios de sesión`
+            trend: "Monitoreo en tiempo real",
+            description: "Estadísticas calculadas en el servidor"
           }}
           className="lg:col-span-2"
         />
@@ -229,7 +114,7 @@ export function Dashboard() {
             </div>
           </CardContent>
           <CardFooter className="text-sm text-muted-foreground">
-            Basado en {computers.length} equipos registrados
+            Basado en la información de Active Directory
           </CardFooter>
         </Card>
       </div>
@@ -245,7 +130,7 @@ export function Dashboard() {
           nameKey="name"
           vertical={true}
           color="hsl(210, 100%, 50%)"
-          footer={`Total de ${users.length} usuarios registrados`}
+          footer="Basado en contador de inicios de sesión"
           className="lg:col-span-2"
         />
         
@@ -266,53 +151,96 @@ export function Dashboard() {
                   <div className="text-red-500 text-sm font-semibold">{item.count} {item.count === 1 ? 'ocurrencia' : 'ocurrencias'}</div>
                 </div>
               ))}
+              {stats.unusualIPs.length === 0 && (
+                <div className="text-center text-muted-foreground py-4">No se encontraron IPs inusuales</div>
+              )}
             </div>
           </CardContent>
           <CardFooter className="text-sm text-muted-foreground">
-            IPs con menos de 3 ocurrencias en los registros
+            IPs con menos de 3 apariciones en logs
           </CardFooter>
         </Card>
       </div>
       
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Actividad Reciente</CardTitle>
-          <CardDescription>Últimos inicios de sesión registrados</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left font-medium p-2">Usuario</th>
-                  <th className="text-left font-medium p-2">Evento</th>
-                  <th className="text-left font-medium p-2">IP</th>
-                  <th className="text-left font-medium p-2">Fecha y Hora</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.recentActivity.map((log, index) => (
-                  <tr key={index} className="border-b hover:bg-muted/50">
-                    <td className="p-2">{log.user}</td>
-                    <td className="p-2">{log.event}</td>
-                    <td className="p-2">{log.ip}</td>
-                    <td className="p-2 text-muted-foreground">{log.date}</td>
+      {/* Recent Activity and Active Sessions */}
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 mb-8">
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Actividad Reciente</CardTitle>
+            <CardDescription>Últimos eventos registrados</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left font-medium p-2">Usuario</th>
+                    <th className="text-left font-medium p-2">Evento</th>
+                    <th className="text-left font-medium p-2">IP</th>
+                    <th className="text-left font-medium p-2">Fecha y Hora</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-end">
-          <button 
-            className="text-sm text-primary hover:underline"
-            onClick={refreshLogs}
-          >
-            Ver todos los registros
-          </button>
-        </CardFooter>
-      </Card>
+                </thead>
+                <tbody>
+                  {stats.recentActivity.map((log, index) => (
+                    <tr key={index} className="border-b hover:bg-muted/50">
+                      <td className="p-2">{log.user}</td>
+                      <td className="p-2">{log.event}</td>
+                      <td className="p-2">{log.ip}</td>
+                      <td className="p-2 text-muted-foreground">{log.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <button 
+              className="text-sm text-primary hover:underline"
+              onClick={refreshStats}
+            >
+              Actualizar estadísticas
+            </button>
+          </CardFooter>
+        </Card>
+        
+        {/* Active Sessions Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Sesiones Activas</CardTitle>
+            <CardDescription>Sesiones abiertas actualmente</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto max-h-[400px]">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left font-medium p-2">Usuario</th>
+                    <th className="text-left font-medium p-2">IP</th>
+                    <th className="text-left font-medium p-2">Inicio</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.sessionList && stats.sessionList.map((session, index) => (
+                    <tr key={index} className="border-b hover:bg-muted/50">
+                      <td className="p-2 font-medium">{session.user}</td>
+                      <td className="p-2">{session.ip}</td>
+                      <td className="p-2 text-muted-foreground">
+                        {session.start_time ? new Date(session.start_time).toLocaleString() : 'Desconocido'}
+                      </td>
+                    </tr>
+                  ))}
+                  {!stats.sessionList || stats.sessionList.length === 0 && (
+                    <tr>
+                      <td colSpan="3" className="p-4 text-center text-muted-foreground">No hay sesiones activas</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
