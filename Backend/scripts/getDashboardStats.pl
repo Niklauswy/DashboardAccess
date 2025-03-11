@@ -126,7 +126,7 @@ my %computers_active;
 my %computers_by_location;
 
 # Comando para listar ordenadores
-my $computer_list_cmd = "samba-tool computer list";
+my $computer_list_cmd = "sudo samba-tool computer list";
 my @computer_names = `$computer_list_cmd`;
 chomp @computer_names;
 
@@ -138,7 +138,7 @@ foreach my $computer_name (@computer_names) {
     $computer_name .= '$' unless $computer_name =~ /\$$/ || $computer_name eq "";
     
     # Obtener detalles del ordenador
-    my $cmd = "samba-tool computer show \"$computer_name\"";
+    my $cmd = "sudo samba-tool computer show \"$computer_name\"";
     my @output = `$cmd 2>/dev/null`;
     
     my $os = "Unknown";
@@ -258,15 +258,18 @@ foreach my $os (keys %os_distribution) {
 
 # 8. Obtener actividad reciente (últimos 5 eventos)
 my @recent_activity;
-my $recent_cmd = 'zgrep -a "smbd_audit:" /var/log/syslog* | sed \'s/^[^:]*://\' | tail -20';
+my $recent_cmd = 'sudo zgrep -a "smbd_audit:" /var/log/syslog* | sed \'s/^[^:]*://\' | tail -20';
 my @recent_lines = `$recent_cmd`;
 
 foreach my $line (@recent_lines) {
     if ($line =~ /^(\w{3})\s+(\d{1,2})\s+(\d{2}:\d{2}:\d{2}).*smbd_audit:\s+\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*(\w+)\s*\|/) {
         my ($month, $day, $time, $ip, $user, $event) = ($1, $2, $3, $4, $5, $6);
         
+        # Use DateTime formatting instead of strftime
+        my $date_str = "$day/$month/$current_year $time";
+        
         push @recent_activity, {
-            date => "$day/$month/$current_year $time",
+            date => $date_str,
             user => $user,
             event => $event,
             ip => $ip
