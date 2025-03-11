@@ -4,7 +4,6 @@ import * as React from "react";
 import { Bar, BarChart, XAxis, CartesianGrid, YAxis } from "recharts";
 import { format, startOfDay, endOfDay, subDays, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -19,8 +18,6 @@ import {
 } from "@/components/ui/chart";
 
 export function LogBarChart({ logs = [], filters }) {
-  const [timeRange, setTimeRange] = React.useState("30d");
-
   // Define chart configuration
   const chartConfig = {
     connect: {
@@ -41,7 +38,7 @@ export function LogBarChart({ logs = [], filters }) {
   const chartData = React.useMemo(() => {
     if (!logs?.length) return [];
     
-    // Get date range based on filter dates or timeRange
+    // Get date range based on filter dates or default to 30 days
     const today = new Date();
     let endDate = endOfDay(today);
     let startDate;
@@ -51,19 +48,8 @@ export function LogBarChart({ logs = [], filters }) {
       startDate = startOfDay(new Date(filters.dateRange.from));
       endDate = endOfDay(new Date(filters.dateRange.to));
     } else {
-      // Otherwise use the timeRange buttons
-      switch(timeRange) {
-        case "7d":
-          startDate = startOfDay(subDays(today, 7));
-          break;
-        case "14d":
-          startDate = startOfDay(subDays(today, 14));
-          break;
-        case "30d":
-        default:
-          startDate = startOfDay(subDays(today, 30));
-          break;
-      }
+      // Otherwise use default 30 days
+      startDate = startOfDay(subDays(today, 30));
     }
     
     // Group logs by date
@@ -94,7 +80,7 @@ export function LogBarChart({ logs = [], filters }) {
         dateGroups[dateKey] = { date: dateKey, connect: 0, disconnect: 0, failed: 0 };
       }
       
-      // Fix event type classification - better detection of disconnect events
+      // Fix event type classification
       const eventType = (log.event || '').toLowerCase();
       
       // Check if it contains "disconnect" exactly
@@ -105,12 +91,11 @@ export function LogBarChart({ logs = [], filters }) {
       else if (eventType === "connect") {
         dateGroups[dateKey].connect++;
       }
-
     });
     
     // Convert to array and sort by date
     return Object.values(dateGroups).sort((a, b) => a.date.localeCompare(b.date));
-  }, [logs, timeRange, filters?.dateRange]);
+  }, [logs, filters?.dateRange]);
 
   // Calculate totals
   const totals = React.useMemo(() => {
@@ -125,19 +110,20 @@ export function LogBarChart({ logs = [], filters }) {
     return { connect: totalConnect, disconnect: totalDisconnect };
   }, [chartData]);
 
-  // Don't show the time range buttons if date filter is active
-  const isDateFilterActive = !!(filters?.dateRange?.from && filters?.dateRange?.to);
+  // Format date range display for title
+  const dateRangeText = React.useMemo(() => {
+    if (filters?.dateRange?.from && filters?.dateRange?.to) {
+      return `Registros desde ${format(new Date(filters.dateRange.from), 'dd/MM/yyyy', { locale: es })} hasta ${format(new Date(filters.dateRange.to), 'dd/MM/yyyy', { locale: es })}`;
+    }
+    return 'Registros de acceso al sistema (últimos 30 días)';
+  }, [filters?.dateRange]);
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-3 border-b">
         <div className="grid flex-1 gap-1">
           <CardTitle>Actividad de usuarios</CardTitle>
-          <CardDescription>
-            {isDateFilterActive 
-              ? `Registros desde ${format(new Date(filters.dateRange.from), 'dd/MM/yyyy', { locale: es })} hasta ${format(new Date(filters.dateRange.to), 'dd/MM/yyyy', { locale: es })}`
-              : 'Registros de acceso al sistema'}
-          </CardDescription>
+          <CardDescription>{dateRangeText}</CardDescription>
         </div>
         <div className="flex items-center space-x-1">
           <div className="flex items-center space-x-1">
@@ -150,32 +136,6 @@ export function LogBarChart({ logs = [], filters }) {
           </div>
         </div>
       </CardHeader>
-      
-      {!isDateFilterActive && (
-        <div className="flex justify-center gap-2 pt-4">
-          <Button 
-            variant={timeRange === "7d" ? "default" : "outline"} 
-            size="sm"
-            onClick={() => setTimeRange("7d")}
-          >
-            7 días
-          </Button>
-          <Button 
-            variant={timeRange === "14d" ? "default" : "outline"} 
-            size="sm"
-            onClick={() => setTimeRange("14d")}
-          >
-            14 días
-          </Button>
-          <Button 
-            variant={timeRange === "30d" ? "default" : "outline"} 
-            size="sm"
-            onClick={() => setTimeRange("30d")}
-          >
-            30 días
-          </Button>
-        </div>
-      )}
       
       <CardContent className="px-2 sm:p-6 pt-6">
         {chartData.length > 0 ? (
@@ -206,17 +166,23 @@ export function LogBarChart({ logs = [], filters }) {
               />
               <YAxis allowDecimals={false} />
               <ChartTooltip
+                wrapperStyle={{ zIndex: 100 }}
                 cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-                content={
-                  <ChartTooltipContent
-                    className="w-[180px]"
-                    labelFormatter={(value) => {
-                      return format(new Date(value), 'EEEE, dd MMMM yyyy', { locale: es });
-                    }}
-                    valueFormatter={(value) => value}
-                  />
-                }
-              />
+                contentStyle={{ 
+                  backgroundColor: 'white',
+                  border: '1px solid #ccc',
+                  borderRadius: '8px',
+                  padding: '8px',
+                  zIndex: 100
+                }}
+              >
+                <ChartTooltipContent
+                  className="!z-50"
+                  labelFormatter={(value) => {
+                    return format(new Date(value), 'EEEE, dd MMMM yyyy', { locale: es });
+                  }}
+                />
+              </ChartTooltip>
               <Bar 
                 dataKey="connect" 
                 stackId="a"

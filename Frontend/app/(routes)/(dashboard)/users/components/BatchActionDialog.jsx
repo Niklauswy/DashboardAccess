@@ -39,16 +39,14 @@ export default function BatchActionDialog({
       return;
     }
     
-    // For password change, validate first
     if (actionType === "changePassword") {
-      // Validate password
+
       const error = validatePassword(newPassword);
       if (error) {
         setPasswordError(error);
         return;
       }
       
-      // Process with valid password
       setIsProcessing(true);
       try {
         await onConfirm(newPassword);
