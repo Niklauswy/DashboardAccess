@@ -236,10 +236,10 @@ foreach my $ip (keys %ip_counts) {
 
 # 6. Formatear datos de actividad por hora para gráficos
 my @hourly_activity_formatted;
-for my $hour (0..23) {
+for my $hour_index (0..23) {
     push @hourly_activity_formatted, {
-        hour => sprintf("%02d:00", $hour),
-        count => $hourly_activity[$hour]
+        hour => sprintf("%02d:00", $hour_index),
+        count => $hourly_activity[$hour_index]
     };
 }
 
