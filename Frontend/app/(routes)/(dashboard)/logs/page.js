@@ -21,27 +21,8 @@ export default function Logs() {
         dateRange: null
     });
     
-    // Log some debug info when logs change
-    useEffect(() => {
-        if (logs && logs.length > 0) {
-            console.log(`Got ${logs.length} logs`);
-        }
-    }, [logs]);
-
-    if (error) {
-        return (
-            <ErrorServer
-                message="Error al cargar los registros de logs. Por favor, intente de nuevo."
-                onRetry={refreshLogs}
-            />
-        );
-    }
-
-    if (isLoading) {
-        return <LogTableSkeleton />;
-    }
-
     // Filter logs based on the multi-selection filters
+    // IMPORTANT: All hooks must be declared before any conditional returns
     const filteredLogs = useMemo(() => {
         return logs.filter(log => {
             // User filter (any of the selected users)
@@ -70,6 +51,27 @@ export default function Logs() {
             return userMatch && labMatch && eventMatch && ipMatch && dateRangeMatch;
         });
     }, [logs, filters]);
+    
+    // Log some debug info when logs change
+    useEffect(() => {
+        if (logs && logs.length > 0) {
+            console.log(`Got ${logs.length} logs`);
+        }
+    }, [logs]);
+
+    // Only return after all hooks have been called
+    if (error) {
+        return (
+            <ErrorServer
+                message="Error al cargar los registros de logs. Por favor, intente de nuevo."
+                onRetry={refreshLogs}
+            />
+        );
+    }
+
+    if (isLoading) {
+        return <LogTableSkeleton />;
+    }
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-6 lg:p-8">
