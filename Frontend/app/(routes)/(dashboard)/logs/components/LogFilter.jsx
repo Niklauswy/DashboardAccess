@@ -63,7 +63,33 @@ export default function LogFilter({ logs, filters, setFilters }) {
 
   // Handle date range filter
   const handleDateRangeChange = (range) => {
-    setFilters(prev => ({ ...prev, dateRange: range }));
+    // Ensure we have valid date objects before setting state
+    if (range?.from && range?.to) {
+      try {
+        // Make sure both dates are valid
+        const from = range.from instanceof Date ? range.from : new Date(range.from);
+        const to = range.to instanceof Date ? range.to : new Date(range.to);
+        
+        // Validate dates
+        if (isNaN(from.getTime()) || isNaN(to.getTime())) {
+          console.error("Invalid date in range:", range);
+          return;
+        }
+        
+        setFilters(prev => ({ 
+          ...prev, 
+          dateRange: { 
+            from, 
+            to 
+          } 
+        }));
+      } catch (error) {
+        console.error("Error setting date range:", error);
+      }
+    } else {
+      // Handle clearing the date range
+      setFilters(prev => ({ ...prev, dateRange: null }));
+    }
   };
 
   // Clear all filters
@@ -150,7 +176,7 @@ export default function LogFilter({ logs, filters, setFilters }) {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0" align="start" side="right">
                   <DatePickerWithRange
                     onChange={handleDateRangeChange}
                     reset={resetDatePicker}
@@ -483,10 +509,12 @@ export default function LogFilter({ logs, filters, setFilters }) {
                 <label className="text-sm font-medium flex items-center gap-2">
                   <CalendarIcon className="h-4 w-4" /> Rango de fechas
                 </label>
-                <DatePickerWithRange
-                  onChange={handleDateRangeChange}
-                  reset={resetDatePicker}
-                />
+                <div className="z-50"> {/* Add higher z-index */}
+                  <DatePickerWithRange
+                    onChange={handleDateRangeChange}
+                    reset={resetDatePicker}
+                  />
+                </div>
               </div>
             </div>
           </div>

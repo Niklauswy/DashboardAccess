@@ -3,14 +3,12 @@
 import * as React from "react";
 import {
   format,
-  parse,
   addDays,
   startOfWeek,
   endOfWeek,
   startOfMonth,
   endOfMonth,
   addMonths,
-  setDate,
   startOfDay,
   endOfDay
 } from "date-fns";
@@ -47,9 +45,47 @@ export default function DatePickerWithRange({ onChange, reset, className }) {
 
   // Handle date change and report to parent
   const handleDateChange = (selectedDate) => {
-    setDate(selectedDate);
-    onChange(selectedDate);
-    setPresetKey(""); // Clear preset when manually selecting
+    // Ensure we have valid date objects before setting
+    if (selectedDate?.from && selectedDate?.to) {
+      try {
+        // Make sure we're working with Date objects
+        const from = selectedDate.from instanceof Date ? selectedDate.from : new Date(selectedDate.from);
+        const to = selectedDate.to instanceof Date ? selectedDate.to : new Date(selectedDate.to);
+        
+        // Validate the dates
+        if (isNaN(from.getTime()) || isNaN(to.getTime())) {
+          console.error("Invalid date in range:", selectedDate);
+          return;
+        }
+        
+        const validatedDate = { from, to };
+        setDate(validatedDate);
+        onChange(validatedDate);
+        setPresetKey(""); // Clear preset when manually selecting
+      } catch (error) {
+        console.error("Error processing date range:", error);
+      }
+    } else if (selectedDate?.from) {
+      // Handle single date selection
+      try {
+        const from = selectedDate.from instanceof Date ? selectedDate.from : new Date(selectedDate.from);
+        
+        if (isNaN(from.getTime())) {
+          console.error("Invalid date:", selectedDate.from);
+          return;
+        }
+        
+        setDate(selectedDate);
+        onChange(selectedDate);
+        setPresetKey("");
+      } catch (error) {
+        console.error("Error processing single date:", error);
+      }
+    } else {
+      // No date selected (clear)
+      setDate(null);
+      onChange(null);
+    }
   };
 
   // Handle preset selection from dropdown
@@ -57,58 +93,68 @@ export default function DatePickerWithRange({ onChange, reset, className }) {
     let from, to;
     const today = new Date();
     
-    switch (value) {
-      case "today":
-        from = startOfDay(today);
-        to = endOfDay(today);
-        break;
-      case "yesterday":
-        from = startOfDay(addDays(today, -1));
-        to = endOfDay(addDays(today, -1));
-        break;
-      case "last7days":
-        from = startOfDay(addDays(today, -6));
-        to = endOfDay(today);
-        break;
-      case "thisWeek":
-        from = startOfWeek(today, { locale: es });
-        to = endOfWeek(today, { locale: es });
-        break;
-      case "lastWeek":
-        from = startOfWeek(addDays(today, -7), { locale: es });
-        to = endOfWeek(addDays(today, -7), { locale: es });
-        break;
-      case "thisMonth":
-        from = startOfMonth(today);
-        to = endOfMonth(today);
-        break;
-      case "lastMonth":
-        from = startOfMonth(addMonths(today, -1));
-        to = endOfMonth(addMonths(today, -1));
-        break;
-      case "semester2024-1":
-        // Semester 1 of 2024 (Jan - Jun)
-        from = new Date(2024, 0, 1); // Jan 1, 2024
-        to = new Date(2024, 5, 30);  // Jun 30, 2024
-        break;
-      case "semester2024-2":
-        // Semester 2 of 2024 (Jul - Dec)
-        from = new Date(2024, 6, 1); // Jul 1, 2024
-        to = new Date(2024, 11, 31); // Dec 31, 2024
-        break;
-      case "semester2025-1":
-        // Semester 1 of 2025 (Jan - Jun)
-        from = new Date(2025, 0, 1); // Jan 1, 2025
-        to = new Date(2025, 5, 30);  // Jun 30, 2025
-        break;
-      default:
-        return;
-    }
+    try {
+      switch (value) {
+        case "today":
+          from = startOfDay(today);
+          to = endOfDay(today);
+          break;
+        case "yesterday":
+          from = startOfDay(addDays(today, -1));
+          to = endOfDay(addDays(today, -1));
+          break;
+        case "last7days":
+          from = startOfDay(addDays(today, -6));
+          to = endOfDay(today);
+          break;
+        case "thisWeek":
+          from = startOfWeek(today, { weekStartsOn: 1 }); // Monday as first day of week
+          to = endOfWeek(today, { weekStartsOn: 1 });
+          break;
+        case "lastWeek":
+          from = startOfWeek(addDays(today, -7), { weekStartsOn: 1 });
+          to = endOfWeek(addDays(today, -7), { weekStartsOn: 1 });
+          break;
+        case "thisMonth":
+          from = startOfMonth(today);
+          to = endOfMonth(today);
+          break;
+        case "lastMonth":
+          from = startOfMonth(addMonths(today, -1));
+          to = endOfMonth(addMonths(today, -1));
+          break;
+        case "semester2024-1":
+          // Semester 1 of 2024 (Jan - Jun)
+          from = new Date(2024, 0, 1); // Jan 1, 2024
+          to = new Date(2024, 5, 30);  // Jun 30, 2024
+          break;
+        case "semester2024-2":
+          // Semester 2 of 2024 (Jul - Dec)
+          from = new Date(2024, 6, 1); // Jul 1, 2024
+          to = new Date(2024, 11, 31); // Dec 31, 2024
+          break;
+        case "semester2025-1":
+          // Semester 1 of 2025 (Jan - Jun)
+          from = new Date(2025, 0, 1); // Jan 1, 2025
+          to = new Date(2025, 5, 30);  // Jun 30, 2025
+          break;
+        default:
+          return;
+      }
 
-    setPresetKey(value);
-    const newDate = { from, to };
-    setDate(newDate);
-    onChange(newDate);
+      // Ensure the dates are valid
+      if (isNaN(from.getTime()) || isNaN(to.getTime())) {
+        console.error("Invalid preset date calculation");
+        return;
+      }
+
+      setPresetKey(value);
+      const newDate = { from, to };
+      setDate(newDate);
+      onChange(newDate);
+    } catch (error) {
+      console.error("Error in preset date selection:", error);
+    }
   };
 
   return (
@@ -138,7 +184,7 @@ export default function DatePickerWithRange({ onChange, reset, className }) {
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-3" align="start">
+        <PopoverContent className="w-auto p-3" align="start" side="bottom">
           <div className="space-y-4">
             <Select
               value={presetKey}
@@ -192,7 +238,17 @@ export default function DatePickerWithRange({ onChange, reset, className }) {
               >
                 Limpiar
               </Button>
-              <Button onClick={() => document.body.click()}>
+              <Button 
+                onClick={() => {
+                  const popover = document.querySelector('[data-state="open"][data-radix-popover-content-wrapper]');
+                  if (popover) {
+                    const trigger = popover.parentElement?.querySelector('[data-radix-popover-trigger]');
+                    if (trigger instanceof HTMLElement) {
+                      trigger.click();
+                    }
+                  }
+                }}
+              >
                 Aplicar
               </Button>
             </div>
