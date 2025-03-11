@@ -44,25 +44,36 @@ my $current_year = $now->year;
 # Procesar logs
 foreach my $line (@log_lines) {
     chomp $line;
+    # Formato típico: "May 15 10:30:15 hostname smbd_audit: |ip|user|connect|"
     if ($line =~ /^(\w{3})\s+(\d{1,2})\s+(\d{2}:\d{2}:\d{2}).*smbd_audit:\s+\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*(\w+)\s*\|/) {
         my ($month, $day, $time, $ip, $username, $event) = ($1, $2, $3, $4, $5, $6);
         
+        # Parseamos la fecha manualmente sin usar el módulo que falta
         my $month_num = $month_map{$month} || 1;
-        my ($t_hour, $t_min, $t_sec) = split(/:/, $time);
-
+        my ($hour, $min, $sec) = split(/:/, $time);
+        
+        # Crear objeto DateTime manualmente
         my $log_date = eval {
-            DateTime->new(
+            my $dt = DateTime->new(
                 year   => $current_year,
                 month  => $month_num,
                 day    => $day,
-                hour   => $t_hour,
-                minute => $t_min,
-                second => $t_sec,
+                hour   => $hour,
+                minute => $min,
+                second => $sec,
                 time_zone => 'local',
             );
+            
+            # Corregir el año si la fecha parece estar en el futuro
+            if ($dt > $now && $dt->clone->subtract(years => 1) <= $now) {
+                $dt->subtract(years => 1);
+            }
+            return $dt;
         };
-        next unless $log_date;
-
+        
+        next unless $log_date; # Saltamos si hay error en la fecha
+        
+        # Actualizar conteo por hora
         my $hour = $log_date->hour;
         $hourly_activity[$hour]++;
         
@@ -209,14 +220,7 @@ if ($samba->can('realUsers')) {
     }
 }
 
-# Si no hay top users, usamos al menos datos ficticios
-if (!@top_users) {
-    @top_users = (
-        { name => 'usuario1', value => 42 },
-        { name => 'usuario2', value => 37 },
-        { name => 'usuario3', value => 25 }
-    );
-}
+
 
 # 5. Identificar IPs inusuales (menos de 3 ocurrencias)
 my @unusual_ips;
@@ -250,14 +254,7 @@ foreach my $os (keys %os_distribution) {
 @os_distribution_data = sort { $b->{value} <=> $a->{value} } @os_distribution_data;
 @os_distribution_data = @os_distribution_data[0..4] if @os_distribution_data > 5;
 
-# Si no hay datos de OS, añadir datos de muestra
-if (!@os_distribution_data) {
-    @os_distribution_data = (
-        { name => "Windows 10", value => 15 },
-        { name => "Windows 11", value => 8 },
-        { name => "Linux", value => 5 }
-    );
-}
+
 
 # 8. Obtener actividad reciente (últimos 5 eventos)
 my @recent_activity;
@@ -277,14 +274,6 @@ foreach my $line (@recent_lines) {
     }
     
     last if scalar(@recent_activity) >= 5;
-}
-
-# Si no hay actividad reciente, añadir ejemplos
-if (!@recent_activity) {
-    @recent_activity = (
-        { date => strftime("%d/%m/%Y %H:%M:%S", localtime(time-300)), user => "usuario1", event => "connect", ip => "192.168.1.10" },
-        { date => strftime("%d/%m/%Y %H:%M:%S", localtime(time-600)), user => "admin", event => "connect", ip => "192.168.1.5" }
-    );
 }
 
 # Convertimos las sesiones activas a un formato adecuado para el JSON
