@@ -19,9 +19,9 @@ my @user_data;
 foreach my $line (@log_lines) {
     chomp($line);
     my @fields = split(' ', $line);
-    # Se espera que el comando imprima:
-    # $fields[0] = Mes, $fields[1] = Día, $fields[2] = Hora, $fields[3] = usuario del syslog (ignorado),
-    # $fields[4] = usuario extraído de la auditoría, $fields[5] = evento, $fields[6] = IP.
+    # Nuevo formato de salida:
+    # $fields[0] = Mes, $fields[1] = Día, $fields[2] = Hora,
+    # $fields[3] = usuario, $fields[4] = evento, $fields[5] = IP.
     
     # Formato de fecha estandarizado: DD/MM/YYYY HH:MM:SS
     my $month_num = month_to_num($fields[0]);
@@ -29,9 +29,9 @@ foreach my $line (@log_lines) {
     my $hour = $fields[2];
     my $date = sprintf("%02d/%02d/%04d %s", $day, $month_num, $current_year, $hour);
     
-    my $user = $fields[4];
-    my $event = $fields[5];
-    my $ip = $fields[6];
+    my $user = $fields[3];
+    my $event = $fields[4];
+    my $ip = $fields[5];
 
     push @user_data, {
         date  => $date,
@@ -41,6 +41,8 @@ foreach my $line (@log_lines) {
     };
 }
 
+# Note: The command already includes 'tac' which reverses the output
+# This line might cause double-reversal of the data
 @user_data = reverse @user_data;
 
 my $json = JSON->new->utf8->pretty->encode(\@user_data);
