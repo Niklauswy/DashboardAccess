@@ -4,46 +4,60 @@ use strict;
 use warnings;
 use JSON;
 use POSIX qw(strftime);
-use DateTime;
 
 my $current_year = strftime "%Y", localtime;
 
-# Comando para extraer datos del syslog usando audit
-#my $cmd = 'zgrep -a "smbd_audit:" /var/log/syslog* | sed \'s/^[^:]*://\' | grep -Ei "connect" | awk \'{ match($0, /smbd_audit:[[:space:]]*(.*)/, a); split(a[1], b, /\|/); print $1, $2, $3, $4, b[5], b[3], b[2]; }\' | sort -k1M -k2n -k3';
-my $cmd = 'zgrep -a "smbd_audit:" /var/log/syslog* | sed \'s/^[^:]*://\' | grep -Ei "connect|disconnect" | awk \'{ match($0, /smbd_audit:[[:space:]]*(.*)/, a); split(a[1], b, /\|/); print $1, $2, $3, $4, b[5], b[3], b[2]; }\' | sort -k1M -k2n -k3 | tac';
+# Simplified command to get raw log entries
+my $cmd = q(zgrep -a "smbd_audit:" /var/log/syslog* | grep -Ei "connect|disconnect");
 
 my @log_lines = `$cmd`;
-
 my @user_data;
 
 foreach my $line (@log_lines) {
     chomp($line);
-    my @fields = split(' ', $line);
-    # Nuevo formato de salida:
-    # $fields[0] = Mes, $fields[1] = Día, $fields[2] = Hora,
-    # $fields[3] = usuario, $fields[4] = evento, $fields[5] = IP.
     
-    # Formato de fecha estandarizado: DD/MM/YYYY HH:MM:SS
-    my $month_num = month_to_num($fields[0]);
-    my $day = sprintf("%02d", $fields[1]);
-    my $hour = $fields[2];
-    my $date = sprintf("%02d/%02d/%04d %s", $day, $month_num, $current_year, $hour);
+    # Debug - uncomment to see raw lines
+    # print STDERR "Raw line: $line\n";
     
-    my $user = $fields[3];
-    my $event = $fields[4];
-    my $ip = $fields[5];
-
-    push @user_data, {
-        date  => $date,
-        user  => $user,
-        event => $event,
-        ip    => $ip,
-    };
+    # Extract date components from the log line
+    if ($line =~ /^(\w+)\s+(\d+)\s+(\d+:\d+:\d+).*?smbd_audit:\s+(.*)$/) {
+        my $month = $1;
+        my $day = $2;
+        my $time = $3;
+        my $audit_data = $4;
+        
+        # Format date properly
+        my $month_num = month_to_num($month);
+        $day = sprintf("%02d", $day);
+        my $full_date = sprintf("%02d/%02d/%04d %s", $day, $month_num, $current_year, $time);
+        my $date_only = sprintf("%02d/%02d/%04d", $day, $month_num, $current_year);
+        
+        # Parse the audit data part which contains the connection details
+        # Expected format: DOMAIN\User|IP|connect/disconnect|status|Username
+        if ($audit_data =~ /([^|]+)\|([^|]+)\|(connect|disconnect)\|([^|]+)\|([^|]+)/) {
+            my $domain_user = $1;
+            my $ip = $2;
+            my $event = $3;
+            my $status = $4;
+            my $username = $5;
+            
+            # Translate event to Spanish
+            my $evento_espanol = $event eq "connect" ? "Conexion" : "Desconexion";
+            
+            push @user_data, {
+                date      => $full_date,  # Keep full date for sorting
+                date_only => $date_only,  # Date part only (DD/MM/YYYY)
+                time      => $time,       # Time part only (HH:MM:SS)
+                user      => $username,
+                event     => $evento_espanol,  # Spanish translation
+                ip        => $ip,
+            };
+        }
+    }
 }
 
-# Note: The command already includes 'tac' which reverses the output
-# This line might cause double-reversal of the data
-@user_data = reverse @user_data;
+# Sort by date (newest first)
+@user_data = sort { $b->{date} cmp $a->{date} } @user_data;
 
 my $json = JSON->new->utf8->pretty->encode(\@user_data);
 print $json;

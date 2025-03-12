@@ -73,9 +73,6 @@ my $logs_validos = 0;
 # También rastrear sesiones completadas para estadísticas
 my @completed_sessions;
 
-# Collect all events by session key first
-my %session_events;
-
 foreach my $line (@log_lines) {
     chomp $line;
     $logs_procesados++;
@@ -120,69 +117,60 @@ foreach my $line (@log_lines) {
         # Contar IPs para detectar inusuales
         $ip_counts{$ip}++;
         
-        # Almacenar evento para procesamiento posterior
-        my $key = "$username:$ip";
-        push @{$session_events{$key}}, {
-            username => $username,
-            ip => $ip,
-            time => $log_date->strftime('%Y-%m-%d %H:%M:%S'),
-            timestamp => $log_date->epoch,
-            event => $event,
-            log_date => $log_date
-        };
-    } else {
-        debug("Línea no coincide con el patrón: $line");
-    }
-}
-
-debug("Procesando eventos de sesión...");
-# Procesar eventos para determinar sesiones activas y completadas
-foreach my $key (keys %session_events) {
-    my @events = sort { $a->{timestamp} <=> $b->{timestamp} } @{$session_events{$key}};
-    my $last_connect = undef;
-    my $is_active = 0;
-    
-    # Process events chronologically
-    foreach my $event (@events) {
-        if ($event->{event} =~ /connect/i) {
-            # Found a connect event
-            $last_connect = $event;
-            $is_active = 1; # Mark as potentially active
-        } 
-        elsif ($event->{event} =~ /disconnect/i && defined $last_connect) {
-            # Found a disconnect event after a connect
-            my $duration = $event->{timestamp} - $last_connect->{timestamp};
-            
-            if ($duration > 0) {
-                # Create a completed session
-                push @completed_sessions, {
-                    user => $last_connect->{username},
-                    ip => $last_connect->{ip},
-                    start_time => $last_connect->{time},
-                    end_time => $event->{time},
-                    duration => $duration,
-                    duration_formatted => format_duration($duration)
-                };
+        # Tracking de sesiones activas
+        # Si es un evento de conexión, registramos la sesión
+        if ($event =~ /connect/i) {
+            $active_sessions{"$ip:$username"} = {
+                user => $username,
+                ip => $ip,
+                start_time => $log_date->strftime('%Y-%m-%d %H:%M:%S'),
+                event => 'connect'
+            };
+            $users_active{$username}++;
+            debug("  Sesión INICIADA: $username desde $ip");
+        }
+        # Si es un evento de desconexión, finalizamos la sesión activa y calculamos duración
+        elsif ($event =~ /disconnect/i) {
+            if (exists $active_sessions{"$ip:$username"}) {
+                # Convertir la fecha almacenada como string a objeto DateTime
+                my $start_str = $active_sessions{"$ip:$username"}{start_time};
+                my ($y, $mo, $d, $h, $mi, $s) = $start_str =~ /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/;
                 
-                # Add to session durations for average calculation
-                push @{$session_durations{$last_connect->{username}}}, $duration;
+                if (defined $y && defined $mo && defined $d && defined $h && defined $mi && defined $s) {
+                    my $session_start = DateTime->new(
+                        year => $y, month => $mo, day => $d, 
+                        hour => $h, minute => $mi, second => $s,
+                        time_zone => 'local'
+                    );
+                    
+                    my $duration = $log_date->epoch - $session_start->epoch;
+                    
+                    # Guardar sesión completada con su duración
+                    if ($duration > 0 && $duration < 86400) { # < 24 horas
+                        push @{$session_durations{$username}}, $duration;
+                        
+                        # Registrar sesión completada para estadísticas
+                        push @completed_sessions, {
+                            user => $username,
+                            ip => $ip,
+                            start_time => $start_str,
+                            end_time => $log_date->strftime('%Y-%m-%d %H:%M:%S'),
+                            duration => $duration,
+                            duration_formatted => format_duration($duration)
+                        };
+                    }
+                }
                 
-                $last_connect = undef;
-                $is_active = 0; # No longer active
+                # Remover la sesión activa
+                delete $active_sessions{"$ip:$username"};
+                $users_active{$username}-- if $users_active{$username} > 0;
+                debug("  Sesión TERMINADA: $username desde $ip");
+            } else {
+                debug("  Desconexión sin conexión previa: $username desde $ip");
             }
         }
-    }
-    
-    # If last_connect exists and no matching disconnect was found, it's an active session
-    if ($is_active && defined $last_connect) {
-        $active_sessions{$key} = {
-            user => $last_connect->{username},
-            ip => $last_connect->{ip},
-            start_time => $last_connect->{time},
-            event => 'connect'
-        };
-        $users_active{$last_connect->{username}}++;
-        debug("  Sesión ACTIVA: $last_connect->{username} desde $last_connect->{ip}");
+    } else {
+        debug("Línea no coincide con el patrón: $line");
     }
 }
 
