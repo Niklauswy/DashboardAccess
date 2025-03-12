@@ -13,7 +13,7 @@ const LogRow = ({ log, index }) => {
     const lowerEvent = event.toLowerCase();
     
     // Exact match check first for disconnect
-    if (lowerEvent === 'disconnect') {
+    if (lowerEvent === 'Desconexión') {
       return (
         <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200">
           <LogOut className="mr-1 h-3 w-3" />
@@ -23,7 +23,7 @@ const LogRow = ({ log, index }) => {
     }
     
     // Exact match for connect
-    if (lowerEvent === 'connect') {
+    if (lowerEvent === 'Conexión') {
       return (
         <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
           <Link2 className="mr-1 h-3 w-3" />

@@ -42,7 +42,7 @@ foreach my $line (@log_lines) {
             my $username = $5;
             
             # Translate event to Spanish
-            my $evento_espanol = $event eq "connect" ? "Conexion" : "Desconexion";
+            my $evento_espanol = $event eq "connect" ? "Conexión" : "Desconexión";
             
             push @user_data, {
                 date      => $full_date,  # Keep full date for sorting
