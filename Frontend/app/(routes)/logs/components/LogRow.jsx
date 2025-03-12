@@ -6,32 +6,28 @@ import { LogIn, LogOut, Link2 } from "lucide-react";
 const LogRow = ({ log, index }) => {
   const rowClass = index % 2 === 0 ? 'bg-muted/50' : '';
   
-  // Determine badge color based on event type
   const getEventBadge = (event) => {
     if (!event) return <Badge variant="outline">Desconocido</Badge>;
     
     const lowerEvent = event.toLowerCase();
     
-    // Exact match check first for disconnect
-    if (lowerEvent === 'Desconexión') {
+    if (lowerEvent === 'disconnect') {
       return (
         <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200">
           <LogOut className="mr-1 h-3 w-3" />
-          {event}
+          Desconexión
         </Badge>
       );
     }
     
-    // Exact match for connect
-    if (lowerEvent === 'Conexión') {
+    if (lowerEvent === 'connect') {
       return (
         <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
           <Link2 className="mr-1 h-3 w-3" />
-          {event}
+          Conexión
         </Badge>
       );
     }
-    
  
     
     return <Badge variant="outline">{event}</Badge>;
