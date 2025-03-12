@@ -7,7 +7,7 @@ use DateTime;
 use POSIX qw(strftime);
 
 # Inicializar variables
-my %sessions_by_user_ip;
+my %sessions;  # Modified to store all session events by key
 my @active_sessions;
 my @completed_sessions;
 
@@ -25,6 +25,7 @@ my %month_map = (
 my $cmd = 'zgrep -a "smbd_audit:" /var/log/syslog* | sed \'s/^[^:]*://\' | grep -Ei "connect|disconnect" | awk \'{ match($0, /smbd_audit:[[:space:]]*(.*)/, a); split(a[1], b, /\|/); print $1, $2, $3, $4, b[5], b[3], b[2]; }\' | sort -k1M -k2n -k3';
 my @lines = `$cmd`;
 
+# First pass: collect all events for each user:ip pair
 foreach my $line (@lines) {
     chomp $line;
     
@@ -60,46 +61,66 @@ foreach my $line (@lines) {
         my $formatted_date = $log_date->strftime('%Y-%m-%d %H:%M:%S');
         my $key = "$username:$ip";
         
-        if ($event =~ /connect/i) {
-            # Registrar inicio de sesión
-            $sessions_by_user_ip{$key} = {
-                username => $username,
-                ip => $ip,
-                start_time => $formatted_date,
-                start_timestamp => $log_date->epoch,
-                status => "active"
-            };
-        } elsif ($event =~ /disconnect/i) {
-            # Si existe un inicio para esta sesión, la marcamos como completada
-            if (exists $sessions_by_user_ip{$key}) {
-                my $session = $sessions_by_user_ip{$key};
-                my $duration = $log_date->epoch - $session->{start_timestamp};
-                
-                if ($duration > 0) {
-                    $session->{end_time} = $formatted_date;
-                    $session->{duration} = $duration;
-                    $session->{duration_formatted} = format_duration($duration);
-                    $session->{status} = "completed";
-                    
-                    # Mover a sesiones completadas
-                    push @completed_sessions, $session;
-                    delete $sessions_by_user_ip{$key};
-                }
-            }
-        }
+        # Store event with timestamp for sorting later
+        push @{$sessions{$key}}, {
+            username => $username,
+            ip => $ip,
+            time => $formatted_date,
+            timestamp => $log_date->epoch,
+            event => $event
+        };
     }
 }
 
-# Las sesiones restantes están activas
-foreach my $key (keys %sessions_by_user_ip) {
-    my $session = $sessions_by_user_ip{$key};
+# Second pass: analyze event sequences for each user:ip pair
+foreach my $key (keys %sessions) {
+    my @events = sort { $a->{timestamp} <=> $b->{timestamp} } @{$sessions{$key}};
+    my $last_connect = undef;
+    my $is_active = 0;
     
-    # Calcular duración hasta ahora
-    my $duration = $now->epoch - $session->{start_timestamp};
-    $session->{duration} = $duration;
-    $session->{duration_formatted} = format_duration($duration);
+    # Process events chronologically
+    foreach my $event (@events) {
+        if ($event->{event} =~ /connect/i) {
+            # Found a connect event
+            $last_connect = $event;
+            $is_active = 1; # Mark as potentially active
+        } 
+        elsif ($event->{event} =~ /disconnect/i && defined $last_connect) {
+            # Found a disconnect event after a connect
+            my $duration = $event->{timestamp} - $last_connect->{timestamp};
+            
+            if ($duration > 0) {
+                # Create a completed session
+                push @completed_sessions, {
+                    username => $last_connect->{username},
+                    ip => $last_connect->{ip},
+                    start_time => $last_connect->{time},
+                    start_timestamp => $last_connect->{timestamp},
+                    end_time => $event->{time},
+                    end_timestamp => $event->{timestamp},
+                    duration => $duration,
+                    duration_formatted => format_duration($duration),
+                    status => "completed"
+                };
+                $last_connect = undef;
+                $is_active = 0; # No longer active
+            }
+        }
+    }
     
-    push @active_sessions, $session;
+    # If last_connect exists and no matching disconnect was found, it's an active session
+    if ($is_active && defined $last_connect) {
+        my $duration = $now->epoch - $last_connect->{timestamp};
+        push @active_sessions, {
+            username => $last_connect->{username},
+            ip => $last_connect->{ip},
+            start_time => $last_connect->{time},
+            start_timestamp => $last_connect->{timestamp},
+            duration => $duration,
+            duration_formatted => format_duration($duration),
+            status => "active"
+        };
+    }
 }
 
 # Ordenar sesiones activas por tiempo de inicio (más recientes primero)
