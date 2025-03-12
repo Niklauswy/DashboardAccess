@@ -43,6 +43,27 @@ sudo zs samba restart
 Cuando se saca una pc en la pc aparecera
 The security database on the server does not have a computer account for this workstation trust relationship
 
+[Zentyal]
+Ajustar HORA y REINICIAR O habra error con syslogpm2
+Crear las ous y grupos
+
+
+
+
+
+Opoipcnes para acabar sesion
+---sudo kill el proceso de smbstatus [desconecta to las sesiones, la proxima que ingresan sera nuevo connect]
+---sudo samba-tool user setpassword npc02 --newpassword=ContraseñaTemporal [La cambio al parecer peo no cerro sesion ni evento disconnect]
+
+sudo smbcontrol smbd close-share "NPC05" | deja al usuario segui pero si lanza el evento disconnect en audit
+Restart si manda enveto disconnect
+
+
+
+
+
+
+
 
 
 
