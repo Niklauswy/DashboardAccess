@@ -29,12 +29,11 @@ my $PASSWORD_REGEX = qr/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 my $baseDN;
 try {
     my $samba = EBox::Global->modInstance('samba');
-    # El método ldap() devuelve un objeto que implementa EBox::LDAPBase
     $baseDN = $samba->ldap()->dn();
     debug("Base DN obtenido dinámicamente: $baseDN");
 } catch {
     # Si falla, usar el valor hardcodeado comao respaldo
-    $baseDN = "DC=zentyal-domainaaaaaaaa,DC=lan";
+    $baseDN = "DC=zentyal-domain,DC=lan";
     debug("Error obteniendo base DN: $_");
     debug("Usando valor por defecto: $baseDN");
 };

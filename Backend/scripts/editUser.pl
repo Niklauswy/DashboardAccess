@@ -4,12 +4,12 @@ use strict;
 use warnings;
 use JSON;
 use EBox;
+use EBox::Global;
 use EBox::Samba::User;
 use File::Slurp;
 use Try::Tiny;
 use EBox::Samba::OU; 
 
-# Function to print debug messages to STDERR
 sub debug {
     my ($msg) = @_;
     print STDERR "[DEBUG] $msg\n";
@@ -17,8 +17,20 @@ sub debug {
 }
 
 # Constantes y configuración
-my $DOMAIN = "dc=access,dc=com";
 my $PASSWORD_REGEX = qr/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+# Obtener el dominio base dinámicamente
+my $baseDN;
+try {
+    my $samba = EBox::Global->modInstance('samba');
+    $baseDN = $samba->ldap()->dn();
+    debug("Base DN obtenido dinámicamente: $baseDN");
+} catch {
+    #  valor hardcodeado como respaldo
+    $baseDN = "DC=zentyal-domain,DC=lan";
+    debug("Error obteniendo base DN: $_");
+    debug("Usando valor por defecto: $baseDN");
+};
 
 # Función unificada para manejar errores
 sub error_exit {
@@ -45,13 +57,13 @@ try {
 
 # Extraer datos del usuario
 my $originalUsername = $user_data->{originalUsername}; # Siempre requerido
-my $samAccountName = $user_data->{samAccountName}; # Opcional en actualizaciones
-my $givenName = $user_data->{givenName}; # Opcional en actualizaciones
-my $sn = $user_data->{sn}; # Opcional en actualizaciones
+my $samAccountName = $user_data->{samAccountName}; # Opcional 
+my $givenName = $user_data->{givenName}; # Opci
+my $sn = $user_data->{sn}; # Opc
 my $password = $user_data->{password}; # Opcional, solo si se actualiza
-my $ou = $user_data->{ou}; # Opcional en actualizaciones
-my $groups = ref($user_data->{groups}) eq 'ARRAY' ? $user_data->{groups} : undef; # Opcional en actualizaciones
-my $description = $user_data->{description}; # Opcional en actualizaciones
+my $ou = $user_data->{ou}; # Opc
+my $groups = ref($user_data->{groups}) eq 'ARRAY' ? $user_data->{groups} : undef; # Opc
+my $description = $user_data->{description}; # Opc
 
 # Validar que tenemos un usuario para editar
 error_exit("Nombre de usuario obligatorio") unless $originalUsername;
@@ -137,9 +149,10 @@ if ($ou) {
     # Usar el nombre de usuario correcto (original o nuevo si se cambió)
     my $userToMove = $samAccountName && $samAccountName ne $originalUsername ? $samAccountName : $originalUsername;
     
-    my $ou_dn = "ou=$ou,$DOMAIN";
-    my $commandMove = "sudo samba-tool user move \"$userToMove\" \"$ou_dn\" -d 3";
-    debug("Moviendo usuario $userToMove a la OU: $ou_dn");
+    my $ou_dn = "OU=$ou,$baseDN";
+    debug("Intentando mover usuario a: $ou_dn");
+    my $commandMove = "sudo samba-tool user move \"$userToMove\" \"$ou_dn\"";
+    debug("Ejecutando comando: $commandMove");
     my $outputMove = qx($commandMove 2>&1);
 
     if ($? != 0) {
@@ -152,10 +165,8 @@ if ($ou) {
 
 # Actualizar grupos solo si se proporcionaron
 if ($groups) {
-    # Usar el nombre de usuario correcto (original o nuevo si se cambió)
     my $userToUpdate = $samAccountName && $samAccountName ne $originalUsername ? $samAccountName : $originalUsername;
     
-    # Obtener los grupos actuales del usuario
     my $currentGroupsCmd = "sudo samba-tool user getgroups \"$userToUpdate\"";
     my $currentGroupsOutput = qx($currentGroupsCmd 2>&1);
     my @currentGroups = split(/\n/, $currentGroupsOutput);
@@ -202,6 +213,5 @@ if ($groups) {
     }
 }
 
-# Respuesta exitosa
 print encode_json({ success => "Usuario actualizado correctamente" });
 exit(0);
