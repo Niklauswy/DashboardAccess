@@ -4,10 +4,12 @@ use strict;
 use warnings;
 use JSON;
 use EBox;
+use EBox::Global;
 use EBox::Samba::User;
 use File::Slurp;
 use Try::Tiny;
-use EBox::Samba::OU; 
+use EBox::Samba::OU;
+use EBox::Samba; # Added to access Samba module functions
 
 # Function to print debug messages to STDERR
 sub debug {
@@ -21,8 +23,21 @@ EBox::init();
 my $json_text = do { local $/; <STDIN> };
 
 # Constantes y configuración
-my $DOMAIN = "dc=access,dc=com";
 my $PASSWORD_REGEX = qr/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+# Obtener el dominio base dinámicamente
+my $baseDN;
+try {
+    my $samba = EBox::Global->modInstance('samba');
+    # El método ldap() devuelve un objeto que implementa EBox::LDAPBase
+    $baseDN = $samba->ldap()->dn();
+    debug("Base DN obtenido dinámicamente: $baseDN");
+} catch {
+    # Si falla, usar el valor hardcodeado comao respaldo
+    $baseDN = "DC=zentyal-domainaaaaaaaa,DC=lan";
+    debug("Error obteniendo base DN: $_");
+    debug("Usando valor por defecto: $baseDN");
+};
 
 # Función unificada para manejar errores
 sub error_exit {
@@ -121,8 +136,12 @@ if ($ou) {
     
     error_exit("La carrera (OU) '$ou' no existe") unless $ou_exists;
     
-    my $ou_dn = "ou=$ou,$DOMAIN";
-    my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"$ou_dn\" -d 3";
+    # Cambiamos la construcción del DN para que coincida con el formato esperado
+    my $ou_dn = "OU=$ou,$baseDN";
+    debug("Intentando mover usuario a: $ou_dn");
+    
+    my $commandMove = "sudo samba-tool user move \"$samAccountName\" \"$ou_dn\"";
+    debug("Ejecutando comando: $commandMove");
     my $outputMove = qx($commandMove 2>&1);
 
     error_exit("Error al mover el usuario a la OU especificada", $outputMove) if $? != 0;
