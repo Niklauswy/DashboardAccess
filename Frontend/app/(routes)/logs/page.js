@@ -7,6 +7,9 @@ import { LogBarChart } from '@/app/(routes)/logs/components/LogBarChart';
 import { useLogs } from '@/hooks/useLogs';
 import ErrorServer from '@/components/ErrorServer';
 import LogTableSkeleton from '@/app/(routes)/logs/components/LogTableSkeleton';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Users } from 'lucide-react';
 
 export default function Logs() {
     // Use the custom hook for logs
@@ -75,6 +78,15 @@ export default function Logs() {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-6 lg:p-8">
+            <div className="flex justify-between items-center mb-2">
+                <h1 className="text-2xl font-bold">System Logs</h1>
+                <Link href="/logs/sessions">
+                    <Button variant="default" className="bg-blue-600 hover:bg-blue-700">
+                        <Users className="mr-2 h-4 w-4" />
+                        Active Sessions
+                    </Button>
+                </Link>
+            </div>
             <div className="space-y-4">
                 <LogFilter logs={logs} filters={filters} setFilters={setFilters} />
                 
