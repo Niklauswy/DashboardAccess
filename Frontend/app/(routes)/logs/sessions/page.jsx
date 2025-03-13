@@ -41,59 +41,52 @@ export default function SessionsPage() {
       setLoading(true);
       setError(null); // Clear previous errors
       
-      // Define API URL with fallback and log it
+      // Define API URL with fallback
       const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/sessions`;
-      console.log(`Attempting to connect to: ${apiUrl}`);
+      console.log(`Fetching sessions from: ${apiUrl}`);
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
       
-      try {
-        const response = await fetch(apiUrl, { 
-          signal: controller.signal,
-          headers: { 'Cache-Control': 'no-cache' } 
-        });
-        
-        clearTimeout(timeoutId);
-        console.log(`Connection status: ${response.status} ${response.statusText}`);
-        
-        if (!response.ok) {
-          throw new Error(`Server responded with status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Data received successfully:', data);
-        
-        // Store the fetch timestamp for calculating elapsed time later
-        const fetchTime = Date.now();
-        
-        // Add local_start_timestamp for client-side duration calculation
-        const processedData = {
-          active_sessions: (data.active_sessions || []).map(session => ({
-            ...session,
-            local_start_timestamp: fetchTime - (session.duration * 1000),
-            status: 'active'
-          })),
-          completed_sessions: (data.completed_sessions || []).map(session => ({
-            ...session,
-            status: 'completed'
-          }))
-        };
-        
-        setSessions(processedData);
-        setLastUpdated(new Date());
-      } catch (err) {
-        if (err.name === 'AbortError') {
-          throw new Error('Connection timeout after 8 seconds');
-        }
-        throw err;
+      const response = await fetch(apiUrl, { 
+        signal: controller.signal,
+        headers: { 'Cache-Control': 'no-cache' } 
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
       }
+      
+      const data = await response.json();
+      
+      // Store the fetch timestamp for calculating elapsed time later
+      const fetchTime = Date.now();
+      
+      // Add local_start_timestamp for client-side duration calculation
+      const processedData = {
+        active_sessions: (data.active_sessions || []).map(session => ({
+          ...session,
+          local_start_timestamp: fetchTime - (session.duration * 1000),
+          status: 'active'
+        })),
+        completed_sessions: (data.completed_sessions || []).map(session => ({
+          ...session,
+          status: 'completed'
+        }))
+      };
+      
+      setSessions(processedData);
+      setLastUpdated(new Date());
     } catch (err) {
-      console.error('Error details:', err);
-      if (err.message.includes('Failed to fetch') || err.name === 'TypeError') {
-        setError('Cannot connect to the backend server. Please verify the server is running at http://localhost:5000');
+      console.error('Error fetching sessions:', err);
+      if (err.name === 'AbortError') {
+        setError('Connection timeout. The server is not responding.');
+      } else if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        setError('Cannot connect to the server. Please check if the backend service is running.');
       } else {
-        setError(`Error: ${err.message}`);
+        setError(`Failed to load sessions data: ${err.message}`);
       }
     } finally {
       setLoading(false);
