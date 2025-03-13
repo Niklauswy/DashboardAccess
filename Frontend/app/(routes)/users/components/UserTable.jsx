@@ -23,8 +23,8 @@ import { columns, careerIcons } from "@/app/(routes)/users/components/userTableC
 
 export default function UserTable({ users, refreshUsers, isRefreshing }) {
     const { toast } = useToast();
-    const { batchActions } = useUsers(); // Ahora usando el hook simplificado
-    const [open, setOpen] = useState(false); // Add user dialog
+    const { batchActions } = useUsers(); 
+    const [open, setOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [batchDialogOpen, setBatchDialogOpen] = useState(false);
     const [batchActionType, setBatchActionType] = useState("");
