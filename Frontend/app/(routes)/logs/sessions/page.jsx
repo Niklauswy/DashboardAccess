@@ -42,7 +42,7 @@ export default function SessionsPage() {
       setError(null); // Clear previous errors
       
       // Define API URL with fallback
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/sessions`;
+      const apiUrl = `/api/sessions`;
       console.log(`Fetching sessions from: ${apiUrl}`);
       
       const controller = new AbortController();
