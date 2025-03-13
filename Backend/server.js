@@ -294,6 +294,10 @@ app.get('/api/stats', (req, res) => {
   });
 });
 
+app.get('/api/sessions', (req, res) => {
+  executeScript('perl getAllSessions.pl', res);
+});
+
 // Catch-all route for unmatched endpoints
 app.all('*', (req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
