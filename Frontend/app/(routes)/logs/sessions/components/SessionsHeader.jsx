@@ -24,11 +24,12 @@ export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh, sessions 
     { key: "status", header: "Estado" }
   ];
 
+  // Asegurarse de que sessions tiene la estructura correcta antes de combinar datos
+  const activeSessions = sessions?.active_sessions || [];
+  const completedSessions = sessions?.completed_sessions || [];
+
   // Preparar datos combinados para exportación
-  const exportData = [
-    ...sessions.active_sessions,
-    ...sessions.completed_sessions
-  ];
+  const exportData = [...activeSessions, ...completedSessions];
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -72,42 +73,14 @@ export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh, sessions 
           </Tooltip>
         </TooltipProvider>
 
-        {/* Componente de exportación */}
+        {/* Componente de exportación con verificación de datos vacíos */}
         <DataExport 
           data={exportData}
           columns={exportColumns}
           filename="sesiones_usuarios"
           title="Reporte de Sesiones de Usuario"
-          subtitle="Dashboard Access System"
-          logo={{
-            url: '/logo.png', // Asegúrate de tener un logo en tu proyecto
-            width: 30,
-            height: 30
-          }}
+          subtitle="Facultad de Ciencias"
         />
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-gray-300 hover:bg-gray-100 rounded-full h-9 w-9 p-0"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Más opciones</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Acciones de Sesión</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Printer className="h-4 w-4 mr-2" />
-                Imprimir Sesiones
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </div>
   );

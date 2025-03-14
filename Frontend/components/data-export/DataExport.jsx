@@ -62,10 +62,11 @@ export function DataExport({
 
   // Función para exportar datos basada en el formato seleccionado
   const handleExport = async (format) => {
-    if (!data || data.length === 0) {
+    // Comprobar explícitamente si hay datos para exportar
+    if (!data || !Array.isArray(data) || data.length === 0) {
       toast({
         title: "No hay datos para exportar",
-        description: "Por favor, asegúrese de que hay datos disponibles para exportar.",
+        description: "No existen registros disponibles para exportar en este momento.",
         variant: "destructive",
       });
       return;
@@ -126,6 +127,9 @@ export function DataExport({
     }
   };
 
+  // Deshabilitar el botón cuando no hay datos
+  const hasData = Array.isArray(data) && data.length > 0;
+
   // Renderizar los botones individuales
   if (variant === 'buttons') {
     return (
@@ -182,8 +186,9 @@ export function DataExport({
         <Button 
           variant="outline" 
           size="sm" 
-          disabled={isExporting}
+          disabled={isExporting || !hasData}
           className={className}
+          title={!hasData ? "No hay datos disponibles para exportar" : "Exportar datos"}
         >
           {isExporting ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

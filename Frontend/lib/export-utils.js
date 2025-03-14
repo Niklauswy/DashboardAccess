@@ -261,7 +261,7 @@ export const exportToExcel = ({
   filename = 'exportacion',
   title = 'Reporte',
   sheetName = 'Datos',
-  creator = 'Dashboard Access System'
+  creator = 'Reporte de accesos'
 }) => {
   if (!data || data.length === 0) {
     throw new Error('No hay datos para exportar');
