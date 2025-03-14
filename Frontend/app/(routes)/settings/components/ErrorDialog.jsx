@@ -1,5 +1,5 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import {Dialog, DialogContent} from "@/components/ui/dialog"
+import {Button} from "@/components/ui/button"
 
 export default function ErrorDialog({ open, onOpenChange, messages }) {
   return (

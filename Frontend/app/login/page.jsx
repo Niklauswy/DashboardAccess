@@ -1,10 +1,12 @@
 "use client";
 
 
-import { useState, useEffect } from "react";
-import { signIn, useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {useEffect, useState} from "react";
+import {signIn, useSession} from "next-auth/react";
+import {useRouter, useSearchParams} from "next/navigation";
 import Image from "next/image";
+
+import velcelSvg from "@/public/vercel.svg";
 
 
 export default function LoginPage() {
@@ -58,7 +60,7 @@ export default function LoginPage() {
         <div className="text-center bg-white p-8 rounded-xl shadow-lg">
           <div className="flex justify-center mb-4">
             <Image 
-              src="/cimarron.png" 
+              src="/cimarron.png"
               alt="Logo Cimarron UABC" 
               width={80} 
               height={80}
@@ -85,20 +87,20 @@ export default function LoginPage() {
         <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
           <div className="text-center">
             <div className="flex justify-center">
-         
-              
-            <Image 
-  src="/cimarron.png" 
-  alt="Logo Cimarron UABC" 
-  width={80} 
-  height={80}
-  className="mx-auto opacity-80"
-  unoptimized
-/>
+
+
+              <Image
+                  src="/cimarron.png"
+                  alt="Logo Cimarron vercel"
+                  width={80}
+                  height={80}
+                  className="mx-auto opacity-80"
+                  unoptimized
+              />
              
             </div>
             <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-              Acceso al Dashboard UABC
+              Acceso al Dashboard
             </h2>
             <p className="mt-2 text-sm text-gray-600">
               Inicia sesión con tus credenciales

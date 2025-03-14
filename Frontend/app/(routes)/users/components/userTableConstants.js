@@ -1,4 +1,4 @@
-import { Cpu, Database, SquareFunction, Atom, Beaker, Leaf, Microscope } from "lucide-react";
+import {Atom, Beaker, Cpu, Database, Leaf, Microscope, SquareFunction} from "lucide-react";
 
 export const careerIcons = {
     CC: <Cpu className="h-4 w-4" />,

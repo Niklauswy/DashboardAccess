@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
-import { ChevronsUpDown, Check } from "lucide-react"; // Importa el ícono que prefieras
-import { cn } from "@/components/lib/utils";
+import {Button} from "@/components/ui/button";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
+import {Check, ChevronsUpDown} from "lucide-react"; // Importa el ícono que prefieras
+import {cn} from "@/components/lib/utils";
 
 const Combobox = ({ options, placeholder, onChange, value, icon: Icon }) => {
   const [inputValue, setInputValue] = React.useState(value || "");

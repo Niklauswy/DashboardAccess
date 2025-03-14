@@ -1,5 +1,5 @@
 import React from "react";
-import { TablePagination } from "@/components/data-table/TablePagination";
+import {TablePagination} from "@/components/TablePagination";
 
 export default function UserTablePagination({
   sortedUsers,

@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { format } from "date-fns";
-import { es } from 'date-fns/locale';
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Check, Filter, Sliders, X, Calendar as CalendarIcon, Users,  FolderInput, BarChart, Network } from "lucide-react";
-import { cn } from "@/components/lib/utils";
+import {useEffect, useMemo, useState} from "react";
+import {format} from "date-fns";
+import {es} from 'date-fns/locale';
+import {Button} from "@/components/ui/button";
+import {Badge} from "@/components/ui/badge";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem} from "@/components/ui/command";
+import {BarChart, Calendar as CalendarIcon, Check, Filter, FolderInput, Network, Sliders, Users, X} from "lucide-react";
+import {cn} from "@/components/lib/utils";
 import DatePickerWithRange from "./DatePickerWithRange";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {Input} from "@/components/ui/input";
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 
 export default function LogFilter({ logs, filters, setFilters }) {
   const [resetDatePicker, setResetDatePicker] = useState(false);

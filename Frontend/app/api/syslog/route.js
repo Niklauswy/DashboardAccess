@@ -1,5 +1,4 @@
-
-import { promises as fs } from 'fs';
+import {promises as fs} from 'fs';
 
 export async function GET() {
     try {

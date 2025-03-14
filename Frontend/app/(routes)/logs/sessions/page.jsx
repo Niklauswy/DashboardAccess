@@ -1,37 +1,32 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+import {useMemo, useState} from "react"
+import {Card, CardContent, CardHeader} from "@/components/ui/card"
+import {Button} from "@/components/ui/button"
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
+import {Badge} from "@/components/ui/badge"
 import {
+  ArrowLeft,
   ArrowUpDown,
-  ChevronDown,
-  CheckCircle,
-  Clock,
-  Search,
-  MoreVertical,
-  Eye,
   Ban,
-  Trash2,
-  ArrowLeft
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  Eye,
+  MoreVertical,
+  Search,
+  Trash2
 } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useSessions } from "@/hooks/useSessions"
-import { useScrollTop } from "@/hooks/useScrollTop"
-import { usePagination } from "@/hooks/usePagination"
-import { SessionsHeader } from "./components/SessionsHeader"
-import { SessionsFilters } from "./components/SessionsFilters"
-import { SessionsTableSkeleton } from "./components/SessionsTableSkeleton"
-import { TablePagination } from "@/components/data-table/TablePagination"
-import { DateTimeDisplay } from "@/lib/date-utils"
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu"
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
+import {useSessions} from "@/hooks/useSessions"
+import {useScrollTop} from "@/hooks/useScrollTop"
+import {usePagination} from "@/hooks/usePagination"
+import {SessionsHeader} from "./components/SessionsHeader"
+import {SessionsFilters} from "./components/SessionsFilters"
+import {SessionsTableSkeleton} from "./components/SessionsTableSkeleton"
+import {TablePagination} from "@/components/TablePagination"
+import {DateTimeDisplay} from "@/lib/date-utils"
 
 export default function SessionsPage() {
   const { 

@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, {useMemo, useState} from "react";
 import LogTable from "@/app/(routes)/logs/components/LogTable";
 import LogFilter from "@/app/(routes)/logs/components/LogFilter";
-import { LogBarChart } from "@/app/(routes)/logs/components/LogBarChart";
-import { useLogs } from "@/hooks/useLogs";
+import {LogBarChart} from "@/app/(routes)/logs/components/LogBarChart";
+import {useLogs} from "@/hooks/useLogs";
 import ErrorServer from "@/components/ErrorServer";
 import LogTableSkeleton from "@/app/(routes)/logs/components/LogTableSkeleton";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Users } from "lucide-react";
+import {Button} from "@/components/ui/button";
+import {Users} from "lucide-react";
 
 export default function Logs() {
   // El new custom hook for logs
@@ -97,6 +97,7 @@ export default function Logs() {
           isRefreshing={isRefreshing}
           refreshLogs={refreshLogs}
         />
+
       </div>
     </div>
   );

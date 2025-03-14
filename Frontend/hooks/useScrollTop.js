@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import {useEffect, useState} from 'react';
 
 export function useScrollTop(threshold = 300) {
   const [showBackToTop, setShowBackToTop] = useState(false);

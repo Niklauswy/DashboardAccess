@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { type Color } from "react-colorful"
-import { TooltipProps } from "recharts"
+import {type Color} from "react-colorful"
+import {TooltipProps} from "recharts"
 
 export interface ChartConfig {
   [key: string]: {

@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, RefreshCw } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { DataExport } from "@/components/data-export/DataExport";
+import {ArrowLeft, RefreshCw} from "lucide-react";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
+import {DataExport} from "@/components/DataExport";
 
 export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh, sessions = { active_sessions: [], completed_sessions: [] } }) {
   // Configuración de columnas para exportación

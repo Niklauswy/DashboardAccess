@@ -1,9 +1,8 @@
-
 import React, {useState} from 'react';
 import {Button} from "@/components/ui/button";
 import DatePickerWithRange from "./DatePickerWithRange";
 import Combobox from "./Combobox";
-import { User, Network, Activity } from "lucide-react";
+import {Activity, Network, User} from "lucide-react";
 
 const LogFilter = ({logs, filters, setFilters}) => {
     const [reset, setReset] = useState(false);

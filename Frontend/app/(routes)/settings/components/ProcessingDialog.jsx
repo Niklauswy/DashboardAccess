@@ -1,6 +1,6 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
-import { AlertTriangle } from "lucide-react";
+import {Dialog, DialogContent} from "@/components/ui/dialog";
+import {Progress} from "@/components/ui/progress";
+import {AlertTriangle} from "lucide-react";
 
 export default function ProcessingDialog({ open, progress = 0, actionText = "Procesando usuarios" }) {
   return (

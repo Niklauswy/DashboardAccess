@@ -1,13 +1,14 @@
 "use client"
-import { Activity, Users, Monitor, Clock, AlertTriangle } from "lucide-react";
-import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
+import {Activity, AlertTriangle, Clock, Monitor, Users} from "lucide-react";
+import {Cell, Pie, PieChart, ResponsiveContainer} from "recharts";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ActivityAreaChart } from "@/components/analytics/ActivityAreaChart";
-import { LabeledBarChart } from "@/components/analytics/LabeledBarChart";
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
+import {ActivityAreaChart} from "@/components/analytics/ActivityAreaChart";
+import {LabeledBarChart} from "@/components/analytics/LabeledBarChart";
 
 // Importar el nuevo hook
-import { useDashboardStats } from "@/hooks/useDashboardStats";
+import {useDashboardStats} from "@/hooks/useDashboardStats";
+import Image from "next/image";
 
 export function Dashboard() {
   const { stats, isLoading, refreshStats } = useDashboardStats();
@@ -19,6 +20,13 @@ export function Dashboard() {
 
   return (
     <div className="container mx-auto p-6">
+      <Image
+          src="/vercel.svg"
+          alt="Logo Cimarron UABC"
+          width={80}
+          height={80}
+          className="mx-auto opacity-80"
+      />
       <h1 className="text-3xl font-bold mb-8">Dashboard de Auditoría</h1>
       
       {/* Key Stats */}

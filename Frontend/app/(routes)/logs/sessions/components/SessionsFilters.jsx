@@ -1,8 +1,8 @@
-import { Input } from "@/components/ui/input";
-import { Search, Filter, ChevronDown } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Calendar, ChevronDown, Clock, Filter, MonitorSmartphone, Search, UserCheck} from "lucide-react";
+import {Tabs, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {Badge} from "@/components/ui/badge";
+import {Button} from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,6 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserCheck, MonitorSmartphone, Calendar, Clock } from "lucide-react";
 
 export function SessionsFilters({ 
   searchTerm, 

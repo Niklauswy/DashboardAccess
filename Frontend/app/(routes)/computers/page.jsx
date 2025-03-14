@@ -1,14 +1,26 @@
 'use client'
-import React, { useState,  } from 'react'
+import React, {useState,} from 'react'
 import useSWR from 'swr'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle,  } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Monitor,  School, Search, CheckCircle,  Clock, Calendar,  Command, RefreshCcw } from "lucide-react"
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
-import { Terminal, Apple, HelpCircle, Wifi } from "lucide-react"
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
+import {Badge} from "@/components/ui/badge"
+import {Dialog, DialogContent, DialogHeader, DialogTitle,} from "@/components/ui/dialog"
+import {Input} from "@/components/ui/input"
+import {Button} from "@/components/ui/button"
+import {
+  Apple,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Command,
+  HelpCircle,
+  Monitor,
+  RefreshCcw,
+  School,
+  Search,
+  Terminal,
+  Wifi
+} from "lucide-react"
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
 import ErrorServer from '@/components/ErrorServer'
 import NoData from '@/components/NoData'
 import ComputerTableSkeleton from '@/components/skeletons/ComputerTableSkeleton'

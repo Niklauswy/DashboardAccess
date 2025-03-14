@@ -1,7 +1,7 @@
 import useSWR from 'swr';
-import { useState } from 'react';
-import { format, isValid } from 'date-fns';
-import { es } from 'date-fns/locale';
+import {useState} from 'react';
+import {format, isValid} from 'date-fns';
+import {es} from 'date-fns/locale';
 
 export function useLogs() {
   const [isRefreshing, setIsRefreshing] = useState(false);

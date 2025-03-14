@@ -1,10 +1,16 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
-import { TableCell, TableRow } from "@/components/ui/table";
-import { DateTimeDisplay } from "@/lib/date-utils";
+import {Badge} from "@/components/ui/badge";
+import {Button} from "@/components/ui/button";
+import {Checkbox} from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {MoreHorizontal} from "lucide-react";
+import {TableCell, TableRow} from "@/components/ui/table";
+import {DateTimeDisplay} from "@/lib/date-utils";
 
 const UserRow = ({ 
   user, 

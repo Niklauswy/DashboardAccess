@@ -1,5 +1,5 @@
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import {Search} from "lucide-react";
+import {Input} from "@/components/ui/input";
 
 const SearchBar = ({ searchQuery, setSearchQuery }) => (
   <div className="relative ml-auto flex-1 md:grow-0">

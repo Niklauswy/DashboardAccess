@@ -2,7 +2,7 @@
 import UserTable from '@/app/(routes)/users/components/UserTable';
 import UserTableSkeleton from '@/components/skeletons/UserTableSkeleton';
 import ErrorServer from '@/components/ErrorServer';
-import { useUsers } from '@/hooks/useUsers';
+import {useUsers} from '@/hooks/useUsers';
 
 export default function UsersPage() {
     const { 

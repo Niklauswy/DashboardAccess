@@ -1,8 +1,8 @@
 import React from 'react';
-import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, ChevronDown } from "lucide-react";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import {Checkbox} from "@/components/ui/checkbox";
+import {Button} from "@/components/ui/button";
+import {ArrowDown, ArrowUp, ChevronDown} from "lucide-react";
 import UserRow from './UserRow';
 
 export default function UserTableContent({

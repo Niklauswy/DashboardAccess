@@ -1,21 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Bar, BarChart, XAxis, CartesianGrid, YAxis } from "recharts";
-import { format, startOfDay, endOfDay, subDays, addDays } from 'date-fns';
-import { es } from 'date-fns/locale';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import {Bar, BarChart, CartesianGrid, XAxis, YAxis} from "recharts";
+import {addDays, endOfDay, format, startOfDay, subDays} from 'date-fns';
+import {es} from 'date-fns/locale';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card";
+import {ChartContainer, ChartTooltip, ChartTooltipContent,} from "@/components/ui/chart";
 
 export function LogBarChart({ logs = [], filters }) {
   // Define chart configuration

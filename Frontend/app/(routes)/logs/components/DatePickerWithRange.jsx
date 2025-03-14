@@ -2,34 +2,23 @@
 
 import * as React from "react";
 import {
-  format,
   addDays,
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
   addMonths,
+  endOfDay,
+  endOfMonth,
+  endOfWeek,
+  format,
   startOfDay,
-  endOfDay
+  startOfMonth,
+  startOfWeek
 } from "date-fns";
-import { es } from "date-fns/locale";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { cn } from "@/components/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import {es} from "date-fns/locale";
+import {Calendar as CalendarIcon} from "lucide-react";
+import {cn} from "@/components/lib/utils";
+import {Button} from "@/components/ui/button";
+import {Calendar} from "@/components/ui/calendar";
+import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
+import {Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
 
 export default function DatePickerWithRange({ onChange, reset, className }) {
   const [date, setDate] = React.useState(null);

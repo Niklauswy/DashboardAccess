@@ -9,8 +9,10 @@ export async function middleware(request) {
     path === '/login' ||
     path.startsWith('/api/auth') ||
     path.startsWith('/_next') ||
-    path === '/favicon.ico';
-  
+    path === '/favicon.ico' ||
+      /\.(svg|png|jpg|jpeg|gif)$/.test(path);
+
+
   // Verificar si hay sesión activa
   const session = await getToken({
     req: request,

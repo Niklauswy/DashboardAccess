@@ -1,37 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table";
-import {
-  RefreshCw,
-  ChevronDown,
-  ArrowUpDown,
-  User,
-  Server,
-  Calendar,
-  Activity,
-  Link2,
-  LogOut,
-} from "lucide-react";
-import { usePagination } from "@/hooks/usePagination";
-import { TablePagination } from "@/components/data-table/TablePagination";
-import { Badge } from "@/components/ui/badge";
-import { DateTimeDisplay, parseDate } from "@/lib/date-utils";
-import { DataExport } from "@/components/data-export/DataExport";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardFooter, CardHeader, CardTitle,} from "@/components/ui/card";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
+import {Activity, ArrowUpDown, Calendar, ChevronDown, Link2, LogOut, RefreshCw, Server, User,} from "lucide-react";
+import {usePagination} from "@/hooks/usePagination";
+import {TablePagination} from "@/components/TablePagination";
+import {Badge} from "@/components/ui/badge";
+import {DateTimeDisplay, parseDate} from "@/lib/date-utils";
+import {DataExport} from "@/components/DataExport";
 
 export default function LogTable({ logs, isRefreshing, refreshLogs }) {
   // Pre-procesar las fechas para el ordenamiento correcto

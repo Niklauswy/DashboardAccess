@@ -1,7 +1,7 @@
-import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowUp, ArrowDown, ChevronDown } from "lucide-react";
+import {TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import {Button} from "@/components/ui/button";
+import {Checkbox} from "@/components/ui/checkbox";
+import {ArrowDown, ArrowUp, ChevronDown} from "lucide-react";
 
 export default function TableHeaderr({
     columns,

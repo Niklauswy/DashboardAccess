@@ -1,17 +1,17 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import useSWR from 'swr'; 
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Slider } from "@/components/ui/slider"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
+import {useEffect, useRef, useState} from "react"
+import useSWR from 'swr';
+import {Button} from "@/components/ui/button"
+import {Label} from "@/components/ui/label"
+import {Switch} from "@/components/ui/switch"
+import {Slider} from "@/components/ui/slider"
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
+import {ScrollArea} from "@/components/ui/scroll-area"
+import {Separator} from "@/components/ui/separator"
 
-import { Users, HardDrive, AlertCircle, RotateCcw, Clock, Server, Database, Home } from "lucide-react"
-import { useToast } from "@/hooks/use-toast";
+import {AlertCircle, Clock, Database, HardDrive, Home, RotateCcw, Server, Users} from "lucide-react"
+import {useToast} from "@/hooks/use-toast";
 import UsersTab from "./components/UsersTab"
 import ErrorServer from "@/components/ErrorServer";
 

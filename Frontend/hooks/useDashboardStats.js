@@ -1,6 +1,5 @@
-
 import useSWR from 'swr';
-import { useState } from 'react';
+import {useState} from 'react';
 
 export function useDashboardStats() {
   const [isRefreshing, setIsRefreshing] = useState(false);

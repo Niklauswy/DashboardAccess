@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import {useEffect} from 'react';
 
 export default function BatchActionsBar({ selectedCount, onChangePassword, onDelete }) {
     // Keyboard shortcuts handler

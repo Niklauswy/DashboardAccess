@@ -20,7 +20,7 @@ import ProcessingDialog from '@/components/ProcessingDialog';
 
 // Constants moved to a separate file and imported here
 import {careerIcons, columns} from "@/app/(routes)/users/components/userTableConstants";
-import {TablePagination} from "@/components/data-table/TablePagination";
+import {TablePagination} from "@/components/TablePagination";
 
 export default function UserTable({users, refreshUsers, isRefreshing}) {
     const {toast} = useToast();

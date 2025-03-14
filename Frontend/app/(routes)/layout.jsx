@@ -1,8 +1,8 @@
-    'use client'
-import { useState } from "react";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/sidebar/app-sidebar";
-import { CustomTrigger } from "@/components/sidebar/CustomTrigger";
+'use client'
+import {useState} from "react";
+import {SidebarProvider} from "@/components/ui/sidebar";
+import {AppSidebar} from "@/components/sidebar/app-sidebar";
+import {CustomTrigger} from "@/components/sidebar/CustomTrigger";
 
 export default function DashboardLayout({ children }) {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -32,6 +32,7 @@ export default function DashboardLayout({ children }) {
       <div className={`flex flex-col w-full ml-0  bg-slate-50`}>
         <main className="flex-1">
           {children}
+
         </main>
       </div>
     </div>
