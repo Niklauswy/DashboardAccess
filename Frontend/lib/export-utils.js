@@ -41,7 +41,7 @@ const setupPdfPage = (doc, title, subtitle, logo) => {
   // Configurar márgenes y estilo base
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 20;
+  const margin = 20; // Definir el margen aquí para usarlo en todo el ámbito
   
   // Colores de UABC
   const uabcGreen = [0, 102, 94]; // Verde UABC
@@ -123,6 +123,9 @@ export const exportToPdf = async ({
     format: pageSize
   });
   
+  // Obtener el margen para usarlo en didDrawPage
+  const margin = 20; // Añadimos esta variable para solucionar el error
+  
   // Configurar página y obtener posición inicial para la tabla
   const startY = setupPdfPage(doc, title, subtitle, logo);
   
@@ -176,6 +179,7 @@ export const exportToPdf = async ({
       const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
       const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
       
+      // Usar la variable margin definida arriba
       // Línea separadora en el pie de página
       doc.setDrawColor(0, 102, 94); // Verde UABC
       doc.setLineWidth(0.5);

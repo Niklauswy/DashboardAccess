@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Database, ListFilter } from "lucide-react";
+import { Plus, ListFilter } from "lucide-react";
 import { DataExport } from "@/components/data-export/DataExport";
 
 export default function UserTableActions({ 
@@ -17,7 +17,7 @@ export default function UserTableActions({
   toggleColumn, 
   sortedUsers, 
   setOpen,
-  showColumnToggle = true // Añadimos esta prop para controlar si mostrar o no el dropdown de columnas
+  showColumnToggle = true 
 }) {
   // Configurar columnas para exportación - eliminar la columna de acciones y usar etiquetas apropiadas
   const exportColumns = columns
@@ -56,10 +56,11 @@ export default function UserTableActions({
         </DropdownMenu>
       )}
 
-      {/* Componente de exportación */}
+      {/* Componente de exportación que ahora usa las columnas seleccionadas */}
       <DataExport 
         data={sortedUsers}
         columns={exportColumns}
+        selectedColumns={visibleColumns} // Pasar las columnas seleccionadas
         filename="usuarios_sistema"
         title="Reporte de Usuarios del Sistema"
         subtitle="Facultad de Ciencias"

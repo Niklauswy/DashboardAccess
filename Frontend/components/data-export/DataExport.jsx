@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
   Download, FileText, FileSpreadsheet, Loader2, 
-  Check, ChevronDown, Table as TableIcon, Settings
+  ChevronDown, Table as TableIcon
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -11,11 +11,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal,
-  DropdownMenuSubContent,
-  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
 import { exportToPdf, exportToCsv, exportToExcel } from '@/lib/export-utils';
@@ -26,6 +21,7 @@ import { exportToPdf, exportToCsv, exportToExcel } from '@/lib/export-utils';
  * @param {Object} props - Propiedades del componente
  * @param {Array} props.data - Datos a exportar
  * @param {Array} props.columns - Definición de columnas
+ * @param {Array} props.selectedColumns - Columnas seleccionadas (opcional)
  * @param {String} props.filename - Nombre del archivo (sin extensión)
  * @param {String} props.title - Título para los reportes
  * @param {String} props.subtitle - Subtítulo opcional para los reportes
@@ -37,30 +33,32 @@ import { exportToPdf, exportToCsv, exportToExcel } from '@/lib/export-utils';
 export function DataExport({
   data = [],
   columns = [],
+  selectedColumns = null, // Nueva prop para recibir columnas ya seleccionadas
   filename = 'exportacion',
   title = 'Reporte',
   subtitle = '',
   logo = null,
   options = {},
   variant = 'dropdown',
-  className = ''
+  className = '',
+  showColumnSelector = false, // Ya no necesitamos selector de columnas interno
 }) {
   const [isExporting, setIsExporting] = useState(false);
   const [exportFormat, setExportFormat] = useState(null);
-  const [selectedColumns, setSelectedColumns] = useState(
-    columns.map(col => col.key || col.accessorKey || col.id)
-  );
 
-  // Función para alternar la selección de columnas
-  const toggleColumn = (key) => {
-    setSelectedColumns(prev => {
-      if (prev.includes(key)) {
-        return prev.filter(k => k !== key);
-      } else {
-        return [...prev, key];
-      }
-    });
-  };
+  // Si se proporcionan columnas seleccionadas externas, las usamos
+  // Si no, tomamos todas las columnas
+  const columnsToExport = useMemo(() => {
+    // Si hay columnas seleccionadas externas, filtrar por ellas
+    if (selectedColumns) {
+      return columns.filter(col => {
+        const key = col.key || col.accessorKey || col.id;
+        return selectedColumns.includes(key);
+      });
+    }
+    // Si no, usar todas las columnas
+    return columns;
+  }, [columns, selectedColumns]);
 
   // Función para exportar datos basada en el formato seleccionado
   const handleExport = async (format) => {
@@ -77,17 +75,12 @@ export function DataExport({
       setIsExporting(true);
       setExportFormat(format);
       
-      // Filtrar columnas según la selección
-      const filteredColumns = columns.filter(col => 
-        selectedColumns.includes(col.key || col.accessorKey || col.id)
-      );
-      
       // Elegir método de exportación según el formato
       switch (format) {
         case 'pdf':
           await exportToPdf({
             data, 
-            columns: filteredColumns, 
+            columns: columnsToExport, 
             filename, 
             title, 
             subtitle,
@@ -98,7 +91,7 @@ export function DataExport({
         case 'csv':
           exportToCsv({
             data, 
-            columns: filteredColumns, 
+            columns: columnsToExport, 
             filename,
             ...options
           });
@@ -106,7 +99,7 @@ export function DataExport({
         case 'excel':
           await exportToExcel({
             data, 
-            columns: filteredColumns, 
+            columns: columnsToExport, 
             filename,
             title,
             ...options
@@ -203,31 +196,6 @@ export function DataExport({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>Opciones de Exportación</DropdownMenuLabel>
-        
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Columnas</span>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent className="w-48 max-h-80 overflow-y-auto">
-              {columns.map(column => {
-                const key = column.key || column.accessorKey || column.id;
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={key}
-                    checked={selectedColumns.includes(key)}
-                    onCheckedChange={() => toggleColumn(key)}
-                  >
-                    {column.header || column.label || key}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
         
         <DropdownMenuSeparator />
         
