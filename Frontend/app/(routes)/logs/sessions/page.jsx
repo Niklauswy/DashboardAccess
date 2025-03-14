@@ -34,7 +34,6 @@ import { SessionsTableSkeleton } from "./components/SessionsTableSkeleton"
 import { TablePagination } from "@/components/data-table/TablePagination"
 
 export default function SessionsPage() {
-  // Use the custom sessions hook
   const { 
     sessions, 
     loading, 
@@ -44,12 +43,11 @@ export default function SessionsPage() {
     refreshSessions 
   } = useSessions();
   
-  // Local UI state
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const { showBackToTop, scrollToTop } = useScrollTop(300);
 
-  // Filter sessions based on search and active tab
+  // Filtrar sesiones según término de búsqueda y pestaña activa
   const filteredSessions = useMemo(() => {
     // Combine both session types if showing 'all'
     let combinedSessions = [];
@@ -62,7 +60,7 @@ export default function SessionsPage() {
       combinedSessions = [...combinedSessions, ...sessions.completed_sessions];
     }
     
-    // Search filter
+    // Filtro de búsqueda
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
       return combinedSessions.filter(
@@ -74,7 +72,7 @@ export default function SessionsPage() {
     return combinedSessions;
   }, [sessions, searchTerm, activeTab]);
   
-  // Use pagination hook
+  // Hook pa la paginación
   const pagination = usePagination(filteredSessions, {
     initialPage: 1,
     initialPageSize: 20,
@@ -83,7 +81,7 @@ export default function SessionsPage() {
     sortDirection: 'desc'
   });
 
-  // Format date for display
+  // Formatear fecha y hora para mostrar
   const formatDate = (dateString) => {
     try {
       return new Date(dateString).toLocaleString("es-ES");
@@ -92,7 +90,7 @@ export default function SessionsPage() {
     }
   };
 
-  // Get initials from username
+  // Iniciales del nombre de usuario
   const getInitials = (name) => {
     if (!name) return "U";
     return name.substring(0, 2).toUpperCase();
@@ -191,8 +189,7 @@ export default function SessionsPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      {/* Header with navigation and controls */}
+    <div className="p-4 md:p-6 lg:p-8 space-y-6  container">
       <SessionsHeader 
         lastUpdated={lastUpdated} 
         isRefreshing={isRefreshing} 

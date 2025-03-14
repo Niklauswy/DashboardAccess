@@ -54,6 +54,34 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
         }
     };
 
+    // Get the appropriate badge color for the event type
+    const getEventBadge = (event) => {
+    if (!event) return <Badge variant="outline">Desconocido</Badge>;        
+
+            
+        const lowerEvent = event.toLowerCase();
+    
+        if (lowerEvent === 'disconnect') {
+          return (
+            <Badge variant="outline" className="bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200">
+              <LogOut className="mr-1 h-3 w-3" />
+              Desconexión
+            </Badge>
+          );
+        }
+        
+        if (lowerEvent === 'connect') {
+          return (
+            <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
+              <Link2 className="mr-1 h-3 w-3" />
+              Conexión
+            </Badge>
+          );
+        }
+     
+         return <Badge variant="outline">{event}</Badge>;
+     
+    };
 
     return (
         <Card>
@@ -100,8 +128,9 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
                                             <div className="font-medium">{log.user}</div>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge className={`${(log.event)}`}>
-                                                {log.event}
+                                     
+                                            <Badge>
+                                            {getEventBadge(log.event)}
                                             </Badge>
                                         </TableCell>
                                         <TableCell>{log.lab}</TableCell>
