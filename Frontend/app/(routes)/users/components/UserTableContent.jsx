@@ -17,6 +17,22 @@ export default function UserTableContent({
     sortDirection,
     handleAction
 }) {
+    // Esta función renderiza cada fila personalizada, según las columnas visibles
+    const renderUserRow = (user) => {
+        // Solo necesitamos pasar las columnas visibles al componente UserRow
+        return (
+            <UserRow 
+                key={user.username}
+                user={user} 
+                visibleColumns={visibleColumns} // Pasamos las columnas visibles
+                columns={columns}  // Pasamos todas las columnas para referencia
+                onEdit={() => handleAction("edit", user.username)}
+                selected={selectedRows.includes(user.username)}
+                onToggleSelect={() => toggleRow(user.username)}
+            />
+        );
+    };
+
     return (
         <div className="rounded-lg border shadow overflow-hidden">
             <Table>
@@ -29,42 +45,37 @@ export default function UserTableContent({
                                 aria-label="Select all rows"
                             />
                         </TableHead>
-                        {columns.filter((col) => visibleColumns.includes(col.key)).map((column) => (
-                            <TableHead key={column.key}>
-                                {column.sortable ? (
-                                    <Button variant="ghost" className="hover:bg-gray-100 -ml-4 h-8" onClick={() => handleSort(column.key)}>
-                                        {column.label}
-                                        {sortColumn === column.key ? (
-                                            sortDirection === "asc" ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />
-                                        ) : (
-                                            <ChevronDown className="ml-2 h-4 w-4" />
-                                        )}
-                                    </Button>
-                                ) : (
-                                    column.label
-                                )}
-                            </TableHead>
-                        ))}
+                        {/* Solo mostrar los encabezados de columnas visibles */}
+                        {columns
+                            .filter((col) => visibleColumns.includes(col.key))
+                            .map((column) => (
+                                <TableHead key={column.key}>
+                                    {column.sortable ? (
+                                        <Button variant="ghost" className="hover:bg-gray-100 -ml-4 h-8" onClick={() => handleSort(column.key)}>
+                                            {column.label}
+                                            {sortColumn === column.key ? (
+                                                sortDirection === "asc" ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />
+                                            ) : (
+                                                <ChevronDown className="ml-2 h-4 w-4" />
+                                            )}
+                                        </Button>
+                                    ) : (
+                                        column.label
+                                    )}
+                                </TableHead>
+                            ))
+                        }
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {paginatedUsers.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={columns.filter(col => visibleColumns.includes(col.key)).length + 1} className="text-center py-8">
+                            <TableCell colSpan={visibleColumns.length + 1} className="text-center py-8">
                                 No hay usuarios que coincidan con los filtros aplicados
                             </TableCell>
                         </TableRow>
                     ) : (
-                        paginatedUsers.map((user) => (
-                            <React.Fragment key={user.username}>
-                                <UserRow 
-                                    user={user} 
-                                    onEdit={() => handleAction("edit", user.username)}
-                                    selected={selectedRows.includes(user.username)}
-                                    onToggleSelect={() => toggleRow(user.username)}
-                                />
-                            </React.Fragment>
-                        ))
+                        paginatedUsers.map(user => renderUserRow(user))
                     )}
                 </TableBody>
             </Table>

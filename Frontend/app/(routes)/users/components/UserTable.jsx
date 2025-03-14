@@ -225,6 +225,8 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                     toggleColumn={toggleColumn}
                     sortedUsers={filteredUsers}
                     setOpen={setOpen}
+                    // Asegurarse de que solo se muestre UN botón de columnas
+                    showColumnToggle={true} // Solo este componente muestra el botón de columnas
                 />
             </div>
 

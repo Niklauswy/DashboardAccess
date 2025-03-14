@@ -31,7 +31,7 @@ export const getCellValue = (row, column) => {
 };
 
 /**
- * Configura página PDF con logo y encabezados
+ * Configura página PDF con logo y encabezados en estilo UABC
  * @param {Object} doc - Documento jsPDF
  * @param {String} title - Título del documento
  * @param {String} subtitle - Subtítulo del documento
@@ -40,7 +40,16 @@ export const getCellValue = (row, column) => {
 const setupPdfPage = (doc, title, subtitle, logo) => {
   // Configurar márgenes y estilo base
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 20;
+  
+  // Colores de UABC
+  const uabcGreen = [0, 102, 94]; // Verde UABC
+  const uabcGold = [207, 184, 124]; // Dorado UABC
+  
+  // Agregar encabezado con colores UABC
+  doc.setFillColor(...uabcGreen);
+  doc.rect(0, 0, pageWidth, 40, 'F');
   
   // Añadir logo si está presente
   if (logo && logo.url) {
@@ -48,38 +57,47 @@ const setupPdfPage = (doc, title, subtitle, logo) => {
       logo.url,
       'PNG',
       margin,
-      margin,
+      10,
       logo.width || 40,
       logo.height || 20
     );
+  } else {
+    // Si no hay logo, poner texto UABC como alternativa
+    doc.setFontSize(16);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text('UABC', margin, 25);
   }
   
-  // Añadir título
+  // Título a la derecha del logo
   doc.setFontSize(18);
-  doc.setTextColor(50, 50, 50);
+  doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.text(title, pageWidth / 2, logo ? margin + 25 : margin + 10, { align: 'center' });
+  doc.text(title, pageWidth / 2, 20, { align: 'center' });
   
-  // Añadir subtítulo si está presente
+  // Subtítulo 
   if (subtitle) {
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text(subtitle, pageWidth / 2, logo ? margin + 35 : margin + 20, { align: 'center' });
+    doc.setTextColor(255, 255, 255);
+    doc.text(subtitle, pageWidth / 2, 30, { align: 'center' });
   }
   
+  // Barra decorativa dorada
+  doc.setFillColor(...uabcGold);
+  doc.rect(0, 40, pageWidth, 5, 'F');
+  
   // Agregar fecha y hora de generación
-  const dateText = `Generado el: ${new Date().toLocaleString('es-ES')}`;
   doc.setFontSize(9);
-  doc.setTextColor(150, 150, 150);
-  doc.text(dateText, pageWidth - margin, margin, { align: 'right' });
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Generado el: ${new Date().toLocaleString('es-ES')}`, pageWidth - margin, 55);
   
   // Retornar la posición Y donde debería empezar el contenido
-  return logo ? margin + 45 : margin + 30;
+  return 65; // Posición después del encabezado completo
 };
 
 /**
- * Exporta datos a PDF con diseño mejorado
+ * Exporta datos a PDF con diseño mejorado estilo UABC
  * @param {Object} options - Opciones de exportación
  */
 export const exportToPdf = async ({
@@ -117,10 +135,10 @@ export const exportToPdf = async ({
     })
   );
   
-  // Estilos para la tabla
+  // Estilos para la tabla con colores UABC
   const defaultStyles = {
     headStyles: {
-      fillColor: [41, 128, 185],
+      fillColor: [0, 102, 94], // Verde UABC
       textColor: 255,
       fontStyle: 'bold',
       halign: 'center'
@@ -130,7 +148,8 @@ export const exportToPdf = async ({
     },
     bodyStyles: {
       textColor: 80
-    }
+    },
+    theme: 'grid' // Añadir cuadrícula para mejorar legibilidad
   };
   
   // Combinar estilos predeterminados con personalizados
@@ -144,24 +163,38 @@ export const exportToPdf = async ({
     styles: tableStyles.bodyStyles,
     headStyles: tableStyles.headStyles,
     alternateRowStyles: tableStyles.alternateRowStyles,
+    theme: tableStyles.theme,
     pageBreak: 'auto',
-    margin: { top: 20, right: 20, bottom: 20, left: 20 },
+    margin: { top: 50, right: 20, bottom: 30, left: 20 },
     ...autoTableOptions,
     didDrawPage: function(data) {
+      // Regenerar encabezado en cada página
+      setupPdfPage(doc, title, subtitle, logo);
+      
       // Agregar pie de página en cada página
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+      const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
+      
+      // Línea separadora en el pie de página
+      doc.setDrawColor(0, 102, 94); // Verde UABC
+      doc.setLineWidth(0.5);
+      doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
       
       doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
+      doc.setTextColor(100, 100, 100);
       
       // Agregar numeración de página
       const pageNumber = `Página ${doc.internal.getNumberOfPages()}`;
-      doc.text(pageNumber, data.settings.margin.left, pageHeight - 10);
+      doc.text(pageNumber, margin, pageHeight - 10);
       
-      // Agregar nombre del sistema
-      const appName = 'Dashboard Access System';
-      doc.text(appName, doc.internal.pageSize.getWidth() / 2, pageHeight - 10, { align: 'center' });
+      // Agregar nombre de la universidad
+      const uabcName = 'Universidad Autónoma de Baja California';
+      doc.text(uabcName, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      
+      // Agregar texto de Facultad de Ciencias
+      const facultyName = 'Facultad de Ciencias';
+      doc.text(facultyName, pageWidth - margin, pageHeight - 10, { align: 'right' });
       
       // Si hay una función personalizada para el pie de página, ejecutarla
       if (autoTableOptions.didDrawPage) {
