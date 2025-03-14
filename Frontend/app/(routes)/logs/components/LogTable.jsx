@@ -7,7 +7,7 @@ import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell
 } from "@/components/ui/table";
 import { 
-  RefreshCw, ChevronDown, ArrowUpDown, DownloadIcon, User, Server, Calendar, Activity, Link2 
+  RefreshCw, ChevronDown, ArrowUpDown, DownloadIcon, User, Server, Calendar, Activity, Link2, LogOut
 } from 'lucide-react';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/data-table/TablePagination';
