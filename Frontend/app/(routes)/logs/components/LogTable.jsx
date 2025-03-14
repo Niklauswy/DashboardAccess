@@ -100,7 +100,7 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
                                             <div className="font-medium">{log.user}</div>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge className={`${getEventBadge(log.event)}`}>
+                                            <Badge className={`${(log.event)}`}>
                                                 {log.event}
                                             </Badge>
                                         </TableCell>
