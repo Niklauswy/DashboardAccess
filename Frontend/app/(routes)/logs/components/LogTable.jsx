@@ -122,6 +122,7 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
                                 pagination.pageItems.map((log, index) => (
                                     <TableRow key={`log-${index}`}>
                                         <TableCell>
+                                        
                                             <div className="font-medium">{formatDateTime(log.date)}</div>
                                         </TableCell>
                                         <TableCell>
