@@ -17,7 +17,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { exportToPdf, exportToCsv, exportToExcel } from '@/lib/export-utils';
 
 /**
