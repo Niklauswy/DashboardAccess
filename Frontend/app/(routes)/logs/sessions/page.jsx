@@ -32,6 +32,7 @@ import { SessionsHeader } from "./components/SessionsHeader"
 import { SessionsFilters } from "./components/SessionsFilters"
 import { SessionsTableSkeleton } from "./components/SessionsTableSkeleton"
 import { TablePagination } from "@/components/data-table/TablePagination"
+import { getDateTimeDisplay } from "@/lib/date-utils"
 
 export default function SessionsPage() {
   const { 
@@ -81,16 +82,7 @@ export default function SessionsPage() {
     sortDirection: 'desc'
   });
 
-  // Formatear fecha y hora para mostrar
-  const formatDate = (dateString) => {
-    try {
-      return new Date(dateString).toLocaleString("es-ES");
-    } catch (e) {
-      return dateString;
-    }
-  };
-
-  // Iniciales del nombre de usuario
+  // Get initials from username
   const getInitials = (name) => {
     if (!name) return "U";
     return name.substring(0, 2).toUpperCase();
@@ -285,23 +277,13 @@ export default function SessionsPage() {
                         </TooltipProvider>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col">
-                          <span>{formatDate(session.start_time).split(",")[1]}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(session.start_time).split(",")[0]}
-                          </span>
-                        </div>
+                        {getDateTimeDisplay(session.start_time).render}
                       </TableCell>
                       <TableCell>
                         {session.status === "active" ? (
                           <span className="text-muted-foreground italic">Activa</span>
                         ) : (
-                          <div className="flex flex-col">
-                            <span>{formatDate(session.end_time).split(",")[1]}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDate(session.end_time).split(",")[0]}
-                            </span>
-                          </div>
+                          getDateTimeDisplay(session.end_time).render
                         )}
                       </TableCell>
                       <TableCell>
