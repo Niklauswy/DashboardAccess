@@ -67,7 +67,7 @@ export default function Logs() {
             <div className="flex justify-between items-center mb-2">
                 <h1 className="text-2xl font-bold">Logs de Actividad</h1>
                 <Link href="/logs/sessions">
-                    <Button variant="default" className="bg-blue-600 hover:bg-blue-700">
+                    <Button variant="default" className="bg-green-600 hover:bg-green-700">
                         <Users className="mr-2 h-4 w-4" />
                         Sesiones Activas
                     </Button>

@@ -7,7 +7,7 @@ import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell
 } from "@/components/ui/table";
 import { 
-  RefreshCw, ChevronDown, ArrowUpDown, DownloadIcon, User, Server, Calendar, Activity, Link2 
+  RefreshCw, ChevronDown, ArrowUpDown, DownloadIcon, User, Server, Calendar, Activity, Link2, LogOut
 } from 'lucide-react';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/data-table/TablePagination';
@@ -19,7 +19,7 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
         initialPage: 1,
         initialPageSize: 20,
         pageSizeOptions: [10, 20, 50, 100],
-        sortKey: 'date', // Assuming there's a date field
+        sortKey: 'date', 
         sortDirection: 'desc'
     });
 
@@ -54,11 +54,9 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
         }
     };
 
-    // Get the appropriate badge color for the event type
     const getEventBadge = (event) => {
     if (!event) return <Badge variant="outline">Desconocido</Badge>;        
 
-            
         const lowerEvent = event.toLowerCase();
     
         if (lowerEvent === 'disconnect') {
@@ -129,9 +127,9 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
                                         </TableCell>
                                         <TableCell>
                                      
-                                            <Badge>
+                                          
                                             {getEventBadge(log.event)}
-                                            </Badge>
+                                        
                                         </TableCell>
                                         <TableCell>{log.lab}</TableCell>
                                         <TableCell>
