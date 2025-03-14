@@ -162,9 +162,7 @@ export function Dashboard() {
         </Card>
       </div>
       
-      {/* Recent Activity and Active Sessions */}
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 mb-8">
-        {/* Recent Activity */}
         <Card>
           <CardHeader>
             <CardTitle>Actividad Reciente</CardTitle>
