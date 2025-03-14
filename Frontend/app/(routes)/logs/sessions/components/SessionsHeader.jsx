@@ -67,8 +67,7 @@ export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh, sessions 
           </Tooltip>
         </TooltipProvider>
 
-        {/* Solo mostrar el componente de exportación si hay datos */}
-        {hasDataToExport && (
+       
           <DataExport 
             data={exportData}
             columns={exportColumns}
@@ -76,7 +75,7 @@ export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh, sessions 
             title="Reporte de Sesiones de Usuario"
             subtitle="Facultad de Ciencias"
           />
-        )}
+   
       </div>
     </div>
   );
