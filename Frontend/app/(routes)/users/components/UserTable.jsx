@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserTableFilters } from "@/app/(routes)/users/hooks/useUserTableFilters";
 import { useUserTableState } from "@/app/(routes)/users/hooks/useUserTableState";
 import { useUsers } from "@/hooks/useUsers"; // Cambiado a useUsers
+import { usePagination } from "@/hooks/usePagination"; // Import the pagination hook
 import UserTableFilters from "@/app/(routes)/users/components/UserTableFilters";
 import UserTableActions from "@/app/(routes)/users/components/UserTableActions";
 import UserTableContent from "@/app/(routes)/users/components/UserTableContent";
@@ -33,7 +34,7 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const [editUserOpen, setEditUserOpen] = useState(false);
     const [userToEdit, setUserToEdit] = useState(null);
-    const [currentUser, setCurrentUser] = useState(null); // Add missing currentUser state
+    const [currentUser, setCurrentUser] = useState(null);
     const [batchProgress, setBatchProgress] = useState(0);
     const [isProcessingBatch, setIsProcessingBatch] = useState(false);
     
@@ -48,17 +49,12 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
     } = useUserTableFilters(users);
     
     const {
-        page, setPage,
-        rowsPerPage, setRowsPerPage,
-        sortColumn, setSortColumn,
-        sortDirection, setSortDirection,
         visibleColumns, setVisibleColumns,
         selectedRows, setSelectedRows,
         toggleAllRows, toggleRow, toggleColumn,
-        handleSort
     } = useUserTableState(columns);
 
-    // Filtered and sorted data
+    // Filtered users (keep this logic)
     const filteredUsers = useMemo(() => {
         return Array.isArray(users) ? users.filter(
             (user) =>
@@ -70,21 +66,14 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
         ) : [];
     }, [filter, selectedCarreras, selectedGroups, users]);
 
-    const sortedUsers = useMemo(() => {
-        if (!sortColumn) return filteredUsers;
-        return [...filteredUsers].sort((a, b) => {
-            if (a[sortColumn] < b[sortColumn]) return sortDirection === "asc" ? -1 : 1;
-            if (a[sortColumn] > b[sortColumn]) return sortDirection === "asc" ? 1 : -1;
-            return 0;
-        });
-    }, [filteredUsers, sortColumn, sortDirection]);
-
-    const paginatedUsers = useMemo(() => {
-        const start = (page - 1) * rowsPerPage;
-        return sortedUsers.slice(start, start + rowsPerPage);
-    }, [sortedUsers, page, rowsPerPage]);
-
-    const totalPages = Math.ceil(sortedUsers.length / rowsPerPage);
+    // Replace the sorting and pagination with the usePagination hook
+    const pagination = usePagination(filteredUsers, {
+        initialPage: 1,
+        initialPageSize: 20,
+        pageSizeOptions: [10, 20, 50, 100],
+        sortKey: 'username',
+        sortDirection: 'asc'
+    });
     
     const handleAction = (action, userId) => {
         const user = users.find(u => u.username === userId);
@@ -214,7 +203,7 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
 
             {/* Segunda fila: Filtros y acciones */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0 gap-4">
-                {/* Filtros de carrera y grupo - Añadimos filter como prop */}
+                {/* Filtros de carrera y grupo */}
                 <UserTableFilters
                     filter={filter}
                     selectedCarreras={selectedCarreras}
@@ -234,34 +223,35 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                     columns={columns}
                     visibleColumns={visibleColumns}
                     toggleColumn={toggleColumn}
-                    sortedUsers={sortedUsers}
+                    sortedUsers={filteredUsers}
                     setOpen={setOpen}
                 />
             </div>
 
-            {/* Table content */}
+            {/* Table content - Updated to use pagination.pageItems */}
             <UserTableContent
                 columns={columns}
                 visibleColumns={visibleColumns}
-                paginatedUsers={paginatedUsers}
+                paginatedUsers={pagination.pageItems}
                 selectedRows={selectedRows}
                 toggleAllRows={toggleAllRows}
                 toggleRow={toggleRow}
-                handleSort={handleSort}
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
+                handleSort={pagination.requestSort}
+                sortColumn={pagination.sort.key}
+                sortDirection={pagination.sort.direction}
                 handleAction={handleAction}
             />
             
-            {/* Pagination */}
+            {/* Pagination - Updated to use the pagination hook */}
             <UserTablePagination
                 selectedRows={selectedRows}
-                sortedUsers={sortedUsers}
-                page={page}
-                setPage={setPage}
-                rowsPerPage={rowsPerPage}
-                setRowsPerPage={setRowsPerPage}
-                totalPages={totalPages}
+                sortedUsers={filteredUsers}
+                page={pagination.currentPage}
+                setPage={pagination.setCurrentPage}
+                rowsPerPage={pagination.pageSize}
+                setRowsPerPage={pagination.setPageSize}
+                totalPages={pagination.totalPages}
+                pageSizeOptions={pagination.pageSizeOptions}
             />
 
             {/* Batch action bar */}

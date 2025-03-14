@@ -26,9 +26,12 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useSessions } from "@/hooks/useSessions"
+import { useScrollTop } from "@/hooks/useScrollTop"
+import { usePagination } from "@/hooks/usePagination"
 import { SessionsHeader } from "./components/SessionsHeader"
 import { SessionsFilters } from "./components/SessionsFilters"
 import { SessionsTableSkeleton } from "./components/SessionsTableSkeleton"
+import { TablePagination } from "@/components/data-table/TablePagination"
 
 export default function SessionsPage() {
   // Use the custom sessions hook
@@ -43,38 +46,42 @@ export default function SessionsPage() {
   
   // Local UI state
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortConfig, setSortConfig] = useState({ key: "start_timestamp", direction: "desc" });
   const [activeTab, setActiveTab] = useState("all");
-  const [showBackToTop, setShowBackToTop] = useState(false);
+  const { showBackToTop, scrollToTop } = useScrollTop(300);
+
+  // Filter sessions based on search and active tab
+  const filteredSessions = useMemo(() => {
+    // Combine both session types if showing 'all'
+    let combinedSessions = [];
+    
+    if (activeTab === "all" || activeTab === "active") {
+      combinedSessions = [...combinedSessions, ...sessions.active_sessions];
+    }
+    
+    if (activeTab === "all" || activeTab === "completed") {
+      combinedSessions = [...combinedSessions, ...sessions.completed_sessions];
+    }
+    
+    // Search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      return combinedSessions.filter(
+        (session) =>
+          session.username?.toLowerCase().includes(searchLower) || session.ip?.toLowerCase().includes(searchLower),
+      );
+    }
+    
+    return combinedSessions;
+  }, [sessions, searchTerm, activeTab]);
   
-  // Handle sorting
-  const requestSort = (key) => {
-    setSortConfig((current) => ({
-      key,
-      direction: current.key === key && current.direction === "desc" ? "asc" : "desc",
-    }));
-  };
-
-  // Add scroll listener for back to top button
-  const handleScroll = () => {
-    setShowBackToTop(window.scrollY > 300);
-  };
-
-  // Attach and clean up scroll event
-  useState(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
-  // Scroll to top function
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
+  // Use pagination hook
+  const pagination = usePagination(filteredSessions, {
+    initialPage: 1,
+    initialPageSize: 20,
+    pageSizeOptions: [10, 20, 50, 100],
+    sortKey: 'start_timestamp',
+    sortDirection: 'desc'
+  });
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -109,68 +116,18 @@ export default function SessionsPage() {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  // Filtered and sorted sessions
-  const filteredSessions = useMemo(() => {
-    // Combine both session types if showing 'all'
-    let combinedSessions = [];
-    
-    if (activeTab === "all" || activeTab === "active") {
-      combinedSessions = [...combinedSessions, ...sessions.active_sessions];
-    }
-    
-    if (activeTab === "all" || activeTab === "completed") {
-      combinedSessions = [...combinedSessions, ...sessions.completed_sessions];
-    }
-    
-    // Search filter
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase();
-      combinedSessions = combinedSessions.filter(
-        (session) =>
-          session.username?.toLowerCase().includes(searchLower) || session.ip?.toLowerCase().includes(searchLower),
-      );
-    }
-
-    // Sort the sessions
-    return [...combinedSessions].sort((a, b) => {
-      // Handle duration special case
-      if (sortConfig.key.includes("duration")) {
-        // For active sessions, use client_duration if available
-        const aValue =
-          a.status === "active" ? (a.client_duration || Number(a.duration)) : Number(a.duration);
-        const bValue =
-          b.status === "active" ? (b.client_duration || Number(b.duration)) : Number(b.duration);
-
-        return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue;
-      }
-      
-      // For timestamp fields
-      if (sortConfig.key === "start_timestamp" || sortConfig.key === "end_timestamp") {
-        return sortConfig.direction === "asc"
-          ? Number(a[sortConfig.key]) - Number(b[sortConfig.key])
-          : Number(b[sortConfig.key]) - Number(a[sortConfig.key]);
-      }
-
-      // Text-based sorting for other fields
-      const aValue = String(a[sortConfig.key] || "").toLowerCase();
-      const bValue = String(b[sortConfig.key] || "").toLowerCase();
-
-      return sortConfig.direction === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-    });
-  }, [sessions, searchTerm, sortConfig, activeTab]);
-
   // Render table header with sort indicator
   const renderSortableHeader = (key, label, icon) => (
     <TableHead 
-      onClick={() => requestSort(key)} 
+      onClick={() => pagination.requestSort(key)} 
       className="cursor-pointer hover:bg-gray-100 transition-colors group"
     >
       <div className="flex items-center gap-2">
         {icon && <span className="text-muted-foreground">{icon}</span>}
         <span>{label}</span>
-        {sortConfig.key === key ? (
+        {pagination.sort.key === key ? (
           <span className="text-primary">
-            {sortConfig.direction === "asc" ? (
+            {pagination.sort.direction === "asc" ? (
               <ChevronDown className="h-4 w-4 rotate-180 transition-transform" />
             ) : (
               <ChevronDown className="h-4 w-4 transition-transform" />
@@ -250,8 +207,8 @@ export default function SessionsPage() {
             onSearchChange={setSearchTerm}
             activeTab={activeTab}
             onTabChange={setActiveTab}
-            sortConfig={sortConfig}
-            onSortChange={requestSort}
+            sortConfig={pagination.sort}
+            onSortChange={pagination.requestSort}
             activeSessions={sessions.active_sessions}
             completedSessions={sessions.completed_sessions}
           />
@@ -275,10 +232,10 @@ export default function SessionsPage() {
               <TableBody>
                 {loading ? (
                   <SessionsTableSkeleton />
-                ) : filteredSessions.length === 0 ? (
+                ) : pagination.pageItems.length === 0 ? (
                   renderEmptyState()
                 ) : (
-                  filteredSessions.map((session, index) => (
+                  pagination.pageItems.map((session, index) => (
                     <TableRow
                       key={`session-${session.username}-${session.ip}-${session.start_timestamp}-${index}`}
                       className={
@@ -398,14 +355,23 @@ export default function SessionsPage() {
             </Table>
           </div>
 
+          {/* Pagination component */}
+          <div className="px-4 py-2 border-t border-border bg-muted/10">
+            <TablePagination
+              currentPage={pagination.currentPage}
+              pageSize={pagination.pageSize}
+              setCurrentPage={pagination.setCurrentPage}
+              setPageSize={pagination.setPageSize}
+              totalItems={pagination.totalItems}
+              totalPages={pagination.totalPages}
+              pageSizeOptions={pagination.pageSizeOptions}
+            />
+          </div>
+
           {/* Stats footer */}
           <div className="p-4 border-t border-border bg-muted/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-sm text-muted-foreground">
             <div>
-              Mostrando <span className="font-semibold">{filteredSessions.length}</span> de{" "}
-              <span className="font-semibold">
-                {sessions.active_sessions.length + sessions.completed_sessions.length}
-              </span>{" "}
-              sesiones
+              Total sesiones: <span className="font-semibold">{filteredSessions.length}</span>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center">
