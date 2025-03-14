@@ -1,88 +1,136 @@
-'use client'
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
-import CustomPagination from "@/components/ui/CustomPagination";
-import LogRow from "./LogRow";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell
+} from "@/components/ui/table";
+import { 
+  RefreshCw, ChevronDown, ArrowUpDown, DownloadIcon, User, Server, Calendar, Activity 
+} from 'lucide-react';
+import { usePagination } from '@/hooks/usePagination';
+import { TablePagination } from '@/components/data-table/TablePagination';
+import { Badge } from '@/components/ui/badge';
 
-const LogTable = ({ logs, isRefreshing, refreshLogs }) => {
-    const pageSize = 20;
-    const [currentPage, setCurrentPage] = useState(1);
-    const [currentLogs, setCurrentLogs] = useState([]);
-    const totalPages = Math.ceil(logs.length / pageSize);
+export default function LogTable({ logs, isRefreshing, refreshLogs }) {
+    // Use the pagination hook
+    const pagination = usePagination(logs, {
+        initialPage: 1,
+        initialPageSize: 20,
+        pageSizeOptions: [10, 20, 50, 100],
+        sortKey: 'date', // Assuming there's a date field
+        sortDirection: 'desc'
+    });
 
-    // Actualizar logs cuando se refresca la tabla
-    useEffect(() => {
-        setCurrentLogs(logs.slice((currentPage - 1) * pageSize, currentPage * pageSize));
-    }, [logs, currentPage]);
+    // Function to render sorted column headers
+    const renderSortableHeader = (key, label, icon) => (
+        <TableHead onClick={() => pagination.requestSort(key)} className="cursor-pointer hover:bg-gray-100">
+            <div className="flex items-center gap-2">
+                {icon && <span className="text-muted-foreground">{icon}</span>}
+                <span>{label}</span>
+                {pagination.sort.key === key ? (
+                    <span className="text-primary">
+                        {pagination.sort.direction === "asc" ? (
+                            <ChevronDown className="h-4 w-4 rotate-180 transition-transform" />
+                        ) : (
+                            <ChevronDown className="h-4 w-4 transition-transform" />
+                        )}
+                    </span>
+                ) : (
+                    <ArrowUpDown className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                )}
+            </div>
+        </TableHead>
+    );
 
-    const handlePageChange = (page) => {
-        setCurrentPage(page);
-        // Scroll to top cuando se cambia de página
-        const tableElement = document.getElementById('log-table');
-        if (tableElement) tableElement.scrollIntoView({ behavior: 'smooth' });
+    // Format date and time for display
+    const formatDateTime = (dateStr) => {
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleString('es-ES');
+        } catch (e) {
+            return dateStr;
+        }
     };
+
 
     return (
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div>
-                    <CardTitle>Logs</CardTitle>
-                    <CardDescription>Conexiones y acciones de usuarios</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle>Registros de actividad</CardTitle>
+                <div className="flex space-x-2">
+                    <Button variant="outline" size="sm" onClick={refreshLogs} disabled={isRefreshing}>
+                        <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                        Actualizar
+                    </Button>
+                    <Button variant="outline" size="sm">
+                        <DownloadIcon className="mr-2 h-4 w-4" />
+                        Exportar
+                    </Button>
                 </div>
-                <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={refreshLogs} 
-                    disabled={isRefreshing}
-                >
-                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    <span className="sr-only">Actualizar</span>
-                </Button>
             </CardHeader>
-            <CardContent>
-                <div className="rounded-md border">
-                    <Table id="log-table">
+            <CardContent className="p-0">
+                <div className="overflow-auto">
+                    <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Usuario</TableHead>
-                                <TableHead>IP</TableHead>
-                                <TableHead>Computadora</TableHead>
-                                <TableHead>Laboratorio</TableHead>
-                                <TableHead>Evento</TableHead>
-                                <TableHead className="text-right">Fecha</TableHead>
+                                {renderSortableHeader("date", "Fecha y Hora", <Calendar className="h-4 w-4" />)}
+                                {renderSortableHeader("user", "Usuario", <User className="h-4 w-4" />)}
+                                {renderSortableHeader("event", "Evento", <Activity className="h-4 w-4" />)}
+                                {renderSortableHeader("lab", "Laboratorio", <Server className="h-4 w-4" />)}
+                                {renderSortableHeader("ip", "IP", null)}
+                                {renderSortableHeader("details", "Detalles", null)}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {currentLogs.length > 0 ? (
-                                currentLogs.map((log, index) => <LogRow key={log.id} log={log} index={index} />)
-                            ) : (
+                            {pagination.pageItems.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
-                                        No hay logs para mostrar.
+                                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                                        No hay registros de logs para mostrar
                                     </TableCell>
                                 </TableRow>
+                            ) : (
+                                pagination.pageItems.map((log, index) => (
+                                    <TableRow key={`log-${index}`}>
+                                        <TableCell>
+                                            <div className="font-medium">{formatDateTime(log.date)}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="font-medium">{log.user}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge className={`${getEventBadge(log.event)}`}>
+                                                {log.event}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>{log.lab}</TableCell>
+                                        <TableCell>
+                                            <span className="font-mono text-sm">{log.ip}</span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="max-w-[300px] truncate">{log.details}</div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
                             )}
                         </TableBody>
                     </Table>
                 </div>
             </CardContent>
-            <CardFooter className="flex items-center justify-between">
-                <div className="text-xs text-muted-foreground">
-                    Mostrando <strong>{currentLogs.length}</strong> de <strong>{logs.length}</strong> logs
-                </div>
-                {logs.length > 0 && (
-                    <CustomPagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
+            <CardFooter>
+                <div className="w-full">
+                    <TablePagination
+                        currentPage={pagination.currentPage}
+                        pageSize={pagination.pageSize}
+                        setCurrentPage={pagination.setCurrentPage}
+                        setPageSize={pagination.setPageSize}
+                        totalItems={pagination.totalItems}
+                        totalPages={pagination.totalPages}
+                        pageSizeOptions={pagination.pageSizeOptions}
                     />
-                )}
+                </div>
             </CardFooter>
         </Card>
     );
-};
-
-export default LogTable;
+}
