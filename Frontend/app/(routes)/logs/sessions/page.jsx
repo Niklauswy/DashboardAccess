@@ -260,11 +260,7 @@ export default function SessionsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className={`h-8 w-8 ${getAvatarColor(session.username)}`}>
-                            <AvatarFallback className="text-white text-xs">
-                              {getInitials(session.username)}
-                            </AvatarFallback>
-                          </Avatar>
+            
                           <div>
                             <div className="font-medium">{session.username}</div>
                             <div className="text-xs text-muted-foreground">Usuario</div>

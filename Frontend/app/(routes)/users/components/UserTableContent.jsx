@@ -1,18 +1,9 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowUp, ArrowDown, ChevronDown, MoreHorizontal } from "lucide-react";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DateTimeDisplay } from '@/lib/date-utils';
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Check } from 'lucide-react';
+import { ArrowUp, ArrowDown, ChevronDown } from "lucide-react";
+import UserRow from './UserRow';
 
 export default function UserTableContent({
     columns,
@@ -26,38 +17,6 @@ export default function UserTableContent({
     sortDirection,
     handleAction
 }) {
-    // Renderiza el valor de la celda según tipo
-    const renderCellValue = (user, column) => {
-        const value = user[column.name];
-        
-        switch (column.type) {
-            case 'text':
-                return value || '-';
-                
-            case 'boolean':
-                return value ? <Check className="mx-auto h-4 w-4 text-green-600" /> : null;
-                
-            case 'date':
-                return value ? <DateTimeDisplay dateInput={value} /> : '-';
-                
-            case 'badge':
-                return value ? <Badge>{value}</Badge> : '-';
-                
-            case 'avatar':
-                return (
-                    <Avatar className="h-8 w-8">
-                        <AvatarFallback>{(user.name || user.username || "U").charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                );
-                
-            case 'array':
-                return Array.isArray(value) ? value.join(', ') : '-';
-                
-            default:
-                return value || '-';
-        }
-    };
-
     return (
         <div className="rounded-lg border shadow overflow-hidden">
             <Table>
@@ -97,42 +56,14 @@ export default function UserTableContent({
                         </TableRow>
                     ) : (
                         paginatedUsers.map((user) => (
-                            <TableRow key={user.username} className="hover:bg-gray-50">
-                                <TableCell>
-                                    <Checkbox
-                                        checked={selectedRows.includes(user.username)}
-                                        onCheckedChange={() => toggleRow(user.username)}
-                                        aria-label={`Select ${user.username}`}
-                                    />
-                                </TableCell>
-                                {columns.filter((col) => visibleColumns.includes(col.key)).map((column) => (
-                                    <TableCell key={column.key}>
-                                        {column.key === "accion" ? (
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onSelect={() => handleAction("edit", user.username)}>Editar</DropdownMenuItem>
-                                                    <DropdownMenuItem onSelect={() => handleAction("delete", user.username)}>Eliminar</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        ) : column.key === "groups" ? (
-                                            <div className="flex flex-wrap gap-1 max-w-xs">
-                                                {user.groups?.map((group) => (
-                                                    <Badge key={group} variant="secondary">
-                                                        {group}
-                                                    </Badge>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            renderCellValue(user, column)
-                                        )}
-                                    </TableCell>
-                                ))}
-                            </TableRow>
+                            <React.Fragment key={user.username}>
+                                <UserRow 
+                                    user={user} 
+                                    onEdit={() => handleAction("edit", user.username)}
+                                    selected={selectedRows.includes(user.username)}
+                                    onToggleSelect={() => toggleRow(user.username)}
+                                />
+                            </React.Fragment>
                         ))
                     )}
                 </TableBody>

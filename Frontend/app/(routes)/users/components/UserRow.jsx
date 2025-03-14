@@ -1,21 +1,41 @@
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { DateTimeDisplay } from "@/lib/date-utils";
 
-const UserRow = ({ user, onEdit }) => (
+const UserRow = ({ user, onEdit, selected, onToggleSelect }) => (
   <TableRow>
+    <TableCell>
+      <Checkbox 
+        checked={selected} 
+        onCheckedChange={onToggleSelect}
+        aria-label={`Select ${user.username}`} 
+      />
+    </TableCell>
     <TableCell className="hidden sm:table-cell">
       <Image alt="Product image" className="aspect-square rounded-md object-cover" height="64"  src={`https://robohash.org/${user.name}?set=set1`}  width="64" />
     </TableCell>
     <TableCell className="font-medium">{user.username}</TableCell>
-    <TableCell className="font-medium">{user.name}</TableCell>
+    <TableCell className="font-medium">{user.givenName}</TableCell>
+    <TableCell className="font-medium">{user.sn}</TableCell>
     <TableCell><Badge variant="primary" className="bg-red-400 text-white">{user.ou}</Badge></TableCell>
     <TableCell>{user.logonCount}</TableCell>
-    <TableCell className="hidden md:table-cell">{user.group}</TableCell>
-    <TableCell className="hidden md:table-cell">{user.lastLogon}</TableCell>
+    <TableCell>
+      <DateTimeDisplay dateInput={user.lastLogon} />
+    </TableCell>
+    <TableCell className="hidden md:table-cell">
+      <div className="flex flex-wrap gap-1 max-w-xs">
+        {user.groups?.map((group) => (
+          <Badge key={group} variant="secondary">
+            {group}
+          </Badge>
+        ))}
+      </div>
+    </TableCell>
     <TableCell>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
