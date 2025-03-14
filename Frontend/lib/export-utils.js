@@ -44,8 +44,8 @@ const setupPdfPage = (doc, title, subtitle, logo) => {
   const margin = 20; // Definir el margen aquí para usarlo en todo el ámbito
   
   // Colores de UABC
-  const uabcGreen = [0, 102, 94]; // Verde UABC
-  const uabcGold = [207, 184, 124]; // Dorado UABC
+  const uabcGreen = [0, 121, 52]; // Verde UABC
+  const uabcGold = [206, 142, 0]; // Dorado UABC
   
   // Agregar encabezado con colores UABC
   doc.setFillColor(...uabcGreen);
@@ -61,13 +61,7 @@ const setupPdfPage = (doc, title, subtitle, logo) => {
       logo.width || 40,
       logo.height || 20
     );
-  } else {
-    // Si no hay logo, poner texto UABC como alternativa
-    doc.setFontSize(16);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.text('UABC', margin, 25);
-  }
+  } 
   
   // Título a la derecha del logo
   doc.setFontSize(18);
@@ -141,13 +135,13 @@ export const exportToPdf = async ({
   // Estilos para la tabla con colores UABC
   const defaultStyles = {
     headStyles: {
-      fillColor: [0, 102, 94], // Verde UABC
+      fillColor: [0, 121, 52], // Verde UABC
       textColor: 255,
       fontStyle: 'bold',
       halign: 'center'
     },
     alternateRowStyles: {
-      fillColor: [245, 245, 245]
+      fillColor: [206, 142, 0]
     },
     bodyStyles: {
       textColor: 80
@@ -181,7 +175,7 @@ export const exportToPdf = async ({
       
       // Usar la variable margin definida arriba
       // Línea separadora en el pie de página
-      doc.setDrawColor(0, 102, 94); // Verde UABC
+      doc.setDrawColor(0, 121, 52); // Verde UABC
       doc.setLineWidth(0.5);
       doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
       
