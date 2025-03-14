@@ -48,30 +48,7 @@ export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh, sessions 
       </div>
 
       <div className="flex items-center gap-2 w-full sm:w-auto">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-gray-300 hover:bg-gray-100 rounded-full h-9 w-9 p-0"
-                onClick={onRefresh}
-                disabled={isRefreshing}
-              >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                <span className="sr-only">Actualizar</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Actualizar datos de sesiones</p>
-              {lastUpdated && (
-                <p className="text-xs text-muted-foreground">
-                  Última actualización: {lastUpdated.toLocaleTimeString("es-ES")}
-                </p>
-              )}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+
 
         {/* Componente de exportación con verificación de datos vacíos */}
         <DataExport 
