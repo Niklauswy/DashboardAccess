@@ -1,6 +1,6 @@
     'use client'
 import { useState } from "react";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { CustomTrigger } from "@/components/sidebar/CustomTrigger";
 

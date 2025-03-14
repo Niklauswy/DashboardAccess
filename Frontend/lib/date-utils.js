@@ -11,11 +11,9 @@ import React from 'react';
 export function parseDate(dateInput) {
   if (!dateInput) return null;
   
-  // Si ya es un objeto Date, simplemente devuélvelo
   if (dateInput instanceof Date) return dateInput;
   
   try {
-    // Intentar varias estrategias de parseo
     const dateStr = String(dateInput).trim();
     
     // Primera estrategia: construir como Date directamente
@@ -65,20 +63,15 @@ export function parseDate(dateInput) {
  */
 export function formatDate(dateInput, options = {}) {
   try {
-    // Parsear la fecha con nuestra función robusta
     const date = parseDate(dateInput);
     
-    // Si no se puede parsear, devolver placeholder
     if (!date) return 'N/A';
     
-    // Formatear fecha usando toLocaleString
     return date.toLocaleString('es-ES', {
-      // Opciones predeterminadas que se pueden sobrescribir
       ...options
     });
   } catch (error) {
     console.warn('Error formateando fecha:', error);
-    // Devolver la entrada original como fallback
     return String(dateInput || 'N/A');
   }
 }
@@ -90,13 +83,11 @@ export function formatDate(dateInput, options = {}) {
  */
 export function formatDateParts(dateInput) {
   try {
-    // Si no hay fecha, devolver valores por defecto
     if (!dateInput) return { time: 'N/A', date: 'N/A' };
     
     const date = parseDate(dateInput);
     if (!date) return { time: 'N/A', date: 'N/A' };
     
-    // Obtener hora y fecha por separado
     return {
       date: date.toLocaleDateString('es-ES'),     // Solo fecha: DD/MM/YYYY
       time: date.toLocaleTimeString('es-ES')      // Solo hora: HH:MM:SS
@@ -110,6 +101,7 @@ export function formatDateParts(dateInput) {
 /**
  * Renderiza un componente JSX con fecha y hora en formato estandarizado
  * @param {string|Date} dateInput - Fecha a formatear
+ * @param className
  * @returns {JSX.Element} - Componente React con la fecha formateada
  */
 export function DateTimeDisplay({ dateInput, className = "" }) {

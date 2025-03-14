@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { GraduationCap, User, UserCheck } from "lucide-react";
+import { GraduationCap, UserCheck } from "lucide-react";
 
 export default function CareerUsersView({ users }) {
   const [selectedCareer, setSelectedCareer] = useState("");

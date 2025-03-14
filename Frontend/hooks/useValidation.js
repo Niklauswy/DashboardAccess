@@ -1,4 +1,3 @@
-import { useState } from 'react';
 
 export function useValidation() {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;

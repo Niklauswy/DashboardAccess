@@ -1,17 +1,16 @@
 'use client'
-import { useState, useMemo } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useUserTableFilters } from "@/app/(routes)/users/hooks/useUserTableFilters";
-import { useUserTableState } from "@/app/(routes)/users/hooks/useUserTableState";
-import { useUsers } from "@/hooks/useUsers"; // Cambiado a useUsers
-import { usePagination } from "@/hooks/usePagination"; // Import the pagination hook
+import React, {useMemo, useState} from "react";
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {RefreshCw} from "lucide-react";
+import {useToast} from "@/hooks/use-toast";
+import {useUserTableFilters} from "@/app/(routes)/users/hooks/useUserTableFilters";
+import {useUserTableState} from "@/app/(routes)/users/hooks/useUserTableState";
+import {useUsers} from "@/hooks/useUsers";
+import {usePagination} from "@/hooks/usePagination";
 import UserTableFilters from "@/app/(routes)/users/components/UserTableFilters";
 import UserTableActions from "@/app/(routes)/users/components/UserTableActions";
 import UserTableContent from "@/app/(routes)/users/components/UserTableContent";
-import UserTablePagination from "@/app/(routes)/users/components/UserTablePagination";
 import BatchActionsBar from "@/app/(routes)/users/components/BatchActionsBar";
 import DeleteUserDialog from "@/app/(routes)/users/components/DeleteUserDialog";
 import BatchActionDialog from "@/app/(routes)/users/components/BatchActionDialog";
@@ -20,24 +19,22 @@ import EditUserForm from '@/app/(routes)/users/components/EditUserForm';
 import ProcessingDialog from '@/components/ProcessingDialog';
 
 // Constants moved to a separate file and imported here
-import { columns, careerIcons } from "@/app/(routes)/users/components/userTableConstants";
+import {careerIcons, columns} from "@/app/(routes)/users/components/userTableConstants";
+import {TablePagination} from "@/components/data-table/TablePagination";
 
-export default function UserTable({ users, refreshUsers, isRefreshing }) {
-    const { toast } = useToast();
-    const { batchActions } = useUsers(); 
+export default function UserTable({users, refreshUsers, isRefreshing}) {
+    const {toast} = useToast();
+    const {batchActions} = useUsers();
     const [open, setOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [batchDialogOpen, setBatchDialogOpen] = useState(false);
     const [batchActionType, setBatchActionType] = useState("");
-    const [searchTerm, setSearchTerm] = useState('');
-    const [addUserOpen, setAddUserOpen] = useState(false);
-    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const [editUserOpen, setEditUserOpen] = useState(false);
     const [userToEdit, setUserToEdit] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
     const [batchProgress, setBatchProgress] = useState(0);
     const [isProcessingBatch, setIsProcessingBatch] = useState(false);
-    
+
     // Custom hooks to manage state and filters
     const {
         filter, setFilter,
@@ -47,7 +44,7 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
         clearCarreraFilter, clearGroupFilter,
         availableCarreras, availableGroups
     } = useUserTableFilters(users);
-    
+
     const {
         visibleColumns, setVisibleColumns,
         selectedRows, setSelectedRows,
@@ -66,7 +63,6 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
         ) : [];
     }, [filter, selectedCarreras, selectedGroups, users]);
 
-    // Replace the sorting and pagination with the usePagination hook
     const pagination = usePagination(filteredUsers, {
         initialPage: 1,
         initialPageSize: 20,
@@ -74,7 +70,7 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
         sortKey: 'username',
         sortDirection: 'asc'
     });
-    
+
     const handleAction = (action, userId) => {
         const user = users.find(u => u.username === userId);
         switch (action) {
@@ -98,32 +94,32 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
 
     const handleBatchConfirm = async (newPassword) => {
         setBatchDialogOpen(false);
-        
+
         if (batchActionType === "delete") {
             setIsProcessingBatch(true);
             setBatchProgress(0);
-            
+
             // Set up beforeunload event handler
             window.addEventListener('beforeunload', handleBeforeUnload);
-            
+
             try {
                 // Pass the progress tracking callback directly
                 const progressTracker = await batchActions.deleteUsers(selectedRows, (progress) => {
                     setBatchProgress(progress);
                 });
-                
+
                 // After complete
-                toast({ 
-                    title: "Usuarios eliminados", 
-                    description: `Se han eliminado ${progressTracker.success.length} usuarios ${progressTracker.errors.length > 0 ? `(con ${progressTracker.errors.length} errores)` : ""}.` 
+                toast({
+                    title: "Usuarios eliminados",
+                    description: `Se han eliminado ${progressTracker.success.length} usuarios ${progressTracker.errors.length > 0 ? `(con ${progressTracker.errors.length} errores)` : ""}.`
                 });
-                
+
                 // Clear selected rows
                 setSelectedRows([]);
             } catch (error) {
                 console.error('Batch operation error:', error);
-                toast({ 
-                    title: "Error", 
+                toast({
+                    title: "Error",
                     description: error.message || "Hubo un problema al procesar la operación",
                     variant: "destructive"
                 });
@@ -136,24 +132,24 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
             // Handle password change with similar pattern
             setIsProcessingBatch(true);
             setBatchProgress(0);
-            
+
             // Set up beforeunload event handler
             window.addEventListener('beforeunload', handleBeforeUnload);
-            
+
             try {
                 const progressTracker = await batchActions.updatePasswords(selectedRows, newPassword, (progress) => {
                     setBatchProgress(progress);
                 });
-                
-                toast({ 
-                    title: "Contraseñas actualizadas", 
-                    description: `Se ha actualizado la contraseña de ${progressTracker.success.length} usuarios ${progressTracker.errors.length > 0 ? `(con ${progressTracker.errors.length} errores)` : ""}.` 
+
+                toast({
+                    title: "Contraseñas actualizadas",
+                    description: `Se ha actualizado la contraseña de ${progressTracker.success.length} usuarios ${progressTracker.errors.length > 0 ? `(con ${progressTracker.errors.length} errores)` : ""}.`
                 });
                 setSelectedRows([]);
             } catch (error) {
                 console.error('Batch operation error:', error);
-                toast({ 
-                    title: "Error", 
+                toast({
+                    title: "Error",
                     description: error.message || "Hubo un problema al procesar la operación",
                     variant: "destructive"
                 });
@@ -172,10 +168,6 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
         return e.returnValue;
     };
 
-    const handleEditUser = (user) => {
-        setUserToEdit(user);
-        setEditUserOpen(true);
-    };
 
     const selectedUsersList = users.filter(user => selectedRows.includes(user.username));
 
@@ -189,14 +181,14 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                     onChange={(e) => setFilter(e.target.value)}
                     className="max-w-md flex-1"
                 />
-                
-                <Button 
-                    variant="outline" 
-                    onClick={refreshUsers} 
+
+                <Button
+                    variant="outline"
+                    onClick={refreshUsers}
                     disabled={isRefreshing}
                     className="gap-2 ml-auto whitespace-nowrap"
                 >
-                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}/>
                     {isRefreshing ? 'Actualizando...' : 'Actualizar'}
                 </Button>
             </div>
@@ -217,9 +209,9 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                     users={users}
                     careerIcons={careerIcons}
                 />
-                
+
                 {/* Acciones de tabla */}
-                <UserTableActions 
+                <UserTableActions
                     columns={columns}
                     visibleColumns={visibleColumns}
                     toggleColumn={toggleColumn}
@@ -243,15 +235,14 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
                 sortDirection={pagination.sort.direction}
                 handleAction={handleAction}
             />
-            
-            {/* Pagination - Updated to use the pagination hook */}
-            <UserTablePagination
-                selectedRows={selectedRows}
-                sortedUsers={filteredUsers}
-                page={pagination.currentPage}
-                setPage={pagination.setCurrentPage}
-                rowsPerPage={pagination.pageSize}
-                setRowsPerPage={pagination.setPageSize}
+
+
+            <TablePagination
+                currentPage={pagination.currentPage}
+                pageSize={pagination.pageSize}
+                setCurrentPage={pagination.setCurrentPage}
+                setPageSize={pagination.setPageSize}
+                totalItems={filteredUsers.length}
                 totalPages={pagination.totalPages}
                 pageSizeOptions={pagination.pageSizeOptions}
             />
@@ -266,23 +257,23 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
             )}
 
             {/* Dialogs */}
-            <AddUserForm 
-                open={open} 
-                onOpenChange={setOpen} 
-                refreshUsers={refreshUsers} 
+            <AddUserForm
+                open={open}
+                onOpenChange={setOpen}
+                refreshUsers={refreshUsers}
             />
-            
+
             <DeleteUserDialog
                 open={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}
                 currentUser={currentUser}
                 onDelete={() => {
                     setDeleteDialogOpen(false);
-                    toast({ title: "Usuario eliminado" });
+                    toast({title: "Usuario eliminado"});
                     refreshUsers();
                 }}
             />
-            
+
             <BatchActionDialog
                 open={batchDialogOpen}
                 onClose={() => setBatchDialogOpen(false)}

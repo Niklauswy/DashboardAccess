@@ -41,7 +41,6 @@ export function DataExport({
   options = {},
   variant = 'dropdown',
   className = '',
-  showColumnSelector = false, // Ya no necesitamos selector de columnas interno
 }) {
   const [isExporting, setIsExporting] = useState(false);
   const [exportFormat, setExportFormat] = useState(null);

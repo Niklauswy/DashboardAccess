@@ -1,7 +1,7 @@
 import React from 'react';
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { LogIn, LogOut, Link2 } from "lucide-react";
+import {  LogOut, Link2 } from "lucide-react";
 
 const LogRow = ({ log, index }) => {
   const rowClass = index % 2 === 0 ? 'bg-muted/50' : '';

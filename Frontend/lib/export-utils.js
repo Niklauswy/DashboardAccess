@@ -14,19 +14,17 @@ export const getCellValue = (row, column) => {
   
   if (!key) return '';
   
-  // Si hay un accessorFn, usarlo
+
   if (column.accessorFn) {
     return column.accessorFn(row) || '';
   }
-  
-  // Si hay un getter específico para exportar
+x
   if (column.exportValue) {
     return typeof column.exportValue === 'function'
       ? column.exportValue(row)
       : row[column.exportValue] || '';
   }
   
-  // Usar valor directo
   return row[key] !== undefined ? row[key] : '';
 };
 
@@ -40,12 +38,11 @@ export const getCellValue = (row, column) => {
 const setupPdfPage = (doc, title, subtitle, logo) => {
   // Configurar márgenes y estilo base
   const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 20; // Definir el margen aquí para usarlo en todo el ámbito
+  const margin = 20;
   
   // Colores de UABC
-  const uabcGreen = [0, 121, 52]; // Verde UABC
-  const uabcGold = [206, 142, 0]; // Dorado UABC
+  const uabcGreen = [0, 121, 52];
+  const uabcGold = [206, 142, 0];
   
   // Agregar encabezado con colores UABC
   doc.setFillColor(...uabcGreen);
@@ -110,17 +107,13 @@ export const exportToPdf = async ({
     throw new Error('No hay datos para exportar');
   }
   
-  // Inicializar PDF
   const doc = new jsPDF({
     orientation: orientation,
     unit: 'mm',
     format: pageSize
   });
   
-  // Obtener el margen para usarlo en didDrawPage
-  const margin = 20; // Añadimos esta variable para solucionar el error
-  
-  // Configurar página y obtener posición inicial para la tabla
+  const margin = 20;
   const startY = setupPdfPage(doc, title, subtitle, logo);
   
   // Preparar headers y filas para autoTable
@@ -132,10 +125,10 @@ export const exportToPdf = async ({
     })
   );
   
-  // Estilos para la tabla con colores UABC
+  // Estilos para la tabla
   const defaultStyles = {
     headStyles: {
-      fillColor: [0, 121, 52], // Verde UABC
+      fillColor: [0, 121, 52],
       textColor: 255,
       fontStyle: 'bold',
       halign: 'center'
@@ -146,10 +139,9 @@ export const exportToPdf = async ({
     bodyStyles: {
       textColor: 80
     },
-    theme: 'grid' // Añadir cuadrícula para mejorar legibilidad
+    theme: 'grid'
   };
   
-  // Combinar estilos predeterminados con personalizados
   const tableStyles = { ...defaultStyles, ...customStyles };
   
   // Generar tabla
@@ -173,9 +165,8 @@ export const exportToPdf = async ({
       const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
       const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
       
-      // Usar la variable margin definida arriba
       // Línea separadora en el pie de página
-      doc.setDrawColor(0, 121, 52); // Verde UABC
+      doc.setDrawColor(0, 121, 52);
       doc.setLineWidth(0.5);
       doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
       
@@ -186,22 +177,20 @@ export const exportToPdf = async ({
       const pageNumber = `Página ${doc.internal.getNumberOfPages()}`;
       doc.text(pageNumber, margin, pageHeight - 10);
       
-      // Agregar nombre de la universidad
       const uabcName = 'Universidad Autónoma de Baja California';
       doc.text(uabcName, pageWidth / 2, pageHeight - 10, { align: 'center' });
       
-      // Agregar texto de Facultad de Ciencias
+      // Agregar texto de FCCC
       const facultyName = 'Facultad de Ciencias';
       doc.text(facultyName, pageWidth - margin, pageHeight - 10, { align: 'right' });
       
-      // Si hay una función personalizada para el pie de página, ejecutarla
+
       if (autoTableOptions.didDrawPage) {
         autoTableOptions.didDrawPage(data);
       }
     }
   });
   
-  // Guardar archivo
   doc.save(`${filename}.pdf`);
 };
 
@@ -220,7 +209,7 @@ export const exportToCsv = ({
     throw new Error('No hay datos para exportar');
   }
   
-  // Obtener headers
+  // r headers
   const headers = columns.map(col => col.header || col.label || col.key || '');
   
   // Formatear filas
@@ -261,7 +250,7 @@ export const exportToExcel = ({
   filename = 'exportacion',
   title = 'Reporte',
   sheetName = 'Datos',
-  creator = 'Reporte de accesos'
+  creator = 'Reporte'
 }) => {
   if (!data || data.length === 0) {
     throw new Error('No hay datos para exportar');
@@ -286,13 +275,12 @@ export const exportToExcel = ({
     Creator: creator
   };
   
-  // Crear hoja de cálculo con los datos
   const wsData = [headers, ...rows];
   const ws = XLSX.utils.aoa_to_sheet(wsData);
   
-  // Añadir hoja al libro
+
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
   
-  // Generar archivo Excel y descargarlo
+
   XLSX.writeFile(wb, `${filename}.xlsx`);
 };

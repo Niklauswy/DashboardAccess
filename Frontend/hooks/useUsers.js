@@ -189,14 +189,14 @@ export function useUsers() {
           });
         }
         
-        // Update progress and call callback immediately
+        // Actualizar progreso
         progressTracker.completed++;
         if (progressCallback) {
           progressCallback(Math.round((progressTracker.completed / progressTracker.total) * 100));
         }
       }
       
-      // Refresh the users list ONCE after all operations
+      // Refresh usuarios después de todas las operaciones
       await mutate();
       
       return progressTracker;

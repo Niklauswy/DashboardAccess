@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Check, ChevronsUpDown, Filter, Sliders, X, Calendar as CalendarIcon, Users, Building, Group, FolderInput, BarChart, Network } from "lucide-react";
+import { Check, Filter, Sliders, X, Calendar as CalendarIcon, Users,  FolderInput, BarChart, Network } from "lucide-react";
 import { cn } from "@/components/lib/utils";
 import DatePickerWithRange from "./DatePickerWithRange";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 export default function LogFilter({ logs, filters, setFilters }) {
   const [resetDatePicker, setResetDatePicker] = useState(false);
   const [openFiltersDialog, setOpenFiltersDialog] = useState(false);
-  const [openGroups, setOpenGroups] = useState(false);
   const [openUsers, setOpenUsers] = useState(false);
   const [openEvents, setOpenEvents] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");

@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 export default function ExportButton({ data, columns, filename = 'export' }) {
     const exportToCSV = () => {

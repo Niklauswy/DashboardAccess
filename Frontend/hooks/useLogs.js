@@ -1,6 +1,6 @@
 import useSWR from 'swr';
 import { useState } from 'react';
-import { format, parse, isValid } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export function useLogs() {
@@ -24,9 +24,7 @@ export function useLogs() {
           ...log,
           formattedDate: formatLogDate(dateObj),
           dateObj: dateObj,
-          // Add a unique ID if none exists
-          id: log.id || `${log.user}-${log.date}-${Math.random().toString(36).substr(2, 9)}`
-        };
+          id: log.id || `${log.user}-${log.date}-${Math.random().toString(36).substring(2, 11)}`        };
       });
     },
     {

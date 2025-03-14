@@ -24,7 +24,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useSessions } from "@/hooks/useSessions"
 import { useScrollTop } from "@/hooks/useScrollTop"
 import { usePagination } from "@/hooks/usePagination"
@@ -82,40 +81,8 @@ export default function SessionsPage() {
     sortDirection: 'desc'
   });
 
-  // Formatear fecha y hora para mostrar
-  const formatDate = (dateString) => {
-    try {
-      return new Date(dateString).toLocaleString("es-ES");
-    } catch (e) {
-      return dateString;
-    }
-  };
 
-  // Iniciales del nombre de usuario
-  const getInitials = (name) => {
-    if (!name) return "U";
-    return name.substring(0, 2).toUpperCase();
-  };
 
-  // Get avatar color based on username
-  const getAvatarColor = (username) => {
-    if (!username) return "bg-gray-400";
-
-    const colors = [
-      "bg-red-400", "bg-blue-400", "bg-green-400", "bg-yellow-400", 
-      "bg-purple-400", "bg-pink-400", "bg-indigo-400", "bg-teal-400",
-    ];
-
-    // Simple hash function to get consistent color for same username
-    let hash = 0;
-    for (let i = 0; i < username.length; i++) {
-      hash = username.charCodeAt(i) + ((hash << 5) - hash);
-    }
-
-    return colors[Math.abs(hash) % colors.length];
-  };
-
-  // Render table header with sort indicator
   const renderSortableHeader = (key, label, icon) => (
     <TableHead 
       onClick={() => pagination.requestSort(key)} 

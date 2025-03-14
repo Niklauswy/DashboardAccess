@@ -53,7 +53,7 @@ export function ActivityAreaChart({ title, description, data, dataKeys = [], sta
               cursor={false}
               content={<ChartTooltipContent indicator="dot" />}
             />
-            {dataKeys.map((key, index) => (
+            {dataKeys.map((key) => (
               <Area
                 key={key.dataKey}
                 dataKey={key.dataKey}

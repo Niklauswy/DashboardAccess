@@ -50,7 +50,7 @@ export function ActivityLineChart({ title, description, data, dataKeys = [], foo
               tickMargin={8}
             />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            {dataKeys.map((key, index) => (
+            {dataKeys.map((key) => (
               <Line
                 key={key.dataKey}
                 dataKey={key.dataKey}

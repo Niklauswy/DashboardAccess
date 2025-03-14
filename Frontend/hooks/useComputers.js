@@ -1,5 +1,5 @@
 import useSWR from 'swr';
-import { useState } from 'react';
+import {useState} from 'react';
 
 export function useComputers() {
   const [isRefreshing, setIsRefreshing] = useState(false);

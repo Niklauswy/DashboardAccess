@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,7 +20,6 @@ import {
   RefreshCw,
   ChevronDown,
   ArrowUpDown,
-  DownloadIcon,
   User,
   Server,
   Calendar,
@@ -76,13 +74,6 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
     </TableHead>
   );
 
-  const formatDate = (dateString) => {
-    try {
-      return new Date(dateString).toLocaleString("es-ES");
-    } catch (e) {
-      return dateString;
-    }
-  };
 
   
   const getEventBadge = (event) => {

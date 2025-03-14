@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 
-import { Users, FileSpreadsheet, HardDrive, AlertCircle, RotateCcw, Clock, Server, Info, Database, Home } from "lucide-react"
+import { Users, HardDrive, AlertCircle, RotateCcw, Clock, Server, Database, Home } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import UsersTab from "./components/UsersTab"
 import ErrorServer from "@/components/ErrorServer";
@@ -23,9 +23,7 @@ export default function Settings() {
   const [syslogError, setSyslogError] = useState(null); 
   const { toast } = useToast();
 
-  const [hoveredIndex, setHoveredIndex] = useState(null)
   const [activeIndex, setActiveIndex] = useState(0)
-  const [hoverStyle, setHoverStyle] = useState({})
   const [activeStyle, setActiveStyle] = useState({ left: "0px", width: "0px" })
   const tabRefs = useRef([])
   const tabs = ["General", "Usuarios", "Grupos", "Unidades", "Logs"]
@@ -92,7 +90,15 @@ export default function Settings() {
       }
     };
 
-    fetchSyslog();
+    fetchSyslog().then(r => {
+        if (r) {
+            toast({
+            title: "Error",
+            description: "Error al cargar los logs del sistema",
+            variant: "destructive",
+            });
+        }
+    });
 
     const syslogInterval = setInterval(fetchSyslog, 5000);
 

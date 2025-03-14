@@ -1,15 +1,14 @@
 'use client'
-import React, { useState, useMemo } from 'react'
+import React, { useState,  } from 'react'
 import useSWR from 'swr'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle,  } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Monitor, Laptop, Info, School, Search, CheckCircle, XCircle, MinusCircle, Clock, Calendar, Check, X, Minus, Command, RefreshCcw } from "lucide-react"
+import { Monitor,  School, Search, CheckCircle,  Clock, Calendar,  Command, RefreshCcw } from "lucide-react"
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
-import { Terminal, Apple, HelpCircle, Cpu, Wifi } from "lucide-react"
+import { Terminal, Apple, HelpCircle, Wifi } from "lucide-react"
 import ErrorServer from '@/components/ErrorServer'
 import NoData from '@/components/NoData'
 import ComputerTableSkeleton from '@/components/skeletons/ComputerTableSkeleton'
@@ -63,9 +62,6 @@ export default function ComputerManagement() {
   const [searchTerm, setSearchTerm] = useState('')
   const [activeFilter, setActiveFilter] = useState('all')
 
-  const handleRetry = () => {
-    mutate();
-  };
 
   if (classroomsData && classroomsData.error) {
     return (

@@ -2,7 +2,6 @@
 
 import {dataSlidebarRoutes} from "@/components/sidebar/SidebarRoutes.data";
 import SidebarItem from "@/components/sidebar/SidebarItem";
-import {Badge} from "@/components/ui/badge";
 
 const SidebarRoutes = () => {
     const renderItemsForSection = (section) => {

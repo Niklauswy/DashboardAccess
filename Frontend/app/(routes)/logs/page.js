@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import LogTable from "@/app/(routes)/logs/components/LogTable";
 import LogFilter from "@/app/(routes)/logs/components/LogFilter";
 import { LogBarChart } from "@/app/(routes)/logs/components/LogBarChart";

@@ -2,7 +2,6 @@ import React from "react";
 import { TablePagination } from "@/components/data-table/TablePagination";
 
 export default function UserTablePagination({
-  selectedRows,
   sortedUsers,
   page,
   setPage,
@@ -23,11 +22,7 @@ export default function UserTablePagination({
         pageSizeOptions={pageSizeOptions}
       />
       
-      {selectedRows.length > 0 && (
-        <div className="text-sm text-muted-foreground mt-2">
-          <span className="font-medium">{selectedRows.length}</span> fila(s) seleccionada(s)
-        </div>
-      )}
+
     </div>
   );
 }

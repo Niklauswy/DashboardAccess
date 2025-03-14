@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export async function GET(request) {
+export async function GET() {
     try {
         const res = await fetch('http://localhost:5000/api/groups', {
             cache: 'no-store',

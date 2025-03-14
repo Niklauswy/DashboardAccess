@@ -21,9 +21,6 @@ export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh, sessions 
 
   // Preparar datos combinados para exportación
   const exportData = [...activeSessions, ...completedSessions];
-  
-  // Solo mostrar el botón de exportación si hay datos
-  const hasDataToExport = exportData.length > 0;
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
