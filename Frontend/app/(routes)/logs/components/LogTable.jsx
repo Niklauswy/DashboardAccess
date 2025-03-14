@@ -7,7 +7,7 @@ import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell
 } from "@/components/ui/table";
 import { 
-  RefreshCw, ChevronDown, ArrowUpDown, DownloadIcon, User, Server, Calendar, Activity 
+  RefreshCw, ChevronDown, ArrowUpDown, DownloadIcon, User, Server, Calendar, Activity, Link2 
 } from 'lucide-react';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/data-table/TablePagination';
@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 
 export default function LogTable({ logs, isRefreshing, refreshLogs }) {
     // Use the pagination hook
-    const pagination = usePagination(logs, {
+    const pagination = usePagination(logs, {s
         initialPage: 1,
         initialPageSize: 20,
         pageSizeOptions: [10, 20, 50, 100],
