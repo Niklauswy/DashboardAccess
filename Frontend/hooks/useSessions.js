@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { formatDuration } from '@/lib/date-utils';
 
 export function useSessions() {
   const [sessions, setSessions] = useState({ active_sessions: [], completed_sessions: [] });
@@ -7,6 +6,14 @@ export function useSessions() {
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Function to format duration
+  const formatDuration = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
   // Function to fetch sessions data
   const fetchSessions = async (showRefreshing = true) => {
@@ -93,6 +100,7 @@ export function useSessions() {
     error,
     isRefreshing,
     lastUpdated,
-    refreshSessions: () => fetchSessions(true)
+    refreshSessions: () => fetchSessions(true),
+    formatDuration
   };
 }

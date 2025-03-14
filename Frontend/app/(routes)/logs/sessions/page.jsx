@@ -32,7 +32,6 @@ import { SessionsHeader } from "./components/SessionsHeader"
 import { SessionsFilters } from "./components/SessionsFilters"
 import { SessionsTableSkeleton } from "./components/SessionsTableSkeleton"
 import { TablePagination } from "@/components/data-table/TablePagination"
-import { getDateTimeDisplay } from "@/lib/date-utils"
 
 export default function SessionsPage() {
   const { 
@@ -82,7 +81,16 @@ export default function SessionsPage() {
     sortDirection: 'desc'
   });
 
-  // Get initials from username
+  // Formatear fecha y hora para mostrar
+  const formatDate = (dateString) => {
+    try {
+      return new Date(dateString).toLocaleString("es-ES");
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  // Iniciales del nombre de usuario
   const getInitials = (name) => {
     if (!name) return "U";
     return name.substring(0, 2).toUpperCase();
@@ -277,13 +285,23 @@ export default function SessionsPage() {
                         </TooltipProvider>
                       </TableCell>
                       <TableCell>
-                        {getDateTimeDisplay(session.start_time).render}
+                        <div className="flex flex-col">
+                          <span>{formatDate(session.start_time).split(",")[1]}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(session.start_time).split(",")[0]}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {session.status === "active" ? (
                           <span className="text-muted-foreground italic">Activa</span>
                         ) : (
-                          getDateTimeDisplay(session.end_time).render
+                          <div className="flex flex-col">
+                            <span>{formatDate(session.end_time).split(",")[1]}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDate(session.end_time).split(",")[0]}
+                            </span>
+                          </div>
                         )}
                       </TableCell>
                       <TableCell>
@@ -334,6 +352,7 @@ export default function SessionsPage() {
             </Table>
           </div>
 
+          {/* Pagination component */}
           <div className="px-4 py-2 border-t border-border bg-muted/10">
             <TablePagination
               currentPage={pagination.currentPage}
@@ -346,6 +365,25 @@ export default function SessionsPage() {
             />
           </div>
 
+          {/* Stats footer */}
+          <div className="p-4 border-t border-border bg-muted/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-sm text-muted-foreground">
+            <div>
+              Total sesiones: <span className="font-semibold">{filteredSessions.length}</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center">
+                <span className="relative flex h-2 w-2 mr-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                Activas: <span className="font-semibold ml-1">{sessions.active_sessions.length}</span>
+              </div>
+              <div className="flex items-center">
+                <CheckCircle className="h-3 w-3 text-blue-500 mr-1" />
+                Completadas: <span className="font-semibold ml-1">{sessions.completed_sessions.length}</span>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

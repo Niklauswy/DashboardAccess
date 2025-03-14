@@ -1,25 +1,25 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell
 } from "@/components/ui/table";
 import { 
-  RefreshCw, ChevronDown, ArrowUpDown, DownloadIcon, User, Server, Calendar, Activity, Link2, LogOut
+  RefreshCw, ChevronDown, ArrowUpDown, DownloadIcon, User, Server, Calendar, Activity, Link2 
 } from 'lucide-react';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/data-table/TablePagination';
 import { Badge } from '@/components/ui/badge';
-import { getDateTimeDisplay } from '@/lib/date-utils';
 
 export default function LogTable({ logs, isRefreshing, refreshLogs }) {
     // Use the pagination hook
-    const pagination = usePagination(logs, {
+    const pagination = usePagination(logs, {s
         initialPage: 1,
         initialPageSize: 20,
         pageSizeOptions: [10, 20, 50, 100],
-        sortKey: 'date',
+        sortKey: 'date', // Assuming there's a date field
         sortDirection: 'desc'
     });
 
@@ -44,10 +44,21 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
         </TableHead>
     );
 
+    // Format date and time for display
+    const formatDateTime = (dateStr) => {
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleString('es-ES');
+        } catch (e) {
+            return dateStr;
+        }
+    };
+
     // Get the appropriate badge color for the event type
     const getEventBadge = (event) => {
-        if (!event) return <Badge variant="outline">Desconocido</Badge>;        
-                
+    if (!event) return <Badge variant="outline">Desconocido</Badge>;        
+
+            
         const lowerEvent = event.toLowerCase();
     
         if (lowerEvent === 'disconnect') {
@@ -68,7 +79,8 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
           );
         }
      
-        return <Badge variant="outline">{event}</Badge>;
+         return <Badge variant="outline">{event}</Badge>;
+     
     };
 
     return (
@@ -110,19 +122,22 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
                                 pagination.pageItems.map((log, index) => (
                                     <TableRow key={`log-${index}`}>
                                         <TableCell>
-                                            {getDateTimeDisplay(log.date).render}
+                                            <div className="font-medium">{formatDateTime(log.date)}</div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="font-medium">{log.user}</div>
                                         </TableCell>
                                         <TableCell>
+                                     
+                                            <Badge>
                                             {getEventBadge(log.event)}
+                                            </Badge>
                                         </TableCell>
                                         <TableCell>{log.lab}</TableCell>
                                         <TableCell>
                                             <span className="font-mono text-sm">{log.ip}</span>
                                         </TableCell>
-                                        <TableCell>               
+                                        <TableCell>
                                             <div className="max-w-[300px] truncate">{log.details}</div>
                                         </TableCell>
                                     </TableRow>
