@@ -151,7 +151,7 @@ app.get('/api/users', (req, res) => {
   res.set('Expires', '0');
   
   // Ejecutamos el script sin usar caché
-  exec('perl scripts/getUsers.pl', { shell: '/bin/bash' }, (error, stdout, stderr) => {
+  exec('perl scripts/getUsers.pl', { shell: '/bin/bash' }, (error, stdout) => {
     if (error) {
       return res.status(500).json({ error: 'Error ejecutando comando' });
     }
@@ -304,7 +304,7 @@ app.all('*', (req, res) => {
 });
 
 // Security: Remove detailed error messages in production
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Error interno del servidor' });
 });
