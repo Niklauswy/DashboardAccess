@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { parseDate } from '@/lib/date-utils';
 
 export function usePagination(items, options = {}) {
   const {
@@ -44,16 +45,29 @@ export function usePagination(items, options = {}) {
     
     if (sort.key) {
       result.sort((a, b) => {
-        // Handle special cases for numeric values stored as strings
-        if (sort.key.includes('timestamp') || sort.key === 'duration') {
-          const aValue = typeof a[sort.key] === 'string' ? Number(a[sort.key]) : a[sort.key];
-          const bValue = typeof b[sort.key] === 'string' ? Number(b[sort.key]) : b[sort.key];
+        // Handle date fields (any field with 'date', 'time', or 'timestamp' in the name)
+        if (sort.key.toLowerCase().includes('date') || 
+            sort.key.toLowerCase().includes('time') || 
+            sort.key.toLowerCase().includes('timestamp')) {
+          
+          // Attempt to parse as dates for proper comparison
+          const aValue = parseDate(a[sort.key])?.getTime() || 0;
+          const bValue = parseDate(b[sort.key])?.getTime() || 0;
+          
           return sort.direction === 'asc' ? aValue - bValue : bValue - aValue;
+        }
+        
+        // Handle numeric values stored as strings
+        if (typeof a[sort.key] === 'string' && !isNaN(Number(a[sort.key]))) {
+          return sort.direction === 'asc' 
+            ? Number(a[sort.key]) - Number(b[sort.key]) 
+            : Number(b[sort.key]) - Number(a[sort.key]);
         }
         
         // Handle regular string comparison
         const aValue = String(a[sort.key] || '').toLowerCase();
         const bValue = String(b[sort.key] || '').toLowerCase();
+        
         return sort.direction === 'asc' 
           ? aValue.localeCompare(bValue) 
           : bValue.localeCompare(aValue);

@@ -32,14 +32,22 @@ import {
 import { usePagination } from "@/hooks/usePagination";
 import { TablePagination } from "@/components/data-table/TablePagination";
 import { Badge } from "@/components/ui/badge";
+import { DateTimeDisplay, parseDate } from "@/lib/date-utils";
 
 export default function LogTable({ logs, isRefreshing, refreshLogs }) {
-  // Use the pagination hook
-  const pagination = usePagination(logs, {
+  // Pre-procesar las fechas para el ordenamiento correcto
+  const processedLogs = logs.map(log => ({
+    ...log,
+    // Agregar campo para ordenamiento
+    sortDate: parseDate(log.date)?.getTime() || 0,
+  }));
+
+  // Use the pagination hook with processed logs
+  const pagination = usePagination(processedLogs, {
     initialPage: 1,
     initialPageSize: 20,
     pageSizeOptions: [10, 20, 50, 100],
-    sortKey: "date",
+    sortKey: "sortDate", // Usar el nuevo campo para ordenamiento
     sortDirection: "desc",
   });
 
@@ -75,7 +83,7 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
     }
   };
 
-
+  
   const getEventBadge = (event) => {
     if (!event) return <Badge variant="outline">Desconocido</Badge>;
 
@@ -173,12 +181,7 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
                 pagination.pageItems.map((log, index) => (
                   <TableRow key={`log-${index}`}>
                     <TableCell>
-                      <div className="flex flex-col">
-                        <span>{formatDate(log.time)}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatDate(log.date_only)}
-                        </span>
-                      </div>
+                      <DateTimeDisplay dateInput={log.date} />
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{log.user}</div>

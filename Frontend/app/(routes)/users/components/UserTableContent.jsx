@@ -1,3 +1,4 @@
+import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DateTimeDisplay } from '@/lib/date-utils';
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Check } from 'lucide-react';
 
 export default function UserTableContent({
     columns,
@@ -22,6 +26,38 @@ export default function UserTableContent({
     sortDirection,
     handleAction
 }) {
+    // Renderiza el valor de la celda según tipo
+    const renderCellValue = (user, column) => {
+        const value = user[column.name];
+        
+        switch (column.type) {
+            case 'text':
+                return value || '-';
+                
+            case 'boolean':
+                return value ? <Check className="mx-auto h-4 w-4 text-green-600" /> : null;
+                
+            case 'date':
+                return value ? <DateTimeDisplay dateInput={value} /> : '-';
+                
+            case 'badge':
+                return value ? <Badge>{value}</Badge> : '-';
+                
+            case 'avatar':
+                return (
+                    <Avatar className="h-8 w-8">
+                        <AvatarFallback>{(user.name || user.username || "U").charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                );
+                
+            case 'array':
+                return Array.isArray(value) ? value.join(', ') : '-';
+                
+            default:
+                return value || '-';
+        }
+    };
+
     return (
         <div className="rounded-lg border shadow overflow-hidden">
             <Table>
@@ -92,7 +128,7 @@ export default function UserTableContent({
                                                 ))}
                                             </div>
                                         ) : (
-                                            user[column.key]
+                                            renderCellValue(user, column)
                                         )}
                                     </TableCell>
                                 ))}

@@ -32,6 +32,7 @@ import { SessionsHeader } from "./components/SessionsHeader"
 import { SessionsFilters } from "./components/SessionsFilters"
 import { SessionsTableSkeleton } from "./components/SessionsTableSkeleton"
 import { TablePagination } from "@/components/data-table/TablePagination"
+import { DateTimeDisplay } from "@/lib/date-utils"
 
 export default function SessionsPage() {
   const { 
@@ -285,23 +286,13 @@ export default function SessionsPage() {
                         </TooltipProvider>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col">
-                          <span>{formatDate(session.start_time).split(",")[1]}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(session.start_time).split(",")[0]}
-                          </span>
-                        </div>
+                        <DateTimeDisplay dateInput={session.start_time} />
                       </TableCell>
                       <TableCell>
                         {session.status === "active" ? (
                           <span className="text-muted-foreground italic">Activa</span>
                         ) : (
-                          <div className="flex flex-col">
-                            <span>{formatDate(session.end_time).split(",")[1]}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDate(session.end_time).split(",")[0]}
-                            </span>
-                          </div>
+                          <DateTimeDisplay dateInput={session.end_time} />
                         )}
                       </TableCell>
                       <TableCell>
