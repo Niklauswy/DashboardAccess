@@ -33,6 +33,7 @@ import { usePagination } from "@/hooks/usePagination";
 import { TablePagination } from "@/components/data-table/TablePagination";
 import { Badge } from "@/components/ui/badge";
 import { DateTimeDisplay, parseDate } from "@/lib/date-utils";
+import { DataExport } from "@/components/data-export/DataExport";
 
 export default function LogTable({ logs, isRefreshing, refreshLogs }) {
   // Pre-procesar las fechas para el ordenamiento correcto
@@ -116,6 +117,16 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
     return <Badge variant="outline">{event}</Badge>;
   };
 
+  // Configurar columnas para exportación
+  const exportColumns = [
+    { key: "date", header: "Fecha y Hora" },
+    { key: "user", header: "Usuario" },
+    { key: "event", header: "Evento" },
+    { key: "lab", header: "Laboratorio" },
+    { key: "ip", header: "Dirección IP" },
+    { key: "details", header: "Detalles" }
+  ];
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -132,10 +143,16 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
             />
             Actualizar
           </Button>
-          <Button variant="outline" size="sm">
-            <DownloadIcon className="mr-2 h-4 w-4" />
-            Exportar
-          </Button>
+          
+          {/* Reemplazar el botón de exportar con nuestro componente */}
+          <DataExport 
+            data={logs}
+            columns={exportColumns}
+            filename="logs_actividad"
+            title="Registros de Actividad"
+            subtitle="Dashboard Access System"
+            className="h-9"
+          />
         </div>
       </CardHeader>
       <CardContent className="p-0">

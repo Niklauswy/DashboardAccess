@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, RefreshCw, MoreHorizontal, Download, Printer } from "lucide-react";
+import { ArrowLeft, RefreshCw, MoreHorizontal, Printer } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
@@ -11,8 +11,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DataExport } from "@/components/data-export/DataExport";
 
-export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh }) {
+export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh, sessions = { active_sessions: [], completed_sessions: [] } }) {
+  // Configuración de columnas para exportación
+  const exportColumns = [
+    { key: "username", header: "Usuario" },
+    { key: "ip", header: "Dirección IP" },
+    { key: "start_time", header: "Hora de inicio" },
+    { key: "end_time", header: "Hora de fin" },
+    { key: "duration_formatted", header: "Duración" },
+    { key: "status", header: "Estado" }
+  ];
+
+  // Preparar datos combinados para exportación
+  const exportData = [
+    ...sessions.active_sessions,
+    ...sessions.completed_sessions
+  ];
+
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div className="flex items-center gap-4">
@@ -55,6 +72,20 @@ export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh }) {
           </Tooltip>
         </TooltipProvider>
 
+        {/* Componente de exportación */}
+        <DataExport 
+          data={exportData}
+          columns={exportColumns}
+          filename="sesiones_usuarios"
+          title="Reporte de Sesiones de Usuario"
+          subtitle="Dashboard Access System"
+          logo={{
+            url: '/logo.png', // Asegúrate de tener un logo en tu proyecto
+            width: 30,
+            height: 30
+          }}
+        />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -70,10 +101,6 @@ export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh }) {
             <DropdownMenuLabel>Acciones de Sesión</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Download className="h-4 w-4 mr-2" />
-                Exportar CSV
-              </DropdownMenuItem>
               <DropdownMenuItem>
                 <Printer className="h-4 w-4 mr-2" />
                 Imprimir Sesiones

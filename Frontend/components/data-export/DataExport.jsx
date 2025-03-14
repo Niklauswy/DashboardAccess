@@ -1,0 +1,251 @@
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { 
+  Download, FileText, FileSpreadsheet, Loader2, 
+  Check, ChevronDown, Table as TableIcon, Settings
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "@/components/ui/use-toast";
+import { exportToPdf, exportToCsv, exportToExcel } from '@/lib/export-utils';
+
+/**
+ * Componente reutilizable para exportar datos en diferentes formatos
+ * 
+ * @param {Object} props - Propiedades del componente
+ * @param {Array} props.data - Datos a exportar
+ * @param {Array} props.columns - Definición de columnas
+ * @param {String} props.filename - Nombre del archivo (sin extensión)
+ * @param {String} props.title - Título para los reportes
+ * @param {String} props.subtitle - Subtítulo opcional para los reportes
+ * @param {Object} props.logo - Configuración del logo {url, width, height}
+ * @param {Object} props.options - Opciones adicionales de exportación
+ * @param {String} props.variant - Variante de UI: 'dropdown' (default) o 'buttons'
+ * @returns {JSX.Element} Componente de exportación de datos
+ */
+export function DataExport({
+  data = [],
+  columns = [],
+  filename = 'exportacion',
+  title = 'Reporte',
+  subtitle = '',
+  logo = null,
+  options = {},
+  variant = 'dropdown',
+  className = ''
+}) {
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportFormat, setExportFormat] = useState(null);
+  const [selectedColumns, setSelectedColumns] = useState(
+    columns.map(col => col.key || col.accessorKey || col.id)
+  );
+
+  // Función para alternar la selección de columnas
+  const toggleColumn = (key) => {
+    setSelectedColumns(prev => {
+      if (prev.includes(key)) {
+        return prev.filter(k => k !== key);
+      } else {
+        return [...prev, key];
+      }
+    });
+  };
+
+  // Función para exportar datos basada en el formato seleccionado
+  const handleExport = async (format) => {
+    if (!data || data.length === 0) {
+      toast({
+        title: "No hay datos para exportar",
+        description: "Por favor, asegúrese de que hay datos disponibles para exportar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      setExportFormat(format);
+      
+      // Filtrar columnas según la selección
+      const filteredColumns = columns.filter(col => 
+        selectedColumns.includes(col.key || col.accessorKey || col.id)
+      );
+      
+      // Elegir método de exportación según el formato
+      switch (format) {
+        case 'pdf':
+          await exportToPdf({
+            data, 
+            columns: filteredColumns, 
+            filename, 
+            title, 
+            subtitle,
+            logo,
+            ...options
+          });
+          break;
+        case 'csv':
+          exportToCsv({
+            data, 
+            columns: filteredColumns, 
+            filename,
+            ...options
+          });
+          break;
+        case 'excel':
+          await exportToExcel({
+            data, 
+            columns: filteredColumns, 
+            filename,
+            title,
+            ...options
+          });
+          break;
+        default:
+          throw new Error(`Formato de exportación no soportado: ${format}`);
+      }
+
+      toast({
+        title: "Exportación completada",
+        description: `Los datos han sido exportados en formato ${format.toUpperCase()}.`,
+      });
+    } catch (error) {
+      console.error("Error al exportar datos", error);
+      toast({
+        title: "Error en la exportación",
+        description: error.message || "Ocurrió un error al exportar los datos.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+      setExportFormat(null);
+    }
+  };
+
+  // Renderizar los botones individuales
+  if (variant === 'buttons') {
+    return (
+      <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleExport('pdf')}
+          disabled={isExporting}
+        >
+          {isExporting && exportFormat === 'pdf' ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <FileText className="mr-2 h-4 w-4" />
+          )}
+          PDF
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleExport('csv')}
+          disabled={isExporting}
+        >
+          {isExporting && exportFormat === 'csv' ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <FileText className="mr-2 h-4 w-4" />
+          )}
+          CSV
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleExport('excel')}
+          disabled={isExporting}
+        >
+          {isExporting && exportFormat === 'excel' ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+          )}
+          Excel
+        </Button>
+      </div>
+    );
+  }
+
+  // Renderizar menú desplegable (por defecto)
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          disabled={isExporting}
+          className={className}
+        >
+          {isExporting ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="mr-2 h-4 w-4" />
+          )}
+          Exportar
+          <ChevronDown className="ml-2 h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel>Opciones de Exportación</DropdownMenuLabel>
+        
+        <DropdownMenuSeparator />
+        
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Columnas</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent className="w-48 max-h-80 overflow-y-auto">
+              {columns.map(column => {
+                const key = column.key || column.accessorKey || column.id;
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={key}
+                    checked={selectedColumns.includes(key)}
+                    onCheckedChange={() => toggleColumn(key)}
+                  >
+                    {column.header || column.label || key}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
+        
+        <DropdownMenuSeparator />
+        
+        <DropdownMenuItem onClick={() => handleExport('pdf')}>
+          <FileText className="mr-2 h-4 w-4" />
+          <span>Exportar como PDF</span>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem onClick={() => handleExport('csv')}>
+          <TableIcon className="mr-2 h-4 w-4" />
+          <span>Exportar como CSV</span>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem onClick={() => handleExport('excel')}>
+          <FileSpreadsheet className="mr-2 h-4 w-4" />
+          <span>Exportar como Excel</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
