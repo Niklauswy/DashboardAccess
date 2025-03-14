@@ -259,12 +259,8 @@ export default function SessionsPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-3">
-            
                           <div>
                             <div className="font-medium">{session.username}</div>
-                            <div className="text-xs text-muted-foreground">Usuario</div>
-                          </div>
                         </div>
                       </TableCell>
                       <TableCell>

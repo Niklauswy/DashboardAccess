@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,13 +15,11 @@ const UserRow = ({ user, onEdit, selected, onToggleSelect }) => (
         aria-label={`Select ${user.username}`} 
       />
     </TableCell>
-    <TableCell className="hidden sm:table-cell">
-      <Image alt="Product image" className="aspect-square rounded-md object-cover" height="64"  src={`https://robohash.org/${user.name}?set=set1`}  width="64" />
-    </TableCell>
+
     <TableCell className="font-medium">{user.username}</TableCell>
     <TableCell className="font-medium">{user.givenName}</TableCell>
     <TableCell className="font-medium">{user.sn}</TableCell>
-    <TableCell><Badge variant="primary" className="bg-red-400 text-white">{user.ou}</Badge></TableCell>
+    <TableCell><Badge variant="primary">{user.ou}</Badge></TableCell>
     <TableCell>{user.logonCount}</TableCell>
     <TableCell>
       <DateTimeDisplay dateInput={user.lastLogon} />
