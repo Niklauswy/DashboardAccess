@@ -67,6 +67,15 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
     </TableHead>
   );
 
+  const formatDate = (dateString) => {
+    try {
+      return new Date(dateString).toLocaleString("es-ES");
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+
   const getEventBadge = (event) => {
     if (!event) return <Badge variant="outline">Desconocido</Badge>;
 
@@ -165,9 +174,9 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
                   <TableRow key={`log-${index}`}>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span>{log.time}</span>
+                        <span>{formatDate(log.time)}</span>
                         <span className="text-xs text-muted-foreground">
-                          {log.date_only}
+                          {formatDate(log.date_only)}
                         </span>
                       </div>
                     </TableCell>
