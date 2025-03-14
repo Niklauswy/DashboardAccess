@@ -1,16 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowLeft, RefreshCw, MoreHorizontal, Printer } from "lucide-react";
+import { ArrowLeft, RefreshCw } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { DataExport } from "@/components/data-export/DataExport";
 
 export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh, sessions = { active_sessions: [], completed_sessions: [] } }) {
@@ -25,11 +16,14 @@ export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh, sessions 
   ];
 
   // Asegurarse de que sessions tiene la estructura correcta antes de combinar datos
-  const activeSessions = sessions?.active_sessions || [];
-  const completedSessions = sessions?.completed_sessions || [];
+  const activeSessions = Array.isArray(sessions?.active_sessions) ? sessions.active_sessions : [];
+  const completedSessions = Array.isArray(sessions?.completed_sessions) ? sessions.completed_sessions : [];
 
   // Preparar datos combinados para exportación
   const exportData = [...activeSessions, ...completedSessions];
+  
+  // Solo mostrar el botón de exportación si hay datos
+  const hasDataToExport = exportData.length > 0;
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -48,16 +42,41 @@ export function SessionsHeader({ lastUpdated, isRefreshing, onRefresh, sessions 
       </div>
 
       <div className="flex items-center gap-2 w-full sm:w-auto">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-gray-300 hover:bg-gray-100 rounded-full h-9 w-9 p-0"
+                onClick={onRefresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                <span className="sr-only">Actualizar</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Actualizar datos de sesiones</p>
+              {lastUpdated && (
+                <p className="text-xs text-muted-foreground">
+                  Última actualización: {lastUpdated.toLocaleTimeString("es-ES")}
+                </p>
+              )}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
-
-        {/* Componente de exportación con verificación de datos vacíos */}
-        <DataExport 
-          data={exportData}
-          columns={exportColumns}
-          filename="sesiones_usuarios"
-          title="Reporte de Sesiones de Usuario"
-          subtitle="Facultad de Ciencias"
-        />
+        {/* Solo mostrar el componente de exportación si hay datos */}
+        {hasDataToExport && (
+          <DataExport 
+            data={exportData}
+            columns={exportColumns}
+            filename="sesiones_usuarios"
+            title="Reporte de Sesiones de Usuario"
+            subtitle="Facultad de Ciencias"
+          />
+        )}
       </div>
     </div>
   );

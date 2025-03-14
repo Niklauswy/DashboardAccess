@@ -18,7 +18,6 @@ import BatchActionDialog from "@/app/(routes)/users/components/BatchActionDialog
 import AddUserForm from "@/app/(routes)/users/components/AddUserForm";
 import EditUserForm from '@/app/(routes)/users/components/EditUserForm';
 import ProcessingDialog from '@/components/ProcessingDialog';
-import { useTooltip, TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 // Constants moved to a separate file and imported here
 import { columns, careerIcons } from "@/app/(routes)/users/components/userTableConstants";
@@ -182,31 +181,25 @@ export default function UserTable({ users, refreshUsers, isRefreshing }) {
 
     return (
         <div className="flex flex-col space-y-4">
-       
-            <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-gray-300 hover:bg-gray-100 rounded-full h-9 w-9 p-0"
-                onClick={refreshUsers}
-                disabled={isRefreshing}
-              >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                <span className="sr-only">Actualizar</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Actualizar datos de usuarios</p>
-              {lastUpdated && (
-                <p className="text-xs text-muted-foreground">
-                  Última actualización: {lastUpdated.toLocaleTimeString("es-ES")}
-                </p>
-              )}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+            {/* Primera fila: Input de búsqueda y botón de actualizar */}
+            <div className="flex justify-between items-center gap-4">
+                <Input
+                    placeholder="Filtrar usuarios..."
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                    className="max-w-md flex-1"
+                />
+                
+                <Button 
+                    variant="outline" 
+                    onClick={refreshUsers} 
+                    disabled={isRefreshing}
+                    className="gap-2 ml-auto whitespace-nowrap"
+                >
+                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    {isRefreshing ? 'Actualizando...' : 'Actualizar'}
+                </Button>
+            </div>
 
             {/* Segunda fila: Filtros y acciones */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0 gap-4">
