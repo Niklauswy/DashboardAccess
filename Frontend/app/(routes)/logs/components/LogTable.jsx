@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 
 export default function LogTable({ logs, isRefreshing, refreshLogs }) {
     // Use the pagination hook
-    const pagination = usePagination(logs, {s
+    const pagination = usePagination(logs, {
         initialPage: 1,
         initialPageSize: 20,
         pageSizeOptions: [10, 20, 50, 100],
