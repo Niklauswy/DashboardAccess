@@ -365,25 +365,6 @@ export default function SessionsPage() {
             />
           </div>
 
-          {/* Stats footer */}
-          <div className="p-4 border-t border-border bg-muted/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-sm text-muted-foreground">
-            <div>
-              Total sesiones: <span className="font-semibold">{filteredSessions.length}</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center">
-                <span className="relative flex h-2 w-2 mr-1">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                </span>
-                Activas: <span className="font-semibold ml-1">{sessions.active_sessions.length}</span>
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="h-3 w-3 text-blue-500 mr-1" />
-                Completadas: <span className="font-semibold ml-1">{sessions.completed_sessions.length}</span>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
 

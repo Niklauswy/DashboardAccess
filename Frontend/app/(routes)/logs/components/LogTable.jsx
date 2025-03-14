@@ -44,15 +44,6 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
         </TableHead>
     );
 
-    // Format date and time for display
-    const formatDateTime = (dateStr) => {
-        try {
-            const date = new Date(dateStr);
-            return date.toLocaleString('es-ES');
-        } catch (e) {
-            return dateStr;
-        }
-    };
 
     const getEventBadge = (event) => {
     if (!event) return <Badge variant="outline">Desconocido</Badge>;        
@@ -120,7 +111,13 @@ export default function LogTable({ logs, isRefreshing, refreshLogs }) {
                                 pagination.pageItems.map((log, index) => (
                                     <TableRow key={`log-${index}`}>
                                         <TableCell>
-                                            <div className="font-medium">{formatDateTime(log.date)}</div>
+                                            <div className="font-medium">{log.date}</div>
+                                            <div className="flex flex-col">
+                          <span>{log.time}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {log.date_only}
+                          </span>
+                        </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="font-medium">{log.user}</div>
