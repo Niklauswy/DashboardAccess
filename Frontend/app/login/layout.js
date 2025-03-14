@@ -3,10 +3,7 @@ export const metadata = {
   description: 'Inicia sesión con tus credenciales para acceder al sistmea de registros de la Universidad Autónoma de Baja California',
 }
 
-export default function RootLayout({ children }) {
-  return (
-      <html lang="es">
-      <body>{children}</body>
-      </html>
-  )
+export default function LoginLayout({ children }) {
+
+  return children;
 }
