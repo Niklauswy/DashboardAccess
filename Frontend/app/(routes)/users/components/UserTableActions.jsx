@@ -54,11 +54,7 @@ export default function UserTableActions({ columns, visibleColumns, toggleColumn
         filename="usuarios_sistema"
         title="Reporte de Usuarios del Sistema"
         subtitle="Dashboard Access System"
-        logo={{
-          url: '/logo.png',
-          width: 30,
-          height: 30
-        }}
+ 
         // Opciones para PDF
         options={{
           orientation: 'landscape',
